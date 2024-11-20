@@ -8,4 +8,4 @@ const app = express();
 app.use(express.json());
 app.use(cors());
 
-app.listen(PORT, () => console.log(`app is listning on ${PORT}`));
+app.listen(PORT, () => console.log(`app is listening on ${PORT}`));

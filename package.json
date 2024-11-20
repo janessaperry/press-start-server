@@ -5,7 +5,9 @@
 	"type": "module",
 	"scripts": {
 		"start": "node server.js",
-		"dev": "node --watch server.js"
+		"dev": "node --watch server.js",
+		"db:migrate": "knex migrate:latest",
+		"db:seed": "knex seed:run"
 	},
 	"author": "Janessa Perry",
 	"license": "ISC",
@@ -14,6 +16,8 @@
 		"axios": "^1.7.7",
 		"cors": "^2.8.5",
 		"dotenv": "^16.4.5",
-		"express": "^4.21.1"
+		"express": "^4.21.1",
+		"knex": "^3.1.0",
+		"mysql2": "^3.11.4"
 	}
 }
