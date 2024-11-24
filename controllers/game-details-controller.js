@@ -100,7 +100,8 @@ function filterAgeRatings(allAgeRatings) {
 function filterValidPlatforms(allPlatforms) {
 	return allPlatforms
 		?.map((platform) => validConsoleMap[platform.id])
-		.filter((platform) => platform);
+		.filter((platform) => platform)
+		.sort();
 }
 
 function getSimilarGames(similarGames) {
