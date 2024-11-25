@@ -15,6 +15,8 @@ export function up(knex) {
 		table.string("gameStatus").notNullable();
 		table.string("gameConsole");
 		table.string("gameFormat");
+		table.timestamp("createdAt").defaultTo(knex.fn.now());
+		table.timestamp("updatedAt").defaultTo(knex.fn.now());
 	});
 }
 
