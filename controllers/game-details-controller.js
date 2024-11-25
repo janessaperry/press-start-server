@@ -10,7 +10,6 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const getGameDetails = async (req, res) => {
 	const userId = req.userId;
 	const { gameId } = req.params;
-	console.log(userId);
 
 	const collectionData = await knex("game_collection").where({
 		userId: userId,
@@ -53,10 +52,6 @@ const getGameDetails = async (req, res) => {
 			const response = await axios.request(config);
 			const game = response.data.find((game) => game.id === parseInt(gameId));
 
-			const gameDeveloper = game.involved_companies?.find(
-				(involvedCompany) => involvedCompany.developer
-			);
-
 			const genres = game.genres?.map((genre) => genre.name);
 
 			//todo add logic to check if not blank too
@@ -66,7 +61,7 @@ const getGameDetails = async (req, res) => {
 				cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
 				esrbRating: filterAgeRatings(game.age_ratings),
 				name: game.name,
-				developer: gameDeveloper?.company.name,
+				developer: getGameDeveloper(game.involved_companies),
 				releaseDate: formatReleaseDate(game.first_release_date),
 				summary: game.summary || game.storyline,
 				rating: Math.round(game.aggregated_rating) || "n/a",
@@ -94,7 +89,9 @@ const getGameDetails = async (req, res) => {
 export { getGameDetails };
 
 function generateGameCoverUrl(url, size) {
-	return url.replace("thumb", size);
+	return url
+		? url.replace("thumb", size)
+		: "http://localhost:8080/images/no-cover.png";
 }
 
 function filterAgeRatings(allAgeRatings) {
@@ -127,20 +124,32 @@ function getSimilarGames(similarGames) {
 				releaseDate: game.first_release_date,
 			};
 		})
-		.filter((game) => game.platforms.length > 0);
+		.filter((game) => game.platforms?.length > 0);
+}
+
+function getGameDeveloper(companies) {
+	const developerInfo = companies?.find(
+		(involvedCompany) => involvedCompany.developer
+	);
+	return developerInfo?.company
+		? developerInfo.company.name
+		: "Unknown developer";
 }
 
 function formatReleaseDate(timestamp) {
-	const releasedTimestamp =
-		String(timestamp).length === 10 ? timestamp * 1000 : timestamp;
+	if (timestamp) {
+		const releasedTimestamp =
+			String(timestamp).length === 10 ? timestamp * 1000 : timestamp;
 
-	return new Intl.DateTimeFormat("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	}).format(releasedTimestamp);
+		return new Intl.DateTimeFormat("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		}).format(releasedTimestamp);
+	} else {
+		return "TBD";
+	}
 }
-
 //todo want to add this?
 //games can be part of more than one franchise
 // function getFranchiseGames(similarGames) {
