@@ -1,5 +1,4 @@
 import { validConsoleMap } from "../data-cleaning/valid-consoles.js";
-
 import initKnex from "knex";
 import configuration from "../knexfile.js";
 const knex = initKnex(configuration);
@@ -8,7 +7,7 @@ const CLIENT_ID = process.env.CLIENT_ID;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 const getGameCollection = async (req, res) => {
-	const { userId } = req.params;
+	const userId = req.userId;
 
 	try {
 		const collectionData = await knex("game_collection").where({
@@ -16,6 +15,7 @@ const getGameCollection = async (req, res) => {
 		});
 
 		const gameIds = getGameIdQueries(collectionData);
+
 		function getGameIdQueries(allData) {
 			let gameIdString = "";
 			for (let i = 0; i < allData.length; i++) {
@@ -91,6 +91,7 @@ const getGameCollection = async (req, res) => {
 						genres: game.genres?.map((genre) => genre.name),
 						platforms: filterValidPlatforms(game.platforms),
 						timeToBeat: secondsToHours(timeToBeatInfo?.normally) || "n/a",
+						gameFormats: ["Digital", "Physical"],
 						collectionData: getCollectionData(collectionData, game.id),
 					};
 				});
@@ -109,13 +110,48 @@ const getGameCollection = async (req, res) => {
 	} catch (error) {
 		console.error(error);
 		res.status(500).send({
-			message: "Error fetching game collection for user",
+			message: `Error fetching game collection for user ${userId}`,
 		});
 	}
 };
 
+const addGame = async (req, res) => {
+	const userId = req.userId;
+	const requestBody = req.body;
+	console.log(requestBody);
+
+	if (!requestBody.gameStatus) {
+		requestBody.gameStatus = "Want to play";
+	}
+	console.log(requestBody.gameStatus);
+
+	try {
+		await knex("game_collection").insert({
+			userId: userId,
+			gameId: requestBody.gameId,
+			gameStatus: requestBody.gameStatus,
+			gameConsole: requestBody.gameConsole,
+			gameFormat: requestBody.gameFormat,
+		});
+
+		res.status(200).json({
+			message: `Added game ${requestBody.gameId} to collection`,
+			userId: userId,
+			gameId: requestBody.gameId,
+			gameStatus: requestBody.gameStatus,
+			gameConsole: requestBody.gameConsole,
+			gameFormat: requestBody.gameFormat,
+		});
+	} catch (error) {
+		res
+			.status(500)
+			.json({ message: `Error adding game ${requestBody.gameId}` });
+	}
+};
+
 const updateGame = async (req, res) => {
-	const { userId, gameId } = req.params;
+	const userId = req.userId;
+	const { gameId } = req.params;
 	const requestBody = req.body;
 
 	try {
@@ -133,7 +169,8 @@ const updateGame = async (req, res) => {
 };
 
 const deleteGame = async (req, res) => {
-	const { userId, gameId } = req.params;
+	const userId = req.userId;
+	const { gameId } = req.params;
 	try {
 		await knex("game_collection")
 			.where({
@@ -147,7 +184,7 @@ const deleteGame = async (req, res) => {
 	}
 };
 
-export { getGameCollection, updateGame, deleteGame };
+export { getGameCollection, addGame, updateGame, deleteGame };
 
 function generateGameCoverUrl(url, size) {
 	return url.replace("thumb", size);
