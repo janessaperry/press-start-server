@@ -5,8 +5,6 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 const searchGames = async (req, res) => {
 	const { query } = req.body;
-	console.log("REQBODY", query);
-
 	const currentTimestamp = Math.floor(Date.now() / 1000);
 
 	const queries = query
@@ -47,8 +45,6 @@ const searchGames = async (req, res) => {
 	async function searchForGame() {
 		try {
 			const response = await axios.request(config);
-			console.log(response.data);
-
 			const searchResults = response.data.map((result) => {
 				return {
 					id: result.id,
@@ -58,7 +54,7 @@ const searchGames = async (req, res) => {
 				};
 			});
 
-			res.json(searchResults);
+			res.status(200).json(searchResults);
 		} catch (error) {
 			console.log(error);
 		}
