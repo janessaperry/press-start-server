@@ -90,7 +90,7 @@ const getGameCollection = async (req, res) => {
 						rating: Math.round(game.aggregated_rating) || "n/a",
 						genres: game.genres?.map((genre) => genre.name),
 						platforms: filterValidPlatforms(game.platforms),
-						timeToBeat: secondsToHours(timeToBeatInfo?.normally) || "n/a",
+						timeToBeat: getTimeToBeat(timeToBeatInfo?.normally),
 						gameFormats: ["Digital", "Physical"],
 						collectionData: getCollectionData(collectionData, game.id),
 					};
@@ -187,29 +187,41 @@ const deleteGame = async (req, res) => {
 export { getGameCollection, addGame, updateGame, deleteGame };
 
 function generateGameCoverUrl(url, size) {
-	return url.replace("thumb", size);
+	return url
+		? url.replace("thumb", size)
+		: "http://localhost:8080/images/no-cover.png";
 }
 
 function formatReleaseDate(timestamp) {
-	const releasedTimestamp =
-		String(timestamp).length === 10 ? timestamp * 1000 : timestamp;
+	if (timestamp) {
+		const releasedTimestamp =
+			String(timestamp).length === 10 ? timestamp * 1000 : timestamp;
 
-	return new Intl.DateTimeFormat("en-US", {
-		month: "short",
-		day: "numeric",
-		year: "numeric",
-	}).format(releasedTimestamp);
+		return new Intl.DateTimeFormat("en-US", {
+			month: "short",
+			day: "numeric",
+			year: "numeric",
+		}).format(releasedTimestamp);
+	} else {
+		return "TBD";
+	}
 }
 
 function getGameDeveloper(companies) {
 	const developerInfo = companies?.find(
 		(involvedCompany) => involvedCompany.developer
 	);
-	return developerInfo.company.name;
+	return developerInfo?.company
+		? developerInfo.company.name
+		: "Unknown developer";
 }
 
 function secondsToHours(seconds) {
 	return Math.round(seconds / 3600);
+}
+
+function getTimeToBeat(timeInSeconds) {
+	return timeInSeconds ? `${secondsToHours(timeInSeconds)} hours` : "TBD";
 }
 
 function filterValidPlatforms(allPlatforms) {
