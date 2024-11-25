@@ -1,11 +1,20 @@
 import { validConsoleMap } from "../data-cleaning/valid-consoles.js";
+import initKnex from "knex";
+import configuration from "../knexfile.js";
+const knex = initKnex(configuration);
 import axios from "axios";
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 const getGameDetails = async (req, res) => {
+	const userId = req.userId;
 	const { gameId } = req.params;
+	console.log(userId);
+
+	const collectionData = await knex("game_collection").where({
+		userId: userId,
+	});
 
 	let data = `
 		fields 
@@ -60,11 +69,13 @@ const getGameDetails = async (req, res) => {
 				developer: gameDeveloper?.company.name,
 				releaseDate: formatReleaseDate(game.first_release_date),
 				summary: game.summary || game.storyline,
-				rating: Math.round(game.aggregated_rating),
+				rating: Math.round(game.aggregated_rating) || "n/a",
 				platforms: filterValidPlatforms(game.platforms),
 				genres: genres,
 				franchises: game.franchises,
 				similarGames: getSimilarGames(game.similar_games),
+				gameFormats: ["Digital", "Physical"],
+				collectionData: getCollectionData(collectionData, game.id),
 			};
 
 			res.json(responseObject);
@@ -185,3 +196,14 @@ function formatReleaseDate(timestamp) {
  * 		}, ...
  * ]
  */
+
+function getCollectionData(collectionData, gameId) {
+	for (let collectionGame of collectionData)
+		if (collectionGame.gameId === gameId) {
+			return {
+				gameConsole: collectionGame.gameConsole,
+				gameFormat: collectionGame.gameFormat,
+				gameStatus: collectionGame.gameStatus,
+			};
+		}
+}
