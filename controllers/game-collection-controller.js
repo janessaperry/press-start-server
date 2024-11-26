@@ -19,9 +19,7 @@ const getGameCollection = async (req, res) => {
 				userId: userId,
 			})
 			.orderBy("createdAt", "asc");
-		console.log(collectionData);
 
-		//this is also fine
 		const gameStatusStats = await knex("game_collection")
 			.where({
 				userId: userId,
@@ -37,7 +35,7 @@ const getGameCollection = async (req, res) => {
 
 		//todo split this out into pages here so we have correct games for each api call?
 		const gameIds = getGameIdQueries(collectionData);
-		console.log("GAME IDS FROM COLLECTION", gameIds);
+		// console.log("GAME IDS FROM COLLECTION", gameIds);
 
 		function getGameIdQueries(allData) {
 			let gameIdString = "";
@@ -80,8 +78,7 @@ const getGameCollection = async (req, res) => {
 			completely,
 			normally;
 			where game_id = ${gameIds};
-			limit ${limit};
-			offset ${offset};
+			limit 100;
 			`;
 
 		let timeToBeatConfig = {
@@ -103,17 +100,11 @@ const getGameCollection = async (req, res) => {
 
 				const timeToBeatResponse = await axios.request(timeToBeatConfig);
 				const timeToBeatData = timeToBeatResponse.data;
-				gamesData.sort((a, b) => {
-					return a.game_id - b.game_id;
-				});
-				console.log("gamesData", gamesData);
-				console.log("timeToBeatData", timeToBeatData);
 
 				const gameData = gamesData.map((game) => {
-					const timeToBeatInfo = timeToBeatData.find(
+					let timeToBeatInfo = timeToBeatData.find(
 						(ttb) => ttb.game_id === game.id
 					);
-					// console.log(game.id, game.name, timeToBeatInfo);
 
 					return {
 						id: game.id,
@@ -160,7 +151,7 @@ const getGameCollection = async (req, res) => {
 const addGame = async (req, res) => {
 	const userId = req.userId;
 	const requestBody = req.body;
-	console.log(requestBody);
+	// console.log(requestBody);
 
 	if (!requestBody.gameStatus) {
 		requestBody.gameStatus = "Want to play";
@@ -262,7 +253,7 @@ function secondsToHours(seconds) {
 }
 
 function getTimeToBeat(timeInSeconds) {
-	console.log(timeInSeconds);
+	// console.log(timeInSeconds);
 	return timeInSeconds ? `${secondsToHours(timeInSeconds)} hours` : "TBD";
 }
 
