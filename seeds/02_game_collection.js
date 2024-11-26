@@ -12,6 +12,7 @@ export async function seed(knex) {
 			gameStatus: "Want to play",
 			gameConsole: "PS5",
 			gameFormat: "Physical",
+			createdAt: new Date("2024-11-01T10:00:00Z"),
 		},
 		{
 			id: 2,
@@ -20,6 +21,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Switch",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-02T11:00:00Z"),
 		},
 		{
 			id: 3,
@@ -28,6 +30,7 @@ export async function seed(knex) {
 			gameStatus: "Playing",
 			gameConsole: "Xbox X|S",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-03T12:00:00Z"),
 		},
 		{
 			id: 4,
@@ -36,6 +39,7 @@ export async function seed(knex) {
 			gameStatus: "Want to play",
 			gameConsole: "Switch",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-04T13:00:00Z"),
 		},
 		{
 			id: 5,
@@ -44,6 +48,7 @@ export async function seed(knex) {
 			gameStatus: "Wishlist",
 			gameConsole: null,
 			gameFormat: null,
+			createdAt: new Date("2024-11-05T14:00:00Z"),
 		},
 		{
 			id: 6,
@@ -52,6 +57,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "PC",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-06T15:00:00Z"),
 		},
 		{
 			id: 7,
@@ -60,6 +66,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Xbox 360",
 			gameFormat: "Physical",
+			createdAt: new Date("2024-11-07T16:00:00Z"),
 		},
 		{
 			id: 8,
@@ -68,6 +75,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Xbox 360",
 			gameFormat: "Physical",
+			createdAt: new Date("2024-11-08T17:00:00Z"),
 		},
 		{
 			id: 9,
@@ -76,6 +84,7 @@ export async function seed(knex) {
 			gameStatus: "Want to play",
 			gameConsole: "Switch",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-09T18:00:00Z"),
 		},
 		{
 			id: 10,
@@ -84,6 +93,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Switch",
 			gameFormat: "Physical",
+			createdAt: new Date("2024-11-10T19:00:00Z"),
 		},
 		{
 			id: 11,
@@ -92,6 +102,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Switch",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-11T20:00:00Z"),
 		},
 		{
 			id: 12,
@@ -100,6 +111,7 @@ export async function seed(knex) {
 			gameStatus: "Playing",
 			gameConsole: "Switch",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-10-30T21:00:00Z"),
 		},
 		{
 			id: 13,
@@ -108,6 +120,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "PS5",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-13T22:00:00Z"),
 		},
 		{
 			id: 14,
@@ -116,6 +129,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Xbox One",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-14T23:00:00Z"),
 		},
 		{
 			id: 15,
@@ -124,6 +138,7 @@ export async function seed(knex) {
 			gameStatus: "Played",
 			gameConsole: "Xbox One",
 			gameFormat: "Digital",
+			createdAt: new Date("2024-11-15T00:00:00Z"),
 		},
 	]);
 }
