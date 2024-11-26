@@ -8,11 +8,29 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 
 const getGameCollection = async (req, res) => {
 	const userId = req.userId;
+	const { page } = req.params;
+	const limit = 10;
+	const offset = limit * (page - 1);
 
 	try {
-		const collectionData = await knex("game_collection").where({
-			userId: userId,
-		});
+		const collectionData = await knex("game_collection")
+			.where({
+				userId: userId,
+			})
+			.orderBy("createdAt", "asc");
+
+		const gameStatusStats = await knex("game_collection")
+			.where({
+				userId: userId,
+			})
+			.select("gameStatus")
+			.count("gameStatus as value")
+			.groupBy("gameStatus")
+			.then((gameStatusArray) => {
+				return gameStatusArray.map((statusInfo) => {
+					return { [statusInfo.gameStatus]: statusInfo.value };
+				});
+			});
 
 		const gameIds = getGameIdQueries(collectionData);
 
@@ -23,6 +41,7 @@ const getGameCollection = async (req, res) => {
 			}
 			return `( ${gameIdString.slice(0, -1)} )`;
 		}
+		console.log(collectionData.length);
 
 		let gameCardData = `
 			fields 
@@ -34,6 +53,8 @@ const getGameCollection = async (req, res) => {
 			platforms.id,
 			genres.name;
 			where id = ${gameIds};
+			limit ${limit};
+			offset ${offset};
 		`;
 
 		let gameCardConfig = {
@@ -76,7 +97,7 @@ const getGameCollection = async (req, res) => {
 				const timeToBeatResponse = await axios.request(timeToBeatConfig);
 				const timeToBeatData = timeToBeatResponse.data;
 
-				const responseObject = gamesData.map((game) => {
+				const gameData = gamesData.map((game) => {
 					const timeToBeatInfo = timeToBeatData.find(
 						(ttb) => ttb.game_id === game.id
 					);
@@ -96,7 +117,15 @@ const getGameCollection = async (req, res) => {
 					};
 				});
 
-				res.json(responseObject);
+				const fullResponse = {
+					collectionStats: {
+						totalGames: collectionData.length,
+						gameStatusStats,
+					},
+					gameData,
+				};
+
+				res.json(fullResponse);
 			} catch (error) {
 				res.json({
 					status: "500",
@@ -123,7 +152,6 @@ const addGame = async (req, res) => {
 	if (!requestBody.gameStatus) {
 		requestBody.gameStatus = "Want to play";
 	}
-	console.log(requestBody.gameStatus);
 
 	try {
 		await knex("game_collection").insert({
