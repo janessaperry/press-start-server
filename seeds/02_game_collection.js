@@ -71,11 +71,11 @@ export async function seed(knex) {
 		},
 		{
 			id: 9,
-			userId: 3,
-			gameId: 472,
-			gameStatus: "Played",
-			gameConsole: "Xbox 360",
-			gameFormat: "Physical",
+			userId: 1,
+			gameId: 228528,
+			gameStatus: "Want to play",
+			gameConsole: "Switch",
+			gameFormat: "Digital",
 		},
 		{
 			id: 10,
