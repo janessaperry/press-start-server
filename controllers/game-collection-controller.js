@@ -13,12 +13,15 @@ const getGameCollection = async (req, res) => {
 	const offset = limit * (page - 1);
 
 	try {
+		//todo this is sorted correctly - is this where i would apply filters from front end?
 		const collectionData = await knex("game_collection")
 			.where({
 				userId: userId,
 			})
 			.orderBy("createdAt", "asc");
+		console.log(collectionData);
 
+		//this is also fine
 		const gameStatusStats = await knex("game_collection")
 			.where({
 				userId: userId,
@@ -28,11 +31,13 @@ const getGameCollection = async (req, res) => {
 			.groupBy("gameStatus")
 			.then((gameStatusArray) => {
 				return gameStatusArray.map((statusInfo) => {
-					return { [statusInfo.gameStatus]: statusInfo.value };
+					return { status: statusInfo.gameStatus, count: statusInfo.value };
 				});
 			});
 
+		//todo split this out into pages here so we have correct games for each api call?
 		const gameIds = getGameIdQueries(collectionData);
+		console.log("GAME IDS FROM COLLECTION", gameIds);
 
 		function getGameIdQueries(allData) {
 			let gameIdString = "";
@@ -41,8 +46,8 @@ const getGameCollection = async (req, res) => {
 			}
 			return `( ${gameIdString.slice(0, -1)} )`;
 		}
-		console.log(collectionData.length);
 
+		//todo limit and offset for these are not aligned - api returns different game ids for each call...
 		let gameCardData = `
 			fields 
 			cover.url,
@@ -75,7 +80,9 @@ const getGameCollection = async (req, res) => {
 			completely,
 			normally;
 			where game_id = ${gameIds};
-		`;
+			limit ${limit};
+			offset ${offset};
+			`;
 
 		let timeToBeatConfig = {
 			method: "post",
@@ -96,11 +103,17 @@ const getGameCollection = async (req, res) => {
 
 				const timeToBeatResponse = await axios.request(timeToBeatConfig);
 				const timeToBeatData = timeToBeatResponse.data;
+				gamesData.sort((a, b) => {
+					return a.game_id - b.game_id;
+				});
+				console.log("gamesData", gamesData);
+				console.log("timeToBeatData", timeToBeatData);
 
 				const gameData = gamesData.map((game) => {
 					const timeToBeatInfo = timeToBeatData.find(
 						(ttb) => ttb.game_id === game.id
 					);
+					// console.log(game.id, game.name, timeToBeatInfo);
 
 					return {
 						id: game.id,
@@ -249,6 +262,7 @@ function secondsToHours(seconds) {
 }
 
 function getTimeToBeat(timeInSeconds) {
+	console.log(timeInSeconds);
 	return timeInSeconds ? `${secondsToHours(timeInSeconds)} hours` : "TBD";
 }
 
