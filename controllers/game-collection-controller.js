@@ -1,10 +1,16 @@
-import { validConsoleMap } from "../data-cleaning/valid-consoles.js";
 import initKnex from "knex";
 import configuration from "../knexfile.js";
 const knex = initKnex(configuration);
 import axios from "axios";
-const CLIENT_ID = process.env.CLIENT_ID;
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+import {
+	generateGameCoverUrl,
+	formatReleaseDate,
+	getGameDeveloper,
+	getTimeToBeat,
+	filterValidPlatforms,
+	getCollectionData,
+} from "../utils/gameUtils.js";
+import { apiConfig } from "../utils/apiConfig.js";
 
 const getGameCollection = async (req, res) => {
 	const userId = req.userId;
@@ -73,7 +79,7 @@ const getGameCollection = async (req, res) => {
 		}
 	}
 
-	let gameCardData = `
+	const gameCardData = `
 			fields 
 			cover.url,
 			name,
@@ -87,19 +93,13 @@ const getGameCollection = async (req, res) => {
 			offset ${offset};
 		`;
 
-	let gameCardConfig = {
-		method: "post",
-		maxBodyLength: Infinity,
+	const gameCardConfig = {
+		...apiConfig,
 		url: "https://api.igdb.com/v4/games",
-		headers: {
-			"Client-ID": CLIENT_ID,
-			Authorization: ACCESS_TOKEN,
-			"Content-Type": "text/plain",
-		},
 		data: gameCardData,
 	};
 
-	let timeToBeatData = `
+	const timeToBeatData = `
 			fields 
 			game_id,
 			completely,
@@ -108,15 +108,9 @@ const getGameCollection = async (req, res) => {
 			limit 100;
 			`;
 
-	let timeToBeatConfig = {
-		method: "post",
-		maxBodyLength: Infinity,
+	const timeToBeatConfig = {
+		...apiConfig,
 		url: "https://api.igdb.com/v4/game_time_to_beats",
-		headers: {
-			"Client-ID": CLIENT_ID,
-			Authorization: ACCESS_TOKEN,
-			"Content-Type": "text/plain",
-		},
 		data: timeToBeatData,
 	};
 
@@ -171,7 +165,6 @@ const getGameCollection = async (req, res) => {
 const addGame = async (req, res) => {
 	const userId = req.userId;
 	const requestBody = req.body;
-	// console.log(requestBody);
 
 	if (!requestBody.gameStatus) {
 		requestBody.gameStatus = "Want to play";
@@ -237,60 +230,3 @@ const deleteGame = async (req, res) => {
 };
 
 export { getGameCollection, addGame, updateGame, deleteGame };
-
-function generateGameCoverUrl(url, size) {
-	return url
-		? url.replace("thumb", size)
-		: "http://localhost:8080/images/no-cover.png";
-}
-
-function formatReleaseDate(timestamp) {
-	if (timestamp) {
-		const releasedTimestamp =
-			String(timestamp).length === 10 ? timestamp * 1000 : timestamp;
-
-		return new Intl.DateTimeFormat("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-		}).format(releasedTimestamp);
-	} else {
-		return "TBD";
-	}
-}
-
-function getGameDeveloper(companies) {
-	const developerInfo = companies?.find(
-		(involvedCompany) => involvedCompany.developer
-	);
-	return developerInfo?.company
-		? developerInfo.company.name
-		: "Unknown developer";
-}
-
-function secondsToHours(seconds) {
-	return Math.round(seconds / 3600);
-}
-
-function getTimeToBeat(timeInSeconds) {
-	// console.log(timeInSeconds);
-	return timeInSeconds ? `${secondsToHours(timeInSeconds)} hours` : "TBD";
-}
-
-function filterValidPlatforms(allPlatforms) {
-	return allPlatforms
-		?.map((platform) => validConsoleMap[platform.id])
-		.filter((platform) => platform)
-		.sort();
-}
-
-function getCollectionData(collectionData, gameId) {
-	for (let collectionGame of collectionData)
-		if (collectionGame.gameId === gameId) {
-			return {
-				gameConsole: collectionGame.gameConsole,
-				gameFormat: collectionGame.gameFormat,
-				gameStatus: collectionGame.gameStatus,
-			};
-		}
-}

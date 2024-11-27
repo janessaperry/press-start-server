@@ -1,7 +1,9 @@
-import { validConsoleMap } from "../data-cleaning/valid-consoles.js";
 import axios from "axios";
-const CLIENT_ID = process.env.CLIENT_ID;
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+import {
+	generateGameCoverUrl,
+	filterValidPlatforms,
+} from "../utils/gameUtils.js";
+import { apiConfig } from "../utils/apiConfig.js";
 
 const searchGames = async (req, res) => {
 	const { query } = req.body;
@@ -31,14 +33,8 @@ const searchGames = async (req, res) => {
 		& ${queries};`;
 
 	let config = {
-		method: "post",
-		maxBodyLength: Infinity,
+		...apiConfig,
 		url: "https://api.igdb.com/v4/games",
-		headers: {
-			"Client-ID": CLIENT_ID,
-			Authorization: ACCESS_TOKEN,
-			"Content-Type": "text/plain",
-		},
 		data: data,
 	};
 
@@ -64,16 +60,3 @@ const searchGames = async (req, res) => {
 };
 
 export { searchGames };
-
-function generateGameCoverUrl(url, size) {
-	return url
-		? url.replace("thumb", size)
-		: "http://localhost:8080/images/no-cover.png";
-}
-
-function filterValidPlatforms(allPlatforms) {
-	return allPlatforms
-		?.map((platform) => validConsoleMap[platform.id])
-		.filter((platform) => platform)
-		.sort();
-}

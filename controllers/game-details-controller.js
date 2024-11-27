@@ -1,11 +1,17 @@
-import { validConsoleMap } from "../data-cleaning/valid-consoles.js";
 import initKnex from "knex";
 import configuration from "../knexfile.js";
 const knex = initKnex(configuration);
 import axios from "axios";
-
-const CLIENT_ID = process.env.CLIENT_ID;
-const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
+import {
+	generateGameCoverUrl,
+	formatReleaseDate,
+	getGameDeveloper,
+	filterValidPlatforms,
+	getCollectionData,
+	filterAgeRatings,
+	getSimilarGames,
+} from "../utils/gameUtils.js";
+import { apiConfig } from "../utils/apiConfig.js";
 
 const getGameDetails = async (req, res) => {
 	const userId = req.userId;
@@ -36,14 +42,8 @@ const getGameDetails = async (req, res) => {
 		`;
 
 	let config = {
-		method: "post",
-		maxBodyLength: Infinity,
+		...apiConfig,
 		url: "https://api.igdb.com/v4/games",
-		headers: {
-			"Client-ID": CLIENT_ID,
-			Authorization: ACCESS_TOKEN,
-			"Content-Type": "text/plain",
-		},
 		data: data,
 	};
 
@@ -88,68 +88,6 @@ const getGameDetails = async (req, res) => {
 
 export { getGameDetails };
 
-function generateGameCoverUrl(url, size) {
-	return url
-		? url.replace("thumb", size)
-		: "http://localhost:8080/images/no-cover.png";
-}
-
-function filterAgeRatings(allAgeRatings) {
-	return allAgeRatings
-		?.filter((ratings) => ratings.category === 1)
-		.map((ratings) =>
-			ratings.content_descriptions?.map((cd) => {
-				return cd.description;
-			})
-		)
-		.flat();
-}
-
-function filterValidPlatforms(allPlatforms) {
-	return allPlatforms
-		?.map((platform) => validConsoleMap[platform.id])
-		.filter((platform) => platform)
-		.sort();
-}
-
-function getSimilarGames(similarGames) {
-	return similarGames
-		?.map((game) => {
-			return {
-				id: game.id,
-				cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
-				name: game.name,
-				rating: Math.round(game.aggregated_rating) || "n/a",
-				platforms: filterValidPlatforms(game.platforms),
-				releaseDate: game.first_release_date,
-			};
-		})
-		.filter((game) => game.platforms?.length > 0);
-}
-
-function getGameDeveloper(companies) {
-	const developerInfo = companies?.find(
-		(involvedCompany) => involvedCompany.developer
-	);
-	return developerInfo?.company
-		? developerInfo.company.name
-		: "Unknown developer";
-}
-
-function formatReleaseDate(timestamp) {
-	if (timestamp) {
-		const releasedTimestamp =
-			String(timestamp).length === 10 ? timestamp * 1000 : timestamp;
-
-		return new Intl.DateTimeFormat("en-US", {
-			month: "short",
-			day: "numeric",
-			year: "numeric",
-		}).format(releasedTimestamp);
-	} else {
-		return "TBD";
-	}
-}
 //todo want to add this?
 //games can be part of more than one franchise
 // function getFranchiseGames(similarGames) {
@@ -205,14 +143,3 @@ function formatReleaseDate(timestamp) {
  * 		}, ...
  * ]
  */
-
-function getCollectionData(collectionData, gameId) {
-	for (let collectionGame of collectionData)
-		if (collectionGame.gameId === gameId) {
-			return {
-				gameConsole: collectionGame.gameConsole,
-				gameFormat: collectionGame.gameFormat,
-				gameStatus: collectionGame.gameStatus,
-			};
-		}
-}
