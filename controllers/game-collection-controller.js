@@ -9,20 +9,36 @@ const ACCESS_TOKEN = process.env.ACCESS_TOKEN;
 const getGameCollection = async (req, res) => {
 	const userId = req.userId;
 	const { page } = req.params;
+	const { filters } = req.body;
 	const limit = 10;
 	const offset = limit * (page - 1);
 
+	let collectionData, gameStatusStats, totalGamesCount;
+
 	try {
-		//todo this is sorted correctly - is this where i would apply filters from front end?
-		const collectionData = await knex("game_collection")
-			.where({
-				userId: userId,
+		collectionData = await knex("game_collection")
+			.where((builder) => {
+				builder.where({ userId });
+
+				if (filters) {
+					for (let category in filters) {
+						const filterValues = filters[category];
+						if (filterValues?.length > 0) {
+							builder.whereIn([category], filters[category]);
+						}
+					}
+				}
 			})
 			.orderBy("createdAt", "asc");
+	} catch (error) {
+		console.error("Error fetching collection data:", error);
+		return res.status(500).json({ message: "Error fetching collection data" });
+	}
 
-		const gameStatusStats = await knex("game_collection")
+	try {
+		gameStatusStats = await knex("game_collection")
 			.where({
-				userId: userId,
+				userId,
 			})
 			.select("gameStatus")
 			.count("gameStatus as value")
@@ -33,20 +49,31 @@ const getGameCollection = async (req, res) => {
 				});
 			});
 
-		//todo split this out into pages here so we have correct games for each api call?
-		const gameIds = getGameIdQueries(collectionData);
-		// console.log("GAME IDS FROM COLLECTION", gameIds);
+		totalGamesCount = gameStatusStats.reduce((total, stat) => {
+			return total + stat.count;
+		}, 0);
+	} catch (error) {
+		console.error("Error fetching game status stats:", error);
+		return res
+			.status(500)
+			.json({ message: "Error fetching game status stats" });
+	}
 
-		function getGameIdQueries(allData) {
+	const gameIds = getGameIdQueries(collectionData);
+
+	function getGameIdQueries(allData) {
+		if (allData.length === 0) {
+			return null;
+		} else {
 			let gameIdString = "";
 			for (let i = 0; i < allData.length; i++) {
 				gameIdString += `${allData[i].gameId},`;
 			}
 			return `( ${gameIdString.slice(0, -1)} )`;
 		}
+	}
 
-		//todo limit and offset for these are not aligned - api returns different game ids for each call...
-		let gameCardData = `
+	let gameCardData = `
 			fields 
 			cover.url,
 			name,
@@ -60,19 +87,19 @@ const getGameCollection = async (req, res) => {
 			offset ${offset};
 		`;
 
-		let gameCardConfig = {
-			method: "post",
-			maxBodyLength: Infinity,
-			url: "https://api.igdb.com/v4/games",
-			headers: {
-				"Client-ID": CLIENT_ID,
-				Authorization: ACCESS_TOKEN,
-				"Content-Type": "text/plain",
-			},
-			data: gameCardData,
-		};
+	let gameCardConfig = {
+		method: "post",
+		maxBodyLength: Infinity,
+		url: "https://api.igdb.com/v4/games",
+		headers: {
+			"Client-ID": CLIENT_ID,
+			Authorization: ACCESS_TOKEN,
+			"Content-Type": "text/plain",
+		},
+		data: gameCardData,
+	};
 
-		let timeToBeatData = `
+	let timeToBeatData = `
 			fields 
 			game_id,
 			completely,
@@ -81,71 +108,64 @@ const getGameCollection = async (req, res) => {
 			limit 100;
 			`;
 
-		let timeToBeatConfig = {
-			method: "post",
-			maxBodyLength: Infinity,
-			url: "https://api.igdb.com/v4/game_time_to_beats",
-			headers: {
-				"Client-ID": CLIENT_ID,
-				Authorization: ACCESS_TOKEN,
-				"Content-Type": "text/plain",
-			},
-			data: timeToBeatData,
-		};
+	let timeToBeatConfig = {
+		method: "post",
+		maxBodyLength: Infinity,
+		url: "https://api.igdb.com/v4/game_time_to_beats",
+		headers: {
+			"Client-ID": CLIENT_ID,
+			Authorization: ACCESS_TOKEN,
+			"Content-Type": "text/plain",
+		},
+		data: timeToBeatData,
+	};
 
-		const makeRequest = async () => {
-			try {
-				const response = await axios.request(gameCardConfig);
-				const gamesData = response.data;
+	const makeRequest = async () => {
+		try {
+			const response = await axios.request(gameCardConfig);
+			const gamesData = response.data;
 
-				const timeToBeatResponse = await axios.request(timeToBeatConfig);
-				const timeToBeatData = timeToBeatResponse.data;
+			const timeToBeatResponse = await axios.request(timeToBeatConfig);
+			const timeToBeatData = timeToBeatResponse.data;
 
-				const gameData = gamesData.map((game) => {
-					let timeToBeatInfo = timeToBeatData.find(
-						(ttb) => ttb.game_id === game.id
-					);
+			const gameData = gamesData.map((game) => {
+				let timeToBeatInfo = timeToBeatData.find(
+					(ttb) => ttb.game_id === game.id
+				);
 
-					return {
-						id: game.id,
-						cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
-						name: game.name,
-						developer: getGameDeveloper(game.involved_companies),
-						releaseDate: formatReleaseDate(game.first_release_date),
-						rating: Math.round(game.aggregated_rating) || "n/a",
-						genres: game.genres?.map((genre) => genre.name),
-						platforms: filterValidPlatforms(game.platforms),
-						timeToBeat: getTimeToBeat(timeToBeatInfo?.normally),
-						gameFormats: ["Digital", "Physical"],
-						collectionData: getCollectionData(collectionData, game.id),
-					};
-				});
-
-				const fullResponse = {
-					collectionStats: {
-						totalGames: collectionData.length,
-						gameStatusStats,
-					},
-					gameData,
+				return {
+					id: game.id,
+					cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
+					name: game.name,
+					developer: getGameDeveloper(game.involved_companies),
+					releaseDate: formatReleaseDate(game.first_release_date),
+					rating: Math.round(game.aggregated_rating) || "n/a",
+					genres: game.genres?.map((genre) => genre.name),
+					platforms: filterValidPlatforms(game.platforms),
+					timeToBeat: getTimeToBeat(timeToBeatInfo?.normally),
+					gameFormats: ["Digital", "Physical"],
+					collectionData: getCollectionData(collectionData, game.id),
 				};
+			});
 
-				res.json(fullResponse);
-			} catch (error) {
-				res.json({
-					status: "500",
-					message: "Error fetching game data",
-				});
-				console.error(error);
-			}
-		};
+			const fullResponse = {
+				filteredCount: collectionData.length,
+				collectionStats: {
+					totalGames: totalGamesCount,
+					gameStatusStats,
+				},
+				gameData,
+			};
 
-		makeRequest();
-	} catch (error) {
-		console.error(error);
-		res.status(500).send({
-			message: `Error fetching game collection for user ${userId}`,
-		});
-	}
+			return res.json(fullResponse);
+		} catch (error) {
+			console.error(error);
+			return res.status(500).send({
+				message: `Error fetching game collection for user ${userId}`,
+			});
+		}
+	};
+	makeRequest();
 };
 
 const addGame = async (req, res) => {

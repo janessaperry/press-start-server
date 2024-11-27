@@ -18,7 +18,7 @@ function authenticateToken(req, res, next) {
 
 router
 	.route("/collection/page/:page")
-	.get(authenticateToken, gameCollectionController.getGameCollection);
+	.post(authenticateToken, gameCollectionController.getGameCollection);
 
 router
 	.route("/collection/:gameId")
