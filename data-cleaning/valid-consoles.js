@@ -14,3 +14,10 @@ export const validConsoleMap = {
 	14: "Mac",
 	3: "Linux",
 };
+
+export const consolesByPlatform = {
+	xbox: "(12,49,169)",
+	playstation: "(167,48,9,390,165)",
+	nintendo: "(130,41,5)",
+	pc: "(6,14,3)",
+};
