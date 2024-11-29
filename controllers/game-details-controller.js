@@ -52,11 +52,7 @@ const getGameDetails = async (req, res) => {
 			const response = await axios.request(config);
 			const game = response.data.find((game) => game.id === parseInt(gameId));
 
-			const genres = game.genres?.map((genre) => genre.name);
-
-			//todo add logic to check if not blank too
 			const responseObject = {
-				allData: game,
 				id: game.id,
 				cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
 				esrbRating: filterAgeRatings(game.age_ratings),
@@ -66,7 +62,7 @@ const getGameDetails = async (req, res) => {
 				summary: game.summary || game.storyline,
 				rating: Math.round(game.aggregated_rating) || "n/a",
 				platforms: filterValidPlatforms(game.platforms),
-				genres: genres,
+				genres: game.genres?.map((genre) => genre.name),
 				franchises: game.franchises,
 				similarGames: getSimilarGames(game.similar_games),
 				gameFormats: ["Digital", "Physical"],
@@ -87,59 +83,3 @@ const getGameDetails = async (req, res) => {
 };
 
 export { getGameDetails };
-
-//todo want to add this?
-//games can be part of more than one franchise
-// function getFranchiseGames(similarGames) {
-// 	return similarGames
-// 		?.map((game) => {
-// 			return {
-// 				id: game.id,
-// 				cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
-// 				name: game.name,
-// 				rating: Math.round(game.aggregated_rating) || "n/a",
-// 				platforms: filterValidPlatforms(game.platforms),
-// 				releaseDate: game.first_release_date,
-// 			};
-// 		})
-// 		.filter((game) => game.platforms.length > 0);
-// }
-
-/**
- * Franchises - for Game Cards
- * id: 1234
- * games: [{},{},{}...]
- * 		id: 1234
- * 		aggregated_rating: 80
- * 		cover.url: "imagepath.jpg"
- * 		category: 0 --> want to filter for 0 here
- * 		first_release_date: 1234567890
- * 		name: "Game name"
- * 		platforms: [{},{},{}]
- * 				id: 1234
- * 				abbreviation: "String"
- * 				alternative_name: "String"
- * 				category: 123 --> Clean by this?
- * 				name: "String"
- * 				platform_family: 123 --> Clean by this! I think we want platform family !== blank unless category is PC or Mac?
- * name: "Franchise name"
- */
-
-//send back something like...
-/**
- * franchises: [
- * 		{
- * 			name:
- * 			games: [
- * 				{
- * 					id: 1,
- * 					name: "Game name",
- * 					rating: 80,
- * 					cover: url,
- * 					first_release_date: March 23, 2015, //format before sending back
- * 					platforms: [PC, Xbox, PS4, PS5] //need to clean before sending back
- * 				}, ...
- * 			]
- * 		}, ...
- * ]
- */
