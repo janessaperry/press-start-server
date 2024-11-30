@@ -19,8 +19,7 @@ const getGameCollection = async (req, res) => {
 	const limit = 10;
 	const offset = limit * (page - 1);
 
-	let collectionData, gameStatusStats, totalGamesCount;
-
+	let collectionData = [];
 	try {
 		collectionData = await knex("game_collection")
 			.where((builder) => {
@@ -41,6 +40,8 @@ const getGameCollection = async (req, res) => {
 		return res.status(500).json({ message: "Error fetching collection data" });
 	}
 
+	let gameStatusStats = [];
+	let totalGamesCount = 0;
 	try {
 		gameStatusStats = await knex("game_collection")
 			.where({
@@ -65,6 +66,24 @@ const getGameCollection = async (req, res) => {
 			.json({ message: "Error fetching game status stats" });
 	}
 
+	let currentlyPlaying = [];
+	try {
+		currentlyPlaying = await knex("game_collection")
+			.where({
+				userId,
+				gameStatus: "Playing",
+			})
+			.select("gameId");
+	} catch (error) {
+		console.error("Error fetching currently playing:", error);
+	}
+	currentlyPlaying = currentlyPlaying.map((game) => game["gameId"]);
+	const currentlyPlayingIdsQuery =
+		currentlyPlaying.length === 0 ? null : `( ${currentlyPlaying.join(",")} )`;
+
+	const coverQueryLimit =
+		gameStatusStats.find((stat) => stat.status === "Playing")?.count || 0;
+
 	const gameIds = getGameIdQueries(collectionData);
 
 	function getGameIdQueries(allData) {
@@ -79,7 +98,8 @@ const getGameCollection = async (req, res) => {
 		}
 	}
 
-	const gameCardData = `
+	let data = `
+		query games "games" {
 			fields 
 			cover.url,
 			name,
@@ -91,39 +111,44 @@ const getGameCollection = async (req, res) => {
 			where id = ${gameIds};
 			limit ${limit};
 			offset ${offset};
-		`;
+		};
 
-	const gameCardConfig = {
-		...apiConfig,
-		url: "https://api.igdb.com/v4/games",
-		data: gameCardData,
-	};
-
-	const timeToBeatData = `
+		query game_time_to_beats "timeToBeat" {
 			fields 
 			game_id,
 			completely,
 			normally;
+
 			where game_id = ${gameIds};
 			limit 100;
-			`;
+		};
 
-	const timeToBeatConfig = {
+		query covers "covers" {
+			fields
+			game,
+			url;
+			where game = ${currentlyPlayingIdsQuery};
+			limit ${coverQueryLimit};
+		};
+	`;
+
+	let config = {
 		...apiConfig,
-		url: "https://api.igdb.com/v4/game_time_to_beats",
-		data: timeToBeatData,
+		url: "https://api.igdb.com/v4/multiquery",
+		data: data,
 	};
 
 	const makeRequest = async () => {
 		try {
-			const response = await axios.request(gameCardConfig);
-			const gamesData = response.data;
+			const response = await axios.request(config);
 
-			const timeToBeatResponse = await axios.request(timeToBeatConfig);
-			const timeToBeatData = timeToBeatResponse.data;
+			const gamesData = response.data.find((result) => result.name === "games");
+			const timeToBeatData = response.data.find(
+				(result) => result.name === "timeToBeat"
+			);
 
-			const gameData = gamesData.map((game) => {
-				let timeToBeatInfo = timeToBeatData.find(
+			const gameData = gamesData.result.map((game) => {
+				let timeToBeatInfo = timeToBeatData.result.find(
 					(ttb) => ttb.game_id === game.id
 				);
 
@@ -142,12 +167,20 @@ const getGameCollection = async (req, res) => {
 				};
 			});
 
+			const coversData = response.data.find(
+				(result) => result.name === "covers"
+			);
+			const currentlyPlayingCovers = coversData.result
+				.map((cover) => generateGameCoverUrl(cover.url, "cover_big"))
+				.sort();
+
 			const fullResponse = {
 				filteredCount: collectionData.length,
 				collectionStats: {
 					totalGames: totalGamesCount,
 					gameStatusStats,
 				},
+				currentlyPlaying: currentlyPlayingCovers,
 				gameData,
 			};
 
