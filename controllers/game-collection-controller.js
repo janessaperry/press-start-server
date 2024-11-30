@@ -176,6 +176,28 @@ const getGameCollection = async (req, res) => {
 
 			const fullResponse = {
 				filteredCount: collectionData.length,
+				collectionOptions: {
+					gameStatus: [
+						"Want to play",
+						"Playing",
+						"Played",
+						"On pause",
+						"Wishlist",
+					],
+					gameConsole: [
+						{
+							platform: "Xbox",
+							consoles: ["Xbox X|S", "Xbox One", "Xbox 360"],
+						},
+						{ platform: "Nintendo", consoles: ["Switch", "Wii U", "Wii"] },
+						{
+							platform: "PlayStation",
+							consoles: ["PS5", "PS4", "PS3", "PS VR2", "PS VR"],
+						},
+						{ platform: "PC", consoles: ["PC", "Mac", "Linux"] },
+					],
+					gameFormat: ["Digital", "Physical"],
+				},
 				collectionStats: {
 					totalGames: totalGamesCount,
 					gameStatusStats,
