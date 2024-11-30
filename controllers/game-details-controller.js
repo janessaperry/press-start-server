@@ -33,10 +33,6 @@ const getGameDetails = async (req, res) => {
 		storyline,
 		platforms.id,
 		genres.name,
-		franchises.name,
-		franchises.games.name,
-		franchises.games.aggregated_rating,
-		franchises.games.platforms.id,franchises.games.platforms.name,franchises.games.platforms.abbreviation,franchises.games.platforms.platform_family,
 		similar_games.id,similar_games.name,similar_games.cover.url,similar_games.aggregated_rating,similar_games.platforms.id,similar_games.first_release_date;
 		where id = ${gameId};
 		`;
@@ -63,10 +59,20 @@ const getGameDetails = async (req, res) => {
 				rating: Math.round(game.aggregated_rating) || "n/a",
 				platforms: filterValidPlatforms(game.platforms),
 				genres: game.genres?.map((genre) => genre.name),
-				franchises: game.franchises,
 				similarGames: getSimilarGames(game.similar_games),
 				gameFormats: ["Digital", "Physical"],
 				collectionData: getCollectionData(collectionData, game.id),
+				collectionOptions: {
+					gameStatus: [
+						"Want to play",
+						"Playing",
+						"Played",
+						"On pause",
+						"Wishlist",
+					],
+					gameConsole: filterValidPlatforms(game.platforms),
+					gameFormat: ["Digital", "Physical"],
+				},
 			};
 
 			res.json(responseObject);
