@@ -20,8 +20,7 @@ const searchGames = async (req, res) => {
 	let data = `
 		fields 
 		cover.url,
-		name,
-		platforms.id,platforms.name;
+		name;
 	
 		where (
 		(first_release_date <= ${currentTimestamp} & age_ratings != null) 
@@ -46,13 +45,13 @@ const searchGames = async (req, res) => {
 					id: result.id,
 					name: result.name,
 					cover: generateGameCoverUrl(result.cover?.url, "cover_small"),
-					platforms: filterValidPlatforms(result.platforms),
 				};
 			});
 
 			res.status(200).json(searchResults);
 		} catch (error) {
 			console.log(error);
+			res.status(500).json({ message: "Error fetching search results" });
 		}
 	}
 
