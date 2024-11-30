@@ -71,8 +71,7 @@ const getGameDetails = async (req, res) => {
 
 			res.json(responseObject);
 		} catch (error) {
-			res.json({
-				status: "500",
+			res.status(500).json({
 				message: "Error fetching game data",
 			});
 			console.error(error);

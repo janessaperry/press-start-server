@@ -197,8 +197,7 @@ const getGamesByPlatform = async (req, res) => {
 				count: count.count,
 			});
 		} catch (error) {
-			res.json({
-				status: "500",
+			res.status(500).json({
 				message: "Error fetching game data",
 			});
 			console.error(error);
