@@ -3,9 +3,9 @@ import {
 	generateGameCoverUrl,
 	formatReleaseDate,
 	filterValidPlatforms,
+	getConsolesByPlatform,
 } from "../utils/gameUtils.js";
 import { apiConfig } from "../utils/apiConfig.js";
-import { consolesByPlatform } from "../data-cleaning/valid-consoles.js";
 
 const getGames = async (req, res) => {
 	const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -213,7 +213,3 @@ const getGamesByPlatform = async (req, res) => {
 };
 
 export { getGames, getGamesByPlatform };
-
-function getConsolesByPlatform(platform) {
-	return consolesByPlatform[platform];
-}

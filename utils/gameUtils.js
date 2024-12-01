@@ -1,4 +1,4 @@
-import { validConsoleMap } from "../data-cleaning/valid-consoles.js";
+import { validConsoleMap, consolesByPlatform } from "./validConsoles.js";
 
 export function generateGameCoverUrl(url, size) {
 	return url
@@ -80,4 +80,8 @@ export function getCollectionData(collectionData, gameId) {
 				gameStatus: collectionGame.gameStatus,
 			};
 		}
+}
+
+export function getConsolesByPlatform(platform) {
+	return consolesByPlatform[platform];
 }
