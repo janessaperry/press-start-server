@@ -234,7 +234,7 @@ const addGame = async (req, res) => {
 			gameFormat: requestBody.gameFormat,
 		});
 
-		res.status(200).json({
+		res.status(201).json({
 			message: `Added game ${requestBody.gameId} to collection`,
 			userId: userId,
 			gameId: requestBody.gameId,
@@ -271,6 +271,7 @@ const updateGame = async (req, res) => {
 const deleteGame = async (req, res) => {
 	const userId = req.userId;
 	const { gameId } = req.params;
+
 	try {
 		await knex("game_collection")
 			.where({
@@ -278,6 +279,7 @@ const deleteGame = async (req, res) => {
 				gameId: gameId,
 			})
 			.del();
+
 		res.status(204).json({ message: `Deleted game ${gameId}` });
 	} catch (error) {
 		res.status(500).json({ message: `Error deleting game ${gameId}` });

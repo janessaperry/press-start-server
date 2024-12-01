@@ -1,8 +1,5 @@
 import axios from "axios";
-import {
-	generateGameCoverUrl,
-	filterValidPlatforms,
-} from "../utils/gameUtils.js";
+import { generateGameCoverUrl } from "../utils/gameUtils.js";
 import { apiConfig } from "../utils/apiConfig.js";
 
 const searchGames = async (req, res) => {

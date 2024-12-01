@@ -73,6 +73,9 @@ const getGames = async (req, res) => {
 			});
 		} catch (error) {
 			console.log(error);
+			res.status(500).json({
+				message: "Error fetching new releases and coming soon games",
+			});
 		}
 	}
 
@@ -90,6 +93,7 @@ const getGamesByPlatform = async (req, res) => {
 		req.body.filters.console?.length > 0
 			? `(${req.body.filters.console.join(",")})`
 			: null;
+
 	const consoleQuery = consoleFilters
 		? `platforms = ${consoleFilters}`
 		: `platforms = ${platformsQuery}`;
@@ -98,6 +102,7 @@ const getGamesByPlatform = async (req, res) => {
 		req.body.filters.genres?.length > 0
 			? `(${req.body.filters.genres.join(",")})`
 			: null;
+
 	const genresQuery = genreFilters ? `& genres = ${genreFilters}` : "";
 
 	let data = `

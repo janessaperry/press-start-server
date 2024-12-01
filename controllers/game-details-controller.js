@@ -60,7 +60,6 @@ const getGameDetails = async (req, res) => {
 				platforms: filterValidPlatforms(game.platforms),
 				genres: game.genres?.map((genre) => genre.name),
 				similarGames: getSimilarGames(game.similar_games),
-				gameFormats: ["Digital", "Physical"],
 				collectionData: getCollectionData(collectionData, game.id),
 				collectionOptions: {
 					gameStatus: [
