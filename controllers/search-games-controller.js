@@ -45,10 +45,9 @@ const searchGames = async (req, res) => {
 				};
 			});
 
-			res.status(200).json(searchResults);
+			return res.status(200).json(searchResults);
 		} catch (error) {
-			console.log(error);
-			res.status(500).json({ message: "Error fetching search results" });
+			return res.status(500).json({ message: "Error fetching search results" });
 		}
 	}
 

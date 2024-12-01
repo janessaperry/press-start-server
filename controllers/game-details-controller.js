@@ -43,12 +43,12 @@ const getGameDetails = async (req, res) => {
 		data: data,
 	};
 
-	const makeRequest = async () => {
+	const fetchAndProcessGameDetails = async () => {
 		try {
 			const response = await axios.request(config);
 			const game = response.data.find((game) => game.id === parseInt(gameId));
 
-			const responseObject = {
+			const gameDetails = {
 				id: game.id,
 				cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
 				esrbRating: filterAgeRatings(game.age_ratings),
@@ -74,16 +74,15 @@ const getGameDetails = async (req, res) => {
 				},
 			};
 
-			res.json(responseObject);
+			return res.status(200).json(gameDetails);
 		} catch (error) {
-			res.status(500).json({
+			return res.status(500).json({
 				message: "Error fetching game data",
 			});
-			console.error(error);
 		}
 	};
 
-	makeRequest();
+	fetchAndProcessGameDetails();
 };
 
 export { getGameDetails };

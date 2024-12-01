@@ -36,7 +36,6 @@ const getGameCollection = async (req, res) => {
 			})
 			.orderBy("createdAt", "asc");
 	} catch (error) {
-		console.error("Error fetching collection data:", error);
 		return res.status(500).json({ message: "Error fetching collection data" });
 	}
 
@@ -60,7 +59,6 @@ const getGameCollection = async (req, res) => {
 			return total + stat.count;
 		}, 0);
 	} catch (error) {
-		console.error("Error fetching game status stats:", error);
 		return res
 			.status(500)
 			.json({ message: "Error fetching game status stats" });
@@ -75,8 +73,11 @@ const getGameCollection = async (req, res) => {
 			})
 			.select("gameId");
 	} catch (error) {
-		console.error("Error fetching currently playing:", error);
+		return res
+			.status(500)
+			.json({ message: "Error fetching currently playing data" });
 	}
+
 	currentlyPlaying = currentlyPlaying.map((game) => game["gameId"]);
 	const currentlyPlayingIdsQuery =
 		currentlyPlaying.length === 0 ? null : `( ${currentlyPlaying.join(",")} )`;
@@ -138,7 +139,7 @@ const getGameCollection = async (req, res) => {
 		data: data,
 	};
 
-	const makeRequest = async () => {
+	const fetchAndProcessGameCollection = async () => {
 		try {
 			const response = await axios.request(config);
 
@@ -162,7 +163,6 @@ const getGameCollection = async (req, res) => {
 					genres: game.genres?.map((genre) => genre.name),
 					platforms: filterValidPlatforms(game.platforms),
 					timeToBeat: getTimeToBeat(timeToBeatInfo?.normally),
-					gameFormats: ["Digital", "Physical"],
 					collectionData: getCollectionData(collectionData, game.id),
 				};
 			});
@@ -174,7 +174,7 @@ const getGameCollection = async (req, res) => {
 				.map((cover) => generateGameCoverUrl(cover.url, "cover_big"))
 				.sort();
 
-			const fullResponse = {
+			const gameCollectionData = {
 				filteredCount: collectionData.length,
 				collectionOptions: {
 					gameStatus: [
@@ -206,15 +206,15 @@ const getGameCollection = async (req, res) => {
 				gameData,
 			};
 
-			return res.json(fullResponse);
+			return res.status(200).json(gameCollectionData);
 		} catch (error) {
-			console.error(error);
 			return res.status(500).send({
 				message: `Error fetching game collection for user ${userId}`,
 			});
 		}
 	};
-	makeRequest();
+
+	fetchAndProcessGameCollection();
 };
 
 const addGame = async (req, res) => {
@@ -234,7 +234,7 @@ const addGame = async (req, res) => {
 			gameFormat: requestBody.gameFormat,
 		});
 
-		res.status(201).json({
+		return res.status(201).json({
 			message: `Added game ${requestBody.gameId} to collection`,
 			userId: userId,
 			gameId: requestBody.gameId,
@@ -243,7 +243,7 @@ const addGame = async (req, res) => {
 			gameFormat: requestBody.gameFormat,
 		});
 	} catch (error) {
-		res
+		return res
 			.status(500)
 			.json({ message: `Error adding game ${requestBody.gameId}` });
 	}
@@ -254,17 +254,29 @@ const updateGame = async (req, res) => {
 	const { gameId } = req.params;
 	const requestBody = req.body;
 
+	if (Object.keys(requestBody).length === 0) {
+		return res.status(400).json({ message: "Missing request body" });
+	}
+
 	try {
-		await knex("game_collection")
+		const updatedRows = await knex("game_collection")
 			.where({
 				userId: userId,
 				gameId: gameId,
 			})
 			.update(requestBody);
 
-		res.status(200).json({ message: `Updated game ${gameId} successfully` });
+		if (updatedRows === 0) {
+			return res
+				.status(404)
+				.json({ message: `Game ${gameId} not found in user's collection` });
+		}
+
+		return res
+			.status(200)
+			.json({ message: `Updated game ${gameId} successfully` });
 	} catch (error) {
-		res.status(500).json({ message: `Error updating game ${gameId}` });
+		return res.status(500).json({ message: `Error updating game ${gameId}` });
 	}
 };
 
@@ -273,16 +285,22 @@ const deleteGame = async (req, res) => {
 	const { gameId } = req.params;
 
 	try {
-		await knex("game_collection")
+		const deletedRows = await knex("game_collection")
 			.where({
 				userId: userId,
 				gameId: gameId,
 			})
 			.del();
 
-		res.status(204).json({ message: `Deleted game ${gameId}` });
+		if (deletedRows === 0) {
+			return res
+				.status(404)
+				.json({ message: `Game ${gameId} not found in user's collection` });
+		}
+
+		return res.status(204).json({ message: `Deleted game ${gameId}` });
 	} catch (error) {
-		res.status(500).json({ message: `Error deleting game ${gameId}` });
+		return res.status(500).json({ message: `Error deleting game ${gameId}` });
 	}
 };
 
