@@ -3,7 +3,7 @@ import * as exploreGamesController from "../controllers/explore-games-controller
 
 const router = express.Router();
 
-router.route("/explore").get(exploreGamesController.getGames);
+router.route("/explore").get(exploreGamesController.getGamesByReleaseDate);
 router
 	.route("/explore/:platform/:page")
 	.post(exploreGamesController.getGamesByPlatform);

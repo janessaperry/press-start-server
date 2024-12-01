@@ -85,3 +85,7 @@ export function getCollectionData(collectionData, gameId) {
 export function getConsolesByPlatform(platform) {
 	return consolesByPlatform[platform];
 }
+
+export function sortGenresAlphabetical(genres) {
+	return genres.sort((a, b) => a.name.localeCompare(b.name));
+}

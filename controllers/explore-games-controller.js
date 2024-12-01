@@ -4,13 +4,15 @@ import {
 	formatReleaseDate,
 	filterValidPlatforms,
 	getConsolesByPlatform,
+	sortGenresAlphabetical,
 } from "../utils/gameUtils.js";
+import { consoleFiltersByPlatform } from "../utils/validConsoles.js";
 import { apiConfig } from "../utils/apiConfig.js";
 
-const getGames = async (req, res) => {
+const getGamesByReleaseDate = async (req, res) => {
 	const currentTimestamp = Math.floor(Date.now() / 1000);
-	const newReleaseCutoff = currentTimestamp - 15552000;
-	const comingSoonCutoff = currentTimestamp + 15552000;
+	const sixMonthsAgoTimestamp = currentTimestamp - 15552000;
+	const sixMonthsLaterTimestamp = currentTimestamp + 15552000;
 
 	function buildQuery(cutoffTimestampStart, cutoffTimestampEnd) {
 		return `
@@ -36,13 +38,13 @@ const getGames = async (req, res) => {
 	const newReleaseConfig = {
 		...apiConfig,
 		url: "https://api.igdb.com/v4/games",
-		data: buildQuery(newReleaseCutoff, currentTimestamp),
+		data: buildQuery(sixMonthsAgoTimestamp, currentTimestamp),
 	};
 
 	const comingSoonConfig = {
 		...apiConfig,
 		url: "https://api.igdb.com/v4/games",
-		data: buildQuery(currentTimestamp, comingSoonCutoff),
+		data: buildQuery(currentTimestamp, sixMonthsLaterTimestamp),
 	};
 
 	function mapResponse(response) {
@@ -59,7 +61,7 @@ const getGames = async (req, res) => {
 		});
 	}
 
-	async function getGameData() {
+	async function fetchAndProcessGames() {
 		try {
 			const newReleaseResponse = await axios.request(newReleaseConfig);
 			const newReleaseGames = mapResponse(newReleaseResponse);
@@ -79,7 +81,7 @@ const getGames = async (req, res) => {
 		}
 	}
 
-	getGameData();
+	fetchAndProcessGames();
 };
 
 const getGamesByPlatform = async (req, res) => {
@@ -151,7 +153,7 @@ const getGamesByPlatform = async (req, res) => {
 		data: data,
 	};
 
-	const makeRequest = async () => {
+	const fetchAndProcessGames = async () => {
 		try {
 			const response = await axios.request(config);
 
@@ -159,7 +161,7 @@ const getGamesByPlatform = async (req, res) => {
 			const count = response.data.find((result) => result.name === "count");
 			const genres = response.data.find((result) => result.name === "genres");
 
-			const responseObject = games.result.map((game) => {
+			const gamesData = games.result.map((game) => {
 				return {
 					id: game.id,
 					cover: generateGameCoverUrl(game.cover?.url, "cover_big"),
@@ -172,33 +174,10 @@ const getGamesByPlatform = async (req, res) => {
 
 			res.status(200).json({
 				filters: {
-					console: {
-						xbox: {
-							169: "Xbox X|S",
-							49: "Xbox One",
-							12: "Xbox 360",
-						},
-						nintendo: {
-							130: "Switch",
-							41: "Wii U",
-							5: "Wii",
-						},
-						playstation: {
-							167: "PS5",
-							48: "PS4",
-							9: "PS3",
-							390: "PS VR2",
-							165: "PS VR",
-						},
-						pc: {
-							6: "PC",
-							14: "Mac",
-							3: "Linux",
-						},
-					},
-					genres: genres.result,
+					console: consoleFiltersByPlatform,
+					genres: sortGenresAlphabetical(genres.result),
 				},
-				games: responseObject,
+				games: gamesData,
 				count: count.count,
 			});
 		} catch (error) {
@@ -209,7 +188,7 @@ const getGamesByPlatform = async (req, res) => {
 		}
 	};
 
-	makeRequest();
+	fetchAndProcessGames();
 };
 
-export { getGames, getGamesByPlatform };
+export { getGamesByReleaseDate, getGamesByPlatform };
