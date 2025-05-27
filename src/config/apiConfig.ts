@@ -6,6 +6,6 @@ export const apiConfig = {
   headers: {
     "Client-ID": ENV.CLIENT_ID,
     Authorization: ENV.ACCESS_TOKEN,
-    "Content-Type": "application/json",
+    "Content-Type": "text/plain",
   }
 }
