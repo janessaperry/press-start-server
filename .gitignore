@@ -32,5 +32,3 @@ dist/
 build/
 coverage/
 .nyc_output/
-
-/src/generated/prisma
