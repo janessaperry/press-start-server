@@ -15,8 +15,8 @@ datasource db {
 
 model User {
   id        Int         @id @default(autoincrement())
-  username  String
   email     String      @unique
+  hashedPw  String
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
   userGames UserGame[]

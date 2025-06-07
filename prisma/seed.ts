@@ -11,8 +11,8 @@ async function main() {
     where: { email: 'userOne@email.com' },
     update: {},
     create: {
-      username: 'janessaperry',
       email: 'userOne@email.com',
+      hashedPw: 'password123',
       userGames: {
         create: [
           {
@@ -32,8 +32,8 @@ async function main() {
     where: { email: 'userTwo@email.com' },
     update: {},
     create: {
-      username: 'louieisacutie',
       email: 'userTwo@email.com',
+      hashedPw: 'password123',
       userGames: {
         create: [
           {
