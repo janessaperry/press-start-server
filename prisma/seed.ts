@@ -17,7 +17,7 @@ async function main() {
         create: [
           {
             apiGameId: "1234567890",
-            status: "Want to Play",
+            status: "Wishlist",
           },
           {
             apiGameId: "34567890",
@@ -38,7 +38,7 @@ async function main() {
         create: [
           {
             apiGameId: "1234590",
-            status: "Want to Play",
+            status: "Played",
           },
           {
             apiGameId: "34567890",
