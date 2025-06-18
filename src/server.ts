@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
 import 'dotenv/config';
+import userRoutes from "./routes/userRoutes.js";
 
 const app = express();
 const { SERVER_PORT, CORS_ORIGIN } = process.env;
@@ -13,6 +14,8 @@ app.use(cors({ origin: CORS_ORIGIN }));
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Press Start API!' });
 });
+
+app.use("/users", userRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
