@@ -1,5 +1,5 @@
 import { ENV } from './env.js';
 
 export const dbConfig = {
-  PORT: ENV.PORT,
+  SERVER_PORT: ENV.SERVER_PORT,
 }
