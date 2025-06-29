@@ -25,13 +25,13 @@ export const signUp = async (req: Request, res: Response) => {
       return;
     }
 
-    const userExists = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
       where: {
         email: email,
       }
-    })
-
-    if ( !userExists ) {
+    });
+    
+    if ( user ) {
       res.status(400).json({
           message: "User with that email address already exists"
         }
@@ -40,14 +40,14 @@ export const signUp = async (req: Request, res: Response) => {
     }
 
     const hashedPw = await bcrypt.hash(password, 10);
-    const user = await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         email,
         hashedPw,
       }
     });
 
-    const token = jwt.sign({ userId: user.id }, ENV.JWT_SECRET, {
+    const token = jwt.sign({ userId: newUser.id }, ENV.JWT_SECRET, {
       expiresIn: "30 days",
     });
 
