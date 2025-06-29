@@ -1,12 +1,13 @@
 import { Request, Response } from "express";
-import { validateEmail, validatePasswordFormat } from "../utils/validators.js";
-import { prisma } from "../db/client.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { validateEmail, validatePasswordFormat } from "../utils/validators.js";
+import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
 
 export const signUp = async (req: Request, res: Response) => {
   const { email, password } = req.body;
+
 
   try {
     const emailValid = validateEmail(email);
@@ -30,9 +31,9 @@ export const signUp = async (req: Request, res: Response) => {
       }
     })
 
-    if ( !!userExists ) {
+    if ( !userExists ) {
       res.status(400).json({
-          message: "email already exists"
+          message: "User with that email address already exists"
         }
       )
       return;
@@ -51,7 +52,7 @@ export const signUp = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
-      message: "sign up successful",
+      message: "Sign up successful",
       token,
     });
     return;
@@ -65,10 +66,59 @@ export const signUp = async (req: Request, res: Response) => {
   }
 }
 
-export const logIn = (req: Request, res: Response) => {
-  res.status(200).json({
-    message: "log in successful",
-    token: "test-token-login"
-  });
-  return;
+export const logIn = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+
+  try {
+    const emailValid = validateEmail(email);
+    const passwordFormatValid = validatePasswordFormat(password);
+    const formValid = emailValid && passwordFormatValid;
+
+    if ( !formValid ) {
+      res.status(400).json({
+        message: "Invalid email or password"
+      });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email,
+      }
+    });
+
+    if ( !user ) {
+      res.status(400).json({
+        message: "Invalid email or password"
+      });
+      return;
+    }
+
+    const { hashedPw } = user;
+    const passwordMatches = await bcrypt.compare(password, hashedPw);
+
+    if ( !passwordMatches ) {
+      res.status(400).json({
+        message: "Invalid email or password"
+      });
+      return;
+    }
+
+    const token = jwt.sign({ userId: user.id }, ENV.JWT_SECRET, {
+      expiresIn: "30 days",
+    });
+
+    res.status(200).json({
+      message: "Log in successful",
+      token
+    });
+
+  }
+  catch (e) {
+    console.error(e);
+    res.status(500).json({
+      message: "Internal server error"
+    });
+    return;
+  }
 }
