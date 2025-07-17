@@ -5,9 +5,8 @@ import { validateEmail, validatePasswordFormat } from "../utils/validators.js";
 import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
 
-export const signUp = async (req: Request, res: Response) => {
+export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-
 
   try {
     const emailValid = validateEmail(email);
@@ -30,7 +29,7 @@ export const signUp = async (req: Request, res: Response) => {
         email: email,
       }
     });
-    
+
     if ( user ) {
       res.status(400).json({
           message: "User with that email address already exists"
@@ -66,7 +65,7 @@ export const signUp = async (req: Request, res: Response) => {
   }
 }
 
-export const logIn = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
@@ -109,7 +108,7 @@ export const logIn = async (req: Request, res: Response) => {
     });
 
     res.status(200).json({
-      message: "Log in successful",
+      message: "Sign in successful",
       token
     });
 
