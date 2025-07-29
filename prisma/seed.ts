@@ -1,9 +1,10 @@
-import {PrismaClient} from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-async function main() {
+async function main () {
 
+  await prisma.passwordReset.deleteMany();
   await prisma.userGame.deleteMany();
   await prisma.user.deleteMany();
 
@@ -28,7 +29,7 @@ async function main() {
     }
   })
 
-   await prisma.user.upsert({
+  await prisma.user.upsert({
     where: { email: 'userTwo@email.com' },
     update: {},
     create: {
