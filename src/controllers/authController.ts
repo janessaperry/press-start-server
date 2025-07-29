@@ -1,9 +1,12 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
 import { validateEmail, validatePasswordFormat } from "../utils/validators.js";
+
 import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
+
 
 export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
@@ -111,6 +114,49 @@ export const login = async (req: Request, res: Response) => {
       message: "Sign in successful",
       token
     });
+
+  }
+  catch (e) {
+    console.error(e);
+    res.status(500).json({
+      message: "Internal server error"
+    });
+    return;
+  }
+}
+
+export const requestPasswordReset = async (req: Request, res: Response) => {
+  try {
+
+
+  }
+  catch (e) {
+    console.error(e);
+    res.status(500).json({
+      message: "Internal server error"
+    });
+    return;
+  }
+}
+
+export const verifyPasswordResetCode = async (req: Request, res: Response) => {
+  try {
+
+
+  }
+  catch (e) {
+    console.error(e);
+    res.status(500).json({
+      message: "Internal server error"
+    });
+    return;
+  }
+}
+
+export const resetPassword = async (req: Request, res: Response) => {
+
+  try {
+
 
   }
   catch (e) {
