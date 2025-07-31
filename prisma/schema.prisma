@@ -14,30 +14,36 @@ datasource db {
 }
 
 model User {
-  id         Int             @id @default(autoincrement())
-  email      String          @unique
-  hashedPw   String
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
-  userGames  UserGame[]
-  resetCodes PasswordReset[]
+  id                  Int                  @id @default(autoincrement())
+  email               String               @unique
+  hashedPw            String               @map("hashed_pw")
+  createdAt           DateTime             @default(now()) @map("created_at")
+  updatedAt           DateTime             @updatedAt @map("updated_at")
+  games               UserGame[]
+  passwordResetTokens PasswordResetToken[]
+
+  @@map("users")
 }
 
 model UserGame {
   id        Int      @id @default(autoincrement())
   user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  apiGameId String
+  userId    Int      @map("user_id")
+  apiGameId String   @map("api_game_id")
   status    String
-  addedAt   DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("user_games")
 }
 
-model PasswordReset {
+model PasswordResetToken {
   id        Int      @id @default(autoincrement())
   user      User     @relation(fields: [userId], references: [id])
-  userId    Int
-  passcode  String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  userId    Int      @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("password_reset_tokens")
 }
