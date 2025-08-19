@@ -17,6 +17,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use("/auth", authRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
+  console.log(process.env.NODE_ENV)
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
