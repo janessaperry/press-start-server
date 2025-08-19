@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 
-import { validateEmail, validatePasswordFormat } from "../utils/validators.js";
+import { validateEmailFormat, validatePasswordFormat } from "../utils/validators.js";
 
 import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
@@ -12,15 +12,15 @@ export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const emailValid = validateEmail(email);
+    const emailFormatValid = validateEmailFormat(email);
     const passwordFormatValid = validatePasswordFormat(password);
-    const formValid = emailValid && passwordFormatValid;
+    const formValid = emailFormatValid && passwordFormatValid;
 
     if ( !formValid ) {
       res.status(400).json({
         message: "Invalid form input",
         errors: {
-          email: !emailValid ? "Invalid email format" : undefined,
+          email: !emailFormatValid ? "Invalid email format" : undefined,
           password: !passwordFormatValid ? "Password does not meet criteria" : undefined,
         }
       });
@@ -72,9 +72,9 @@ export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
   try {
-    const emailValid = validateEmail(email);
+    const emailFormatValid = validateEmailFormat(email);
     const passwordFormatValid = validatePasswordFormat(password);
-    const formValid = emailValid && passwordFormatValid;
+    const formValid = emailFormatValid && passwordFormatValid;
 
     if ( !formValid ) {
       res.status(400).json({
@@ -126,8 +126,14 @@ export const login = async (req: Request, res: Response) => {
 }
 
 export const requestPasswordReset = async (req: Request, res: Response) => {
+  const { email } = req.body;
   try {
-
+    /**
+     * someone has requested a pw reset.
+     */
+    res.status(200).json({
+      message: "Request received."
+    });
 
   }
   catch (e) {
@@ -139,19 +145,6 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   }
 }
 
-export const verifyPasswordResetCode = async (req: Request, res: Response) => {
-  try {
-
-
-  }
-  catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Internal server error"
-    });
-    return;
-  }
-}
 
 export const resetPassword = async (req: Request, res: Response) => {
 
