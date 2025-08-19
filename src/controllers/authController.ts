@@ -6,6 +6,7 @@ import { validateEmailFormat, validatePasswordFormat } from "../utils/validators
 
 import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
+import { EmailService } from "../services/emailService.js";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -127,10 +128,31 @@ export const login = async (req: Request, res: Response) => {
 
 export const requestPasswordReset = async (req: Request, res: Response) => {
   const { email } = req.body;
+
   try {
-    /**
-     * someone has requested a pw reset.
-     */
+    const emailFormatValid = validateEmailFormat(email);
+    if ( !emailFormatValid ) {
+      res.status(400).json({
+        message: "Invalid email"
+      });
+      return;
+    }
+
+    const user = await prisma.user.findUnique({
+      where: {
+        email: email
+      }
+    })
+
+    if ( !user ) {
+      res.status(400).json({
+        message: "Invalid email"
+      });
+      return;
+    }
+    
+    await EmailService.sendPasswordResetEmail(email, "test-token");
+
     res.status(200).json({
       message: "Request received."
     });
