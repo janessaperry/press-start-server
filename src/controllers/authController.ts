@@ -7,6 +7,7 @@ import { validateEmailFormat, validatePasswordFormat } from "../utils/validators
 import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
 import { EmailService } from "../services/emailService.js";
+import { TokenService } from "../services/tokenService.js";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -140,7 +141,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
     const user = await prisma.user.findUnique({
       where: {
-        email: email
+        email
       }
     })
 
@@ -150,8 +151,9 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       });
       return;
     }
-    
-    await EmailService.sendPasswordResetEmail(email, "test-token");
+
+    const plainToken = await TokenService.generateToken(user);
+    await EmailService.sendPasswordResetEmail(email, plainToken);
 
     res.status(200).json({
       message: "Request received."
@@ -169,7 +171,6 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
 
 export const resetPassword = async (req: Request, res: Response) => {
-
   try {
 
 

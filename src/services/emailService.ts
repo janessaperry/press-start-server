@@ -1,7 +1,7 @@
 import { Resend } from "resend";
+import { ENV } from "../config/env.js";
 
-const { RESEND_KEY } = process.env;
-const resend = new Resend(RESEND_KEY);
+const resend = new Resend(ENV.RESEND_KEY);
 
 export const EmailService = {
   async sendPasswordResetEmail (email: string, token: string) {
