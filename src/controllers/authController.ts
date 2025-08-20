@@ -8,6 +8,7 @@ import { prisma } from "../db/client.js";
 import { ENV } from "../config/env.js";
 import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
+import { UserService } from "../services/userService.js";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -156,7 +157,8 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     await EmailService.sendPasswordResetEmail(email, plainToken);
 
     res.status(200).json({
-      message: "Request received."
+      message: "Request received",
+      plainToken
     });
 
   }
@@ -172,8 +174,24 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 
 export const resetPassword = async (req: Request, res: Response) => {
   try {
+    const { plainToken, newPassword } = req.body;
 
+    const matchingToken = await TokenService.findTokenByPlain(plainToken);
+    if ( !matchingToken ) {
+      res.status(404).json({
+        message: `Invalid token`
+      });
+      return;
+    }
 
+    const { id: tokenId, userId } = matchingToken;
+    const hashedPw = await UserService.hashPassword(newPassword);
+    await prisma.$transaction([
+      UserService.updatePasswordTx(userId, hashedPw),
+      TokenService.deleteToken(tokenId),
+    ]);
+
+    res.status(200).send({ message: "Password reset successful" })
   }
   catch (e) {
     console.error(e);

@@ -28,5 +28,33 @@ export const TokenService = {
       console.error(`Error generating token: ${e}`);
       throw e;
     }
+  },
+
+  async findTokenByPlain (plainToken: string) {
+    const tokens = await prisma.passwordResetToken.findMany({
+      where: {
+        expiresAt: {
+          gt: new Date(),
+        }
+      }
+    });
+
+    let matchingToken: typeof tokens[0] | null = null;
+    for ( const t of tokens ) {
+      if ( await bcrypt.compare(plainToken, t.token) ) {
+        matchingToken = t;
+        break;
+      }
+    }
+
+    return matchingToken;
+  },
+
+  deleteToken (id: number) {
+    return prisma.passwordResetToken.delete({
+      where: {
+        id
+      }
+    })
   }
 }
