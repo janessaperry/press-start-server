@@ -5,7 +5,7 @@ const resend = new Resend(ENV.RESEND_KEY);
 
 export const EmailService = {
   async sendPasswordResetEmail (email: string, token: string) {
-    const resetUrl = `http://localhost:5173/reset-password?token=${token}`;
+    const resetUrl = `${ENV.FRONTEND_URL}/reset-password?token=${token}`;
 
     if ( process.env.NODE_ENV === "development" ) {
       console.log(`[DEV EMAIL] To: ${email}, Reset URL: ${resetUrl}`)
