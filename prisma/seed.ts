@@ -13,14 +13,14 @@ async function main () {
   const userOne = await prisma.user.create({
     data: {
       email: 'userOne@email.com',
-      hashedPw: hashedPassword,
+      hashedPassword: hashedPassword,
     }
   });
 
   const userTwo = await prisma.user.create({
     data: {
       email: 'userTwo@email.com',
-      hashedPw: hashedPassword,
+      hashedPassword,
     }
   })
 

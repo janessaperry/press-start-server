@@ -10,7 +10,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "reset": "npx prisma migrate reset",
     "migrate": "npx prisma migrate dev --name init",
-    "seed": "npx prisma db seed"
+    "seed": "npx prisma db seed",
+    "generate": "npx prisma generate"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

@@ -16,7 +16,7 @@ datasource db {
 model User {
   id                  Int                  @id @default(autoincrement())
   email               String               @unique
-  hashedPw            String               @map("hashed_pw")
+  hashedPassword      String               @map("hashed_password")
   createdAt           DateTime             @default(now()) @map("created_at")
   updatedAt           DateTime             @updatedAt @map("updated_at")
   games               UserGame[]
