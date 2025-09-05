@@ -1,26 +1,35 @@
 import { prisma } from "../db/client.js";
 import bcrypt from "bcrypt";
+import { User } from "@prisma/client";
 
 export const UserService = {
-  //  helper for normal password changes
-  async hashAndUpdatePassword (userId: number, plainPw: string) {
-    const hashedPw = await this.hashPassword(plainPw);
-    await this.updatePasswordTx(userId, hashedPw);
+  async findByEmail (email: string): Promise<User | null> {
+    return prisma.user.findUnique({
+      where: {
+        email
+      }
+    })
+  },
+
+  // helper for normal password changes
+  async hashAndUpdatePassword (userId: number, plainPassword: string) {
+    const hashedPassword = await this.hashPassword(plainPassword);
+    await this.updatePasswordTx(userId, hashedPassword);
   },
 
   // re-usable hashing logic
-  async hashPassword (plainPw: string) {
-    return await bcrypt.hash(plainPw, 10);
+  async hashPassword (plainPassword: string): Promise<string> {
+    return await bcrypt.hash(plainPassword, 10);
   },
-  
+
   // db update; used in transactions
-  updatePasswordTx (userId: number, hashedPw: string) {
+  updatePasswordTx (userId: number, hashedPassword: string) {
     return prisma.user.update({
       where: {
         id: userId,
       },
       data: {
-        hashedPw
+        hashedPassword
       }
     });
   }

@@ -44,11 +44,11 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
-    const hashedPw = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = await prisma.user.create({
       data: {
         email,
-        hashedPw,
+        hashedPassword,
       }
     });
 
@@ -99,8 +99,8 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const { hashedPw } = user;
-    const passwordMatches = await bcrypt.compare(password, hashedPw);
+    const { hashedPassword } = user;
+    const passwordMatches = await bcrypt.compare(password, hashedPassword);
 
     if ( !passwordMatches ) {
       res.status(400).json({
@@ -140,15 +140,12 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email
-      }
-    })
+    const user = await UserService.findByEmail(email);
 
+    // silent fail
     if ( !user ) {
-      res.status(400).json({
-        message: "Invalid email"
+      res.status(200).json({
+        message: "If an account exists, a reset email has been sent."
       });
       return;
     }
@@ -157,8 +154,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     await EmailService.sendPasswordResetEmail(email, plainToken);
 
     res.status(200).json({
-      message: "Request received",
-      plainToken
+      message: "If an account exists, a reset email has been sent."
     });
 
   }
@@ -185,13 +181,13 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
     const { id: tokenId, userId } = matchingToken;
-    const hashedPw = await UserService.hashPassword(newPassword);
+    const hashedPassword = await UserService.hashPassword(newPassword);
     await prisma.$transaction([
-      UserService.updatePasswordTx(userId, hashedPw),
+      UserService.updatePasswordTx(userId, hashedPassword),
       TokenService.deleteToken(tokenId),
     ]);
 
-    res.status(200).send({ message: "Password reset successful" })
+    res.status(200).send({ message: "Password reset successful" });
   }
   catch (e) {
     console.error(e);
