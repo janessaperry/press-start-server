@@ -23,8 +23,9 @@ app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+initializeJobs();
+
 const port = ENV.SERVER_PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
-  initializeJobs();
 });
