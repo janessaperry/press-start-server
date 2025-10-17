@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { ENV } from "./config/env.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import { initializeJobs } from "./jobs/index.js";
 
 const app = express();
 
@@ -18,12 +19,12 @@ app.get('/', (req: Request, res: Response) => {
 app.use("/auth", authRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
-  console.log(process.env.NODE_ENV)
+  console.log(process.env.NODE_ENV);
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
 const port = ENV.SERVER_PORT || 3000;
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
+  initializeJobs();
 });
-

@@ -8,8 +8,8 @@ export const TokenService = {
     try {
       const plainToken = uuidv4();
       const hashedToken = await bcrypt.hash(plainToken, 10);
-      const expiresAt = new Date(Date.now() + 3600 * 1000);
-
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      
       await prisma.passwordResetToken.deleteMany({
         where: { userId: user.id },
       });
@@ -31,23 +31,13 @@ export const TokenService = {
   },
 
   async findTokenByPlain (plainToken: string) {
-    const tokens = await prisma.passwordResetToken.findMany({
-      where: {
-        expiresAt: {
-          gt: new Date(),
-        }
-      }
-    });
+    const tokens = await prisma.passwordResetToken.findMany();
 
-    let matchingToken: typeof tokens[0] | null = null;
     for ( const t of tokens ) {
       if ( await bcrypt.compare(plainToken, t.token) ) {
-        matchingToken = t;
-        break;
+        return t;
       }
     }
-
-    return matchingToken;
   },
 
   deleteToken (id: number) {
@@ -56,5 +46,15 @@ export const TokenService = {
         id
       }
     })
+  },
+
+  async cleanupExpiredTokens () {
+    console.log("cleanupExpiredTokens called");
+    const result = await prisma.passwordResetToken.deleteMany({
+      where: {
+        expiresAt: { lt: new Date() }
+      }
+    })
+    return result.count;
   }
 }
