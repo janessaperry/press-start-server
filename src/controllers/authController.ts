@@ -140,9 +140,8 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await UserService.findByEmail(email);
-
     // silent fail
+    const user = await UserService.findByEmail(email);
     if ( !user ) {
       res.status(200).json({
         message: "If an account exists, a reset email has been sent."
@@ -150,13 +149,22 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
       return;
     }
 
+    // rate limiting per user email
+    const recentToken = await TokenService.findRecentToken(user);
+    if ( recentToken ) {
+      res.status(429).json({
+        message: "Please wait at least 60 seconds before requesting another reset link."
+      })
+      return;
+    }
+
+    // generate token and send email
     const plainToken = await TokenService.generateToken(user);
     await EmailService.sendPasswordResetEmail(email, plainToken);
 
     res.status(200).json({
       message: "If an account exists, a reset email has been sent."
     });
-
   }
   catch (e) {
     console.error(e);
@@ -180,7 +188,16 @@ export const resetPassword = async (req: Request, res: Response) => {
       return;
     }
 
-    const { id: tokenId, userId } = matchingToken;
+    const { id: tokenId, userId, expiresAt } = matchingToken;
+    if ( expiresAt < new Date() ) {
+      await TokenService.deleteToken(tokenId);
+      res.status(401).json({
+        message: "Token has expired. Please request a new password reset."
+      });
+      return;
+    }
+
+
     const hashedPassword = await UserService.hashPassword(newPassword);
     await prisma.$transaction([
       UserService.updatePasswordTx(userId, hashedPassword),
