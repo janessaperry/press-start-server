@@ -153,7 +153,8 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
     const recentToken = await TokenService.findRecentToken(user);
     if ( recentToken ) {
       res.status(429).json({
-        message: "Please wait at least 60 seconds before requesting another reset link."
+        message: "Please wait at least 60 seconds before requesting another reset link.",
+        retryAfter: recentToken.timeRemainingSeconds
       })
       return;
     }

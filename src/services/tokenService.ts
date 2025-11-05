@@ -32,12 +32,18 @@ export const TokenService = {
 
   async findRecentToken (user: User) {
     const cooldownMs = 60 * 1000;
-    return prisma.passwordResetToken.findFirst({
+    const recentToken = await prisma.passwordResetToken.findFirst({
       where: {
         userId: user.id,
         createdAt: { gte: new Date(Date.now() - cooldownMs) }
       }
     });
+
+    if ( !recentToken ) return null;
+
+    const timeElapsed = Date.now() - new Date(recentToken.createdAt).getTime();
+    const timeRemainingSeconds = Math.ceil(( cooldownMs - timeElapsed ) / 1000);
+    return { recentToken, timeRemainingSeconds }
   },
 
   async findTokenByPlain (plainToken: string) {
