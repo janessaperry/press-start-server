@@ -11,6 +11,15 @@ export const UserService = {
     })
   },
 
+  async createNewUser (email: string, hashedPassword: string) {
+    return prisma.user.create({
+      data: {
+        email,
+        hashedPassword,
+      }
+    });
+  },
+
   // helper for normal password changes
   async hashAndUpdatePassword (userId: number, plainPassword: string) {
     const hashedPassword = await this.hashPassword(plainPassword);

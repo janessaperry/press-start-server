@@ -9,6 +9,7 @@ import { ENV } from "../config/env.js";
 import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
 import { UserService } from "../services/userService.js";
+import { AuthService } from "../services/authService.js";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -30,13 +31,8 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: email,
-      }
-    });
-
-    if ( user ) {
+    const existingUser = await UserService.findByEmail(email);
+    if ( existingUser ) {
       res.status(400).json({
           message: "User with that email address already exists"
         }
@@ -44,19 +40,12 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
-    const newUser = await prisma.user.create({
-      data: {
-        email,
-        hashedPassword,
-      }
-    });
+    const hashedPassword = await UserService.hashPassword(password);
+    const newUser = await UserService.createNewUser(email, hashedPassword);
+    
+    const token = AuthService.createAuthToken(newUser);
 
-    const token = jwt.sign({ userId: newUser.id }, ENV.JWT_SECRET, {
-      expiresIn: "30 days",
-    });
-
-    res.status(200).json({
+    res.status(201).json({
       message: "Sign up successful",
       token,
     });
