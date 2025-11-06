@@ -1,11 +1,8 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 import { validateEmailFormat, validatePasswordFormat } from "../utils/validators.js";
 
 import { prisma } from "../db/client.js";
-import { ENV } from "../config/env.js";
 import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
 import { UserService } from "../services/userService.js";
@@ -40,9 +37,9 @@ export const register = async (req: Request, res: Response) => {
       return;
     }
 
-    const hashedPassword = await UserService.hashPassword(password);
+    const hashedPassword = await AuthService.hashPassword(password);
     const newUser = await UserService.createNewUser(email, hashedPassword);
-    
+
     const token = AuthService.createAuthToken(newUser);
 
     res.status(201).json({
@@ -75,11 +72,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const user = await prisma.user.findUnique({
-      where: {
-        email: email,
-      }
-    });
+    const user = await UserService.findByEmail(email);
 
     if ( !user ) {
       res.status(400).json({
@@ -89,7 +82,7 @@ export const login = async (req: Request, res: Response) => {
     }
 
     const { hashedPassword } = user;
-    const passwordMatches = await bcrypt.compare(password, hashedPassword);
+    const passwordMatches = await AuthService.comparePassword(password, hashedPassword);
 
     if ( !passwordMatches ) {
       res.status(400).json({
@@ -98,9 +91,7 @@ export const login = async (req: Request, res: Response) => {
       return;
     }
 
-    const token = jwt.sign({ userId: user.id }, ENV.JWT_SECRET, {
-      expiresIn: "30 days",
-    });
+    const token = AuthService.createAuthToken(user)
 
     res.status(200).json({
       message: "Sign in successful",
@@ -188,9 +179,9 @@ export const resetPassword = async (req: Request, res: Response) => {
     }
 
 
-    const hashedPassword = await UserService.hashPassword(newPassword);
+    const hashedPassword = await AuthService.hashPassword(newPassword);
     await prisma.$transaction([
-      UserService.updatePasswordTx(userId, hashedPassword),
+      AuthService.updatePasswordTx(userId, hashedPassword),
       TokenService.deleteToken(tokenId),
     ]);
 
