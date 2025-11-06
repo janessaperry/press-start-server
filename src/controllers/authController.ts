@@ -156,7 +156,6 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   }
 }
 
-
 export const resetPassword = async (req: Request, res: Response) => {
   try {
     const { plainToken, newPassword } = req.body;
