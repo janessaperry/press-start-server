@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { ENV } from "./config/env.js";
 
 import authRoutes from "./routes/authRoutes.js";
+import gamesRoutes from "./routes/gamesRoutes.js";
 import { initializeJobs } from "./jobs/index.js";
 
 const app = express();
@@ -17,6 +18,7 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 app.use("/auth", authRoutes)
+app.use("/games", gamesRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   console.log(process.env.NODE_ENV);
