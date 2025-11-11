@@ -8,7 +8,7 @@
     "start": "NODE_ENV=production node dist/index.js",
     "dev": "NODE_ENV=development node --import=tsx --watch src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "reset": "npx prisma migrate reset",
+    "reset": "npx prisma migrate reset --skip-seed",
     "migrate": "npx prisma migrate dev --name init",
     "seed": "npx prisma db seed",
     "generate": "npx prisma generate"
