@@ -28,22 +28,22 @@ async function main () {
     data: [
       {
         userId: userOne.id,
-        apiGameId: "1234567890",
+        igdbGameId: "1234567890",
         status: "Wishlist",
       },
       {
         userId: userOne.id,
-        apiGameId: "34567890",
+        igdbGameId: "34567890",
         status: "Want to Play",
       },
       {
         userId: userTwo.id,
-        apiGameId: "1234590",
+        igdbGameId: "1234590",
         status: "Played",
       },
       {
         userId: userTwo.id,
-        apiGameId: "34567890",
+        igdbGameId: "34567890",
         status: "Want to Play",
       },
     ]

@@ -26,13 +26,13 @@ model User {
 }
 
 model UserGame {
-  id        Int      @id @default(autoincrement())
-  user      User     @relation(fields: [userId], references: [id])
-  userId    Int      @map("user_id")
-  apiGameId String   @map("api_game_id")
-  status    String
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int      @map("user_id")
+  igdbGameId String   @map("igdb_game_id")
+  status     String
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
 
   @@map("user_games")
 }
@@ -46,4 +46,19 @@ model PasswordResetToken {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("password_reset_tokens")
+}
+
+model Game {
+  id               Int       @id
+  name             String
+  slug             String    @unique
+  summary          String?
+  releaseDate      DateTime? @map("release_date")
+  totalRating      Int?      @map("total_rating")
+  totalRatingCount Int?      @map("total_rating_count")
+  checksum         String
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("game")
 }
