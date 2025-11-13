@@ -4,6 +4,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import { ENV } from "./config/env.js";
 
+import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
 import gamesRoutes from "./routes/gamesRoutes.js";
 import { initializeJobs } from "./jobs/index.js";
@@ -17,6 +18,7 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Press Start API!' });
 });
 
+app.use("/admin", adminRoutes)
 app.use("/auth", authRoutes)
 app.use("/games", gamesRoutes)
 
