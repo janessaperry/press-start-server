@@ -60,5 +60,66 @@ model Game {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
+  genres    GameGenre[]
+  themes    GameTheme[]
+  platforms GamePlatform[]
+
   @@map("game")
+}
+
+model Genre {
+  id    Int         @id
+  name  String      @unique
+  games GameGenre[]
+
+  @@map("genres")
+}
+
+model Theme {
+  id    Int         @id
+  name  String      @unique
+  games GameTheme[]
+
+  @@map("themes")
+}
+
+model Platform {
+  id    Int            @id
+  name  String         @unique
+  games GamePlatform[]
+
+  @@map("platforms")
+}
+
+model GameGenre {
+  gameId  Int
+  genreId Int
+  game    Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  genre   Genre @relation(fields: [genreId], references: [id])
+
+  @@id([gameId, genreId])
+  @@index([genreId])
+  @@map("game_genres")
+}
+
+model GameTheme {
+  gameId  Int
+  themeId Int
+  game    Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  theme   Theme @relation(fields: [themeId], references: [id])
+
+  @@id([gameId, themeId])
+  @@index([themeId])
+  @@map("game_themes")
+}
+
+model GamePlatform {
+  gameId     Int
+  platformId Int
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  platform   Platform @relation(fields: [platformId], references: [id])
+
+  @@id([gameId, platformId])
+  @@index([platformId])
+  @@map("game_platforms")
 }
