@@ -1,7 +1,6 @@
 import { prisma } from "../db/client.js";
-import { Game } from '@prisma/client'
 import { IgdbClient } from "./igdbClient.js";
-
+import { Game } from '@prisma/client'
 
 export const GameService = {
   async findById (id: number): Promise<Game | null> {
@@ -18,6 +17,29 @@ export const GameService = {
     })
   },
 
+  async createGameGenres (gameId: number, genres: number[]) {
+    for ( const genre of genres ) {
+      await prisma.gameGenre.create({
+        data: {
+          gameId,
+          genreId: genre
+        }
+      })
+    }
+  },
+
+  async createGameThemes (gameId: number, themes: number[]) {
+    if ( !themes ) return;
+    for ( const theme of themes ) {
+      await prisma.gameTheme.create({
+        data: {
+          gameId,
+          themeId: theme
+        }
+      })
+    }
+  },
+
   async updateGame (game: Game): Promise<void> {
     await prisma.game.update({
       where: {
@@ -27,8 +49,45 @@ export const GameService = {
     })
   },
 
+  async updateGameGenres (gameId: number, genres: number[]) {
+    for ( const genre of genres ) {
+      await prisma.gameGenre.update({
+        where: {
+          gameId_genreId: {
+            gameId,
+            genreId: genre
+          },
+        },
+        data: {
+          gameId,
+          genreId: genre
+        }
+      })
+    }
+  },
+
+  async updateGameThemes (gameId: number, themes: number[]) {
+    if ( !themes ) return;
+
+    for ( const theme of themes ) {
+      await prisma.gameTheme.update({
+        where: {
+          gameId_themeId: {
+            gameId,
+            themeId: theme
+          }
+        },
+        data: {
+          gameId,
+          themeId: theme
+        }
+      })
+    }
+
+  },
+
   async syncWithIgdb () {
-    let limit = 500;
+    let limit = 100;
     let offset = 0;
     let created = 0;
     let updated = 0;
@@ -36,20 +95,26 @@ export const GameService = {
 
     while ( true ) {
       console.log(`Fetching IGDB games ${offset}–${offset + limit}...`);
-      const games = await IgdbClient.getAll(limit, offset);
-      if ( games.length === 0 ) break;
 
-      for ( const game of games ) {
-        let existingGame = await this.findById(game.id);
+      const gameResponse = await IgdbClient.getGames(limit, offset);
+      if ( gameResponse.length === 0 ) break;
+
+      for ( const game of gameResponse ) {
+        let existingGame = await this.findById(game.gameDetails.id);
         if ( existingGame ) {
-          if ( existingGame.checksum !== game.checksum ) {
+          if ( existingGame.checksum !== game.gameDetails.checksum ) {
+            await this.updateGame(game.gameDetails);
+            if ( game.gameGenres ) await this.updateGameGenres(game.gameDetails.id, game.gameGenres);
+            if ( game.gameThemes ) await this.updateGameThemes(game.gameDetails.id, game.gameThemes);
             updated++
-            await this.updateGame(game);
           }
         }
         else {
+          await this.createGame(game.gameDetails);
+          if ( game.gameGenres ) await this.createGameGenres(game.gameDetails.id, game.gameGenres);
+          if ( game.gameThemes ) await this.createGameThemes(game.gameDetails.id, game.gameThemes);
+
           created++;
-          await this.createGame(game);
         }
 
         totalProcessed++;
@@ -58,7 +123,7 @@ export const GameService = {
       offset += limit;
     }
 
-    console.log(`Sync complete. Total processed: ${totalProcessed}`);
+    console.log(`Game sync complete. Total processed: ${totalProcessed}`);
     return { updated, created, totalProcessed };
   }
 }
