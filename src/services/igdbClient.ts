@@ -1,6 +1,6 @@
 import axios from "axios";
-import { Game } from "@prisma/client";
 import { apiConfig } from "../config/index.js";
+import { Game } from "@prisma/client";
 
 interface RawGame {
   id: number,
@@ -13,11 +13,20 @@ interface RawGame {
   }[],
   total_rating?: number,
   total_rating_count?: number,
-  checksum: string
+  checksum: string,
+  genres: number[],
+  themes: number[],
+  platforms: number[]
+}
+
+interface GamesResponse {
+  gameDetails: Game,
+  gameGenres: number[],
+  gameThemes: number[]
 }
 
 export const IgdbClient = {
-  async getAll (limit: number, offset: number) {
+  async getGames (limit: number, offset: number) {
     // todo platform 508 has 194 responses. test with this one for looping
     // where platforms = (167,48,169,49,130,508,3,14,6)
 
@@ -29,7 +38,7 @@ export const IgdbClient = {
     dlcs,expanded_games,expansions,
     franchises,
     game_type,
-    genres.name,
+    genres,
     involved_companies.company.name,involved_companies.company.parent.name,involved_companies.developer,involved_companies.publisher,
     name,
     parent_game,
@@ -56,16 +65,21 @@ export const IgdbClient = {
       headers: apiConfig.headers
     })
 
-    const normalizedResponse: Game[] = response.data.map((game: RawGame) => {
+    const normalizedResponse: GamesResponse[] = response.data.map((game: RawGame) => {
       return {
-        id: game.id,
-        name: game.name,
-        slug: game.slug,
-        summary: game.summary,
-        releaseDate: this.normalizeReleaseDates(game.release_dates),
-        totalRating: game.total_rating && Math.round(game.total_rating),
-        totalRatingCount: game.total_rating_count,
-        checksum: game.checksum
+        gameDetails: {
+          id: game.id,
+          name: game.name,
+          slug: game.slug,
+          summary: game.summary,
+          releaseDate: this.normalizeReleaseDates(game.release_dates),
+          totalRating: game.total_rating && Math.round(game.total_rating),
+          totalRatingCount: game.total_rating_count,
+          checksum: game.checksum
+        },
+        gameGenres: game.genres,
+        gameThemes: game.themes,
+        // gamePlatforms: game.platforms
       }
     })
 
@@ -84,5 +98,35 @@ export const IgdbClient = {
     if ( !releaseDate ) return;
 
     return new Date(releaseDate * 1000);
+  },
+
+
+  async getGenres () {
+    let data = `
+    fields id, name;
+    limit 50;
+    `;
+
+    const response = await axios.post(`${apiConfig.baseUrl}/genres`, data, {
+      headers: apiConfig.headers
+    })
+    return response.data;
+  },
+
+  async getThemes () {
+    let data = `fields
+    id, name;
+    where id != 42;
+    limit 50;
+    `;
+    try {
+      const response = await axios.post(`${apiConfig.baseUrl}/themes`, data, {
+        headers: apiConfig.headers
+      });
+      return response.data;
+    }
+    catch (e) {
+      console.error(`Error fetching themes: ${e}`)
+    }
   }
 }
