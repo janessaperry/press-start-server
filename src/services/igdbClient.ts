@@ -104,7 +104,7 @@ export const IgdbClient = {
 
   async getGenres () {
     let data = `
-    fields id, name;
+    fields id, name, checksum;
     limit 50;
     `;
 
