@@ -22,7 +22,8 @@ interface RawGame {
 interface GamesResponse {
   gameDetails: Game,
   gameGenres: number[],
-  gameThemes: number[]
+  gameThemes: number[],
+  gamePlatforms: number[]
 }
 
 export const IgdbClient = {
@@ -75,11 +76,11 @@ export const IgdbClient = {
           releaseDate: this.normalizeReleaseDates(game.release_dates),
           totalRating: game.total_rating && Math.round(game.total_rating),
           totalRatingCount: game.total_rating_count,
-          checksum: game.checksum
+          igdb_checksum: game.checksum
         },
         gameGenres: game.genres,
         gameThemes: game.themes,
-        // gamePlatforms: game.platforms
+        gamePlatforms: game.platforms
       }
     })
 
@@ -127,6 +128,24 @@ export const IgdbClient = {
     }
     catch (e) {
       console.error(`Error fetching themes: ${e}`)
+    }
+  },
+
+  async getPlatforms () {
+    const data = `fields
+    id, name, abbreviation, checksum;
+    where id = (167,48,169,49,130,508,3,14,6);
+    limit 50;
+    `;
+
+    try {
+      const response = await axios.post(`${apiConfig.baseUrl}/platforms`, data, {
+        headers: apiConfig.headers
+      })
+      return response.data;
+    }
+    catch (e) {
+      console.error(`Error fetching platforms: ${e}`)
     }
   }
 }

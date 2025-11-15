@@ -84,9 +84,11 @@ model Theme {
 }
 
 model Platform {
-  id    Int            @id
-  name  String         @unique
-  games GamePlatform[]
+  id            Int            @id
+  name          String         @unique
+  abbreviation  String?
+  igdb_checksum String         @unique
+  games         GamePlatform[]
 
   @@map("platforms")
 }
