@@ -68,9 +68,10 @@ model Game {
 }
 
 model Genre {
-  id    Int         @id
-  name  String      @unique
-  games GameGenre[]
+  id            Int         @id
+  name          String      @unique
+  igdb_checksum String      @unique
+  games         GameGenre[]
 
   @@map("genres")
 }
