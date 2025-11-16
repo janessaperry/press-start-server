@@ -116,7 +116,7 @@ export const IgdbClient = {
 
   async getThemes () {
     let data = `fields
-    id, name;
+    id, name, checksum;
     where id != 42;
     limit 50;
     `;
