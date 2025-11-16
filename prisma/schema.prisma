@@ -57,7 +57,7 @@ model Game {
   releaseDate      DateTime? @map("release_date")
   totalRating      Int?      @map("total_rating")
   totalRatingCount Int?      @map("total_rating_count")
-  checksum         String
+  igdb_checksum    String    @map("igdb_checksum")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
