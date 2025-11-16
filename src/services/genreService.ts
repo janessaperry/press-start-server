@@ -42,7 +42,7 @@ export const GenreService = {
     let totalProcessed = 0;
 
     const rawGenres = await IgdbClient.getGenres();
-    const mappedGenres = rawGenres.map(mapIgdbPlatformToDb);
+    const mappedGenres = rawGenres.map(mapIgdbResponseToDb);
 
     for ( const genre of mappedGenres ) {
       let existingGenre = await this.findById(genre.id);
@@ -65,7 +65,7 @@ export const GenreService = {
   }
 }
 
-function mapIgdbPlatformToDb (igdbResponse: any) {
+function mapIgdbResponseToDb (igdbResponse: any) {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,

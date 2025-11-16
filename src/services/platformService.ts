@@ -22,6 +22,12 @@ export const PlatformService = {
     })
   },
 
+  async createPlatform (data: PlatformCreateInput): Promise<Platform> {
+    return prisma.platform.create({
+      data
+    })
+  },
+
   async updatePlatformById (id: number, platformData: PlatformUpdateInput): Promise<Platform> {
     return prisma.platform.update({
       where: { id },
@@ -30,12 +36,6 @@ export const PlatformService = {
         abbreviation: platformData.abbreviation,
         igdb_checksum: platformData.igdb_checksum
       }
-    })
-  },
-
-  async createPlatform (data: PlatformCreateInput): Promise<Platform> {
-    return prisma.platform.create({
-      data
     })
   },
 
@@ -52,7 +52,7 @@ export const PlatformService = {
     let totalProcessed = 0;
 
     const rawPlatforms = await IgdbClient.getPlatforms();
-    const mappedPlatforms = rawPlatforms.map(mapIgdbPlatformToDb);
+    const mappedPlatforms = rawPlatforms.map(mapIgdbResponseToDb);
 
     for ( const platform of mappedPlatforms ) {
       const existingPlatform = await this.findById(platform.id);
@@ -75,7 +75,7 @@ export const PlatformService = {
 }
 
 
-function mapIgdbPlatformToDb (igdbResponse: any) {
+function mapIgdbResponseToDb (igdbResponse: any) {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,
