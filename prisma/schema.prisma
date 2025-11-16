@@ -77,9 +77,10 @@ model Genre {
 }
 
 model Theme {
-  id    Int         @id
-  name  String      @unique
-  games GameTheme[]
+  id            Int         @id
+  name          String      @unique
+  igdb_checksum String      @unique
+  games         GameTheme[]
 
   @@map("themes")
 }
