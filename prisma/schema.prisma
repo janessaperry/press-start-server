@@ -14,11 +14,12 @@ datasource db {
 }
 
 model User {
-  id                  Int                  @id @default(autoincrement())
-  email               String               @unique
-  hashedPassword      String               @map("hashed_password")
-  createdAt           DateTime             @default(now()) @map("created_at")
-  updatedAt           DateTime             @updatedAt @map("updated_at")
+  id             Int      @id @default(autoincrement())
+  email          String   @unique
+  hashedPassword String   @map("hashed_password")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
   games               UserGame[]
   passwordResetTokens PasswordResetToken[]
 
@@ -68,29 +69,38 @@ model Game {
 }
 
 model Genre {
-  id            Int         @id
-  name          String      @unique
-  igdb_checksum String      @unique
-  games         GameGenre[]
+  id            Int      @id
+  name          String   @unique
+  igdb_checksum String   @unique
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  games GameGenre[]
 
   @@map("genres")
 }
 
 model Theme {
-  id            Int         @id
-  name          String      @unique
-  igdb_checksum String      @unique
-  games         GameTheme[]
+  id            Int      @id
+  name          String   @unique
+  igdb_checksum String   @unique
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  games GameTheme[]
 
   @@map("themes")
 }
 
 model Platform {
-  id            Int            @id
-  name          String         @unique
+  id            Int      @id
+  name          String   @unique
   abbreviation  String?
-  igdb_checksum String         @unique
-  games         GamePlatform[]
+  igdb_checksum String   @unique
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  games GamePlatform[]
 
   @@map("platforms")
 }
