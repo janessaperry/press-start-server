@@ -53,6 +53,7 @@ model Game {
   id               Int       @id
   name             String
   slug             String    @unique
+  cover            String?
   summary          String?
   releaseDate      DateTime? @map("release_date")
   totalRating      Int?      @map("total_rating")
@@ -65,7 +66,7 @@ model Game {
   themes    GameTheme[]
   platforms GamePlatform[]
 
-  @@map("game")
+  @@map("games")
 }
 
 model Genre {
