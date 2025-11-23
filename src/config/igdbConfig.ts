@@ -1,11 +1,11 @@
 import { ENV } from './env.js';
 
-export const apiConfig = {
+export const igdbConfig = {
   baseUrl: 'https://api.igdb.com/v4',
   method: 'POST',
   headers: {
-    "Client-ID": ENV.CLIENT_ID,
-    Authorization: `Bearer ${ENV.ACCESS_TOKEN}`,
+    "Client-ID": ENV.IGDB_CLIENT_ID,
+    Authorization: `Bearer ${ENV.IGDB_ACCESS_TOKEN}`,
     "Content-Type": "text/plain",
   }
 }

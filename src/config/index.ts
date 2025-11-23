@@ -1,2 +1,2 @@
-export {apiConfig} from "./apiConfig.js";
-export {dbConfig} from "./dbConfig.js";
+export { igdbConfig } from "./igdbConfig.js";
+export { dbConfig } from "./dbConfig.js";
