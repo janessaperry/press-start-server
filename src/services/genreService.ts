@@ -5,12 +5,12 @@ import { Genre } from "@prisma/client";
 type GenreCreateInput = {
   id: number,
   name: string,
-  igdb_checksum: string
+  igdbChecksum: string
 }
 
 type GenreUpdateInput = {
   name: string,
-  igdb_checksum: string
+  igdbChecksum: string
 }
 
 export const GenreService = {
@@ -31,7 +31,7 @@ export const GenreService = {
       where: { id },
       data: {
         name: genreData.name,
-        igdb_checksum: genreData.igdb_checksum
+        igdbChecksum: genreData.igdbChecksum
       }
     })
   },
@@ -47,7 +47,7 @@ export const GenreService = {
     for ( const genre of mappedGenres ) {
       let existingGenre = await this.findById(genre.id);
       if ( existingGenre ) {
-        if ( existingGenre.igdb_checksum !== genre.igdb_checksum ) {
+        if ( existingGenre.igdbChecksum !== genre.igdbChecksum ) {
           await this.updateGenreById(existingGenre.id, genre);
           updated++;
         }
@@ -69,6 +69,6 @@ function mapIgdbResponseToDb (igdbResponse: any) {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,
-    igdb_checksum: igdbResponse.checksum
+    igdbChecksum: igdbResponse.checksum
   };
 }

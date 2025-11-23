@@ -70,11 +70,11 @@ model Game {
 }
 
 model Genre {
-  id            Int      @id
-  name          String   @unique
-  igdb_checksum String   @unique
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id           Int      @id
+  name         String   @unique
+  igdbChecksum String   @unique @map("igdb_checksum")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   games GameGenre[]
 
@@ -82,11 +82,11 @@ model Genre {
 }
 
 model Theme {
-  id            Int      @id
-  name          String   @unique
-  igdb_checksum String   @unique
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id           Int      @id
+  name         String   @unique
+  igdbChecksum String   @unique @map("igdb_checksum")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   games GameTheme[]
 
@@ -94,12 +94,12 @@ model Theme {
 }
 
 model Platform {
-  id            Int      @id
-  name          String   @unique
-  abbreviation  String?
-  igdb_checksum String   @unique
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id           Int      @id
+  name         String   @unique
+  abbreviation String?
+  igdbChecksum String   @unique @map("igdb_checksum")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
   games GamePlatform[]
 

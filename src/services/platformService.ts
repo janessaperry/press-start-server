@@ -6,13 +6,13 @@ type PlatformCreateInput = {
   id: number,
   name: string,
   abbreviation: string | null,
-  igdb_checksum: string
+  igdbChecksum: string
 }
 
 type PlatformUpdateInput = {
   name: string,
   abbreviation: string | null,
-  igdb_checksum: string
+  igdbChecksum: string
 }
 
 export const PlatformService = {
@@ -34,7 +34,7 @@ export const PlatformService = {
       data: {
         name: platformData.name,
         abbreviation: platformData.abbreviation,
-        igdb_checksum: platformData.igdb_checksum
+        igdbChecksum: platformData.igdbChecksum
       }
     })
   },
@@ -58,7 +58,7 @@ export const PlatformService = {
       const existingPlatform = await this.findById(platform.id);
 
       if ( existingPlatform ) {
-        if ( existingPlatform.igdb_checksum !== platform.igdb_checksum ) {
+        if ( existingPlatform.igdbChecksum !== platform.igdbChecksum ) {
           await this.updatePlatformById(existingPlatform.id, platform);
           updated++;
         }
@@ -80,6 +80,6 @@ function mapIgdbResponseToDb (igdbResponse: any) {
     id: igdbResponse.id,
     name: igdbResponse.name,
     abbreviation: igdbResponse.abbreviation ?? null,
-    igdb_checksum: igdbResponse.checksum
+    igdbChecksum: igdbResponse.checksum
   };
 }

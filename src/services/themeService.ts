@@ -5,12 +5,12 @@ import { Theme } from "@prisma/client";
 type ThemeCreateInput = {
   id: number,
   name: string,
-  igdb_checksum: string
+  igdbChecksum: string
 }
 
 type ThemeUpdateInput = {
   name: string,
-  igdb_checksum: string
+  igdbChecksum: string
 }
 
 export const ThemeService = {
@@ -33,7 +33,7 @@ export const ThemeService = {
       },
       data: {
         name: theme.name,
-        igdb_checksum: theme.igdb_checksum
+        igdbChecksum: theme.igdbChecksum
       }
     })
   },
@@ -49,7 +49,7 @@ export const ThemeService = {
     for ( const theme of mappedThemes ) {
       let existingTheme = await this.findById(theme.id);
       if ( existingTheme ) {
-        if ( existingTheme.igdb_checksum !== theme.igdb_checksum ) {
+        if ( existingTheme.igdbChecksum !== theme.igdbChecksum ) {
           await this.updateThemeById(existingTheme.id, theme);
           updated++;
         }
@@ -71,6 +71,6 @@ const mapIgdbResponseToDb = (igdbResponse: any) => {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,
-    igdb_checksum: igdbResponse.checksum,
+    igdbChecksum: igdbResponse.checksum,
   }
 }
