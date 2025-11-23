@@ -1,11 +1,14 @@
 import axios from "axios";
-import { apiConfig } from "../config/index.js";
-import { Game } from "@prisma/client";
+import { igdbConfig } from "../config/index.js";
 
-interface RawGame {
+export interface RawGame {
   id: number,
   name: string,
   slug: string,
+  cover?: {
+    id: number,
+    url: string
+  },
   summary?: string,
   release_dates?: {
     date: number,
@@ -19,16 +22,28 @@ interface RawGame {
   platforms: number[]
 }
 
-interface GamesResponse {
-  gameDetails: Game,
-  gameGenres: number[],
-  gameThemes: number[],
-  gamePlatforms: number[]
-}
+/**
+ * todo add the following to the RawGame interface / types and add to database after normalizing
+ * fields used in .index method GameOverviewDTO
+ * cover.url - send back valid url or no image url
+ *
+ * fields used in .show method GameDetailsDTO
+ * age_ratings
+ * collections
+ * dlcs, expanded games, expansions
+ * franchises
+ * game_type
+ * involved_companies
+ * parent_game
+ * similar_games
+ * standalone_expansions
+ *
+ */
+
 
 export const IgdbClient = {
   async getGames (limit: number, offset: number) {
-    // todo platform 508 has 194 responses. test with this one for looping
+    // todo test with platform 508 only
     // where platforms = (167,48,169,49,130,508,3,14,6)
 
     let data = `fields 
@@ -62,45 +77,12 @@ export const IgdbClient = {
     offset ${offset};
     `;
 
-    const response = await axios.post(`${apiConfig.baseUrl}/games`, data, {
-      headers: apiConfig.headers
+    const response = await axios.post(`${igdbConfig.baseUrl}/games`, data, {
+      headers: igdbConfig.headers
     })
 
-    const normalizedResponse: GamesResponse[] = response.data.map((game: RawGame) => {
-      return {
-        gameDetails: {
-          id: game.id,
-          name: game.name,
-          slug: game.slug,
-          summary: game.summary,
-          releaseDate: this.normalizeReleaseDates(game.release_dates),
-          totalRating: game.total_rating && Math.round(game.total_rating),
-          totalRatingCount: game.total_rating_count,
-          igdb_checksum: game.checksum
-        },
-        gameGenres: game.genres,
-        gameThemes: game.themes,
-        gamePlatforms: game.platforms
-      }
-    })
-
-    return normalizedResponse;
+    return response.data;
   },
-
-  normalizeReleaseDates (releaseDates: RawGame["release_dates"]) {
-    if ( !releaseDates ) return;
-
-    let releaseDate;
-    for ( const date of releaseDates ) {
-      if ( date.release_region === 2 || date.release_region === 8 ) {
-        if ( !releaseDate || date.date < releaseDate ) releaseDate = date.date;
-      }
-    }
-    if ( !releaseDate ) return;
-
-    return new Date(releaseDate * 1000);
-  },
-
 
   async getGenres () {
     let data = `
@@ -108,8 +90,8 @@ export const IgdbClient = {
     limit 50;
     `;
 
-    const response = await axios.post(`${apiConfig.baseUrl}/genres`, data, {
-      headers: apiConfig.headers
+    const response = await axios.post(`${igdbConfig.baseUrl}/genres`, data, {
+      headers: igdbConfig.headers
     })
     return response.data;
   },
@@ -121,8 +103,8 @@ export const IgdbClient = {
     limit 50;
     `;
     try {
-      const response = await axios.post(`${apiConfig.baseUrl}/themes`, data, {
-        headers: apiConfig.headers
+      const response = await axios.post(`${igdbConfig.baseUrl}/themes`, data, {
+        headers: igdbConfig.headers
       });
       return response.data;
     }
@@ -139,8 +121,8 @@ export const IgdbClient = {
     `;
 
     try {
-      const response = await axios.post(`${apiConfig.baseUrl}/platforms`, data, {
-        headers: apiConfig.headers
+      const response = await axios.post(`${igdbConfig.baseUrl}/platforms`, data, {
+        headers: igdbConfig.headers
       })
       return response.data;
     }
