@@ -1,7 +1,7 @@
 import axios from "axios";
 import { igdbConfig } from "../config/index.js";
 
-export interface RawGame {
+export type RawGame = {
   id: number,
   name: string,
   slug: string,
@@ -17,13 +17,39 @@ export interface RawGame {
   total_rating?: number,
   total_rating_count?: number,
   checksum: string,
+  game_type: number,
   genres: number[],
   themes: number[],
   platforms: number[]
 }
 
+export type RawGameType = {
+  id: number,
+  type: string,
+  checksum: string
+}
+
+export type RawGenre = {
+  id: number,
+  name: string,
+  checksum: string
+}
+
+export type RawTheme = {
+  id: number,
+  name: string,
+  checksum: string
+}
+
+export type RawPlatform = {
+  id: number,
+  name: string,
+  abbreviation: string,
+  checksum: string
+}
+
 /**
- * todo add the following to the RawGame interface / types and add to database after normalizing
+ * todo add the following to the RawGame type / types and add to database after normalizing
  * fields used in .index method GameOverviewDTO
  * cover.url - send back valid url or no image url
  *
@@ -32,7 +58,6 @@ export interface RawGame {
  * collections
  * dlcs, expanded games, expansions
  * franchises
- * game_type
  * involved_companies
  * parent_game
  * similar_games
@@ -69,7 +94,7 @@ export const IgdbClient = {
     
     where platforms = (508) 
     & age_ratings.organization = 1
-    & game_type = (0,1,2,3,4,8,8,10,11)
+    & game_type = (0,1,2,3,4,8,9,10,11)
     & themes != 42
     & release_dates.release_region = (2,8);
     
@@ -81,6 +106,18 @@ export const IgdbClient = {
       headers: igdbConfig.headers
     })
 
+    return response.data;
+  },
+
+  async getGameTypes () {
+    let data = `
+    fields id, type, checksum;
+    where id = (0,1,2,3,4,8,9,10,11);
+    limit 50;`;
+
+    const response = await axios.post(`${igdbConfig.baseUrl}/game_types`, data, {
+      headers: igdbConfig.headers
+    });
     return response.data;
   },
 

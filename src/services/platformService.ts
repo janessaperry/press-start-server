@@ -1,6 +1,7 @@
-import { IgdbClient } from "./igdbClient.js";
 import { prisma } from "../db/client.js";
 import { Platform } from "@prisma/client";
+import { IgdbClient, RawPlatform } from "./igdbClient.js";
+import { ProcessingCounts } from "../controllers/adminController.js";
 
 type PlatformCreateInput = {
   id: number,
@@ -46,16 +47,16 @@ export const PlatformService = {
    *  • Updates platforms where IGDB's checksum changed
    * Ensures local DB stays aligned with third party data.
    */
-  async syncWithIgdb () {
+  async syncWithIgdb (): Promise<ProcessingCounts> {
     let updated = 0;
     let created = 0;
     let totalProcessed = 0;
 
-    const rawPlatforms = await IgdbClient.getPlatforms();
-    const mappedPlatforms = rawPlatforms.map(mapIgdbResponseToDb);
+    const rawPlatforms: RawPlatform[] = await IgdbClient.getPlatforms();
+    const mappedPlatforms: PlatformCreateInput[] = rawPlatforms.map(mapIgdbResponseToDb);
 
     for (const platform of mappedPlatforms) {
-      const existingPlatform = await this.findById(platform.id);
+      const existingPlatform: Platform | null = await this.findById(platform.id);
 
       if (existingPlatform) {
         if (existingPlatform.igdbChecksum !== platform.igdbChecksum) {
@@ -75,11 +76,11 @@ export const PlatformService = {
 }
 
 
-function mapIgdbResponseToDb (igdbResponse: any) {
+function mapIgdbResponseToDb (igdbResponse: RawPlatform): PlatformCreateInput {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,
-    abbreviation: igdbResponse.abbreviation ?? null,
+    abbreviation: igdbResponse.abbreviation ?? igdbResponse.name,
     igdbChecksum: igdbResponse.checksum
   };
 }
