@@ -16,19 +16,19 @@ type GenreUpdateInput = {
 export const GenreService = {
   async findById (id: number): Promise<Genre | null> {
     return prisma.genre.findUnique({
-      where: { id }
+      where: {id}
     })
   },
 
-  async createGenre (genre: GenreCreateInput): Promise<Genre> {
+  async create (genre: GenreCreateInput): Promise<Genre> {
     return prisma.genre.create({
       data: genre
     })
   },
 
-  async updateGenreById (id: number, genreData: GenreUpdateInput): Promise<Genre> {
+  async updateById (id: number, genreData: GenreUpdateInput): Promise<Genre> {
     return prisma.genre.update({
-      where: { id },
+      where: {id},
       data: {
         name: genreData.name,
         igdbChecksum: genreData.igdbChecksum
@@ -44,16 +44,16 @@ export const GenreService = {
     const rawGenres = await IgdbClient.getGenres();
     const mappedGenres = rawGenres.map(mapIgdbResponseToDb);
 
-    for ( const genre of mappedGenres ) {
+    for (const genre of mappedGenres) {
       let existingGenre = await this.findById(genre.id);
-      if ( existingGenre ) {
-        if ( existingGenre.igdbChecksum !== genre.igdbChecksum ) {
-          await this.updateGenreById(existingGenre.id, genre);
+      if (existingGenre) {
+        if (existingGenre.igdbChecksum !== genre.igdbChecksum) {
+          await this.updateById(existingGenre.id, genre);
           updated++;
         }
       }
       else {
-        await this.createGenre(genre);
+        await this.create(genre);
         created++;
       }
 
@@ -61,7 +61,7 @@ export const GenreService = {
     }
 
     console.log(`Genre sync complete. Total processed: ${totalProcessed}`)
-    return { updated, created, totalProcessed }
+    return {updated, created, totalProcessed}
   }
 }
 

@@ -16,17 +16,17 @@ type ThemeUpdateInput = {
 export const ThemeService = {
   async findById (id: number): Promise<Theme | null> {
     return prisma.theme.findUnique({
-      where: { id }
+      where: {id}
     })
   },
 
-  async createTheme (theme: ThemeCreateInput): Promise<Theme> {
+  async create (theme: ThemeCreateInput): Promise<Theme> {
     return prisma.theme.create({
       data: theme
     })
   },
 
-  async updateThemeById (themeId: number, theme: ThemeUpdateInput): Promise<Theme> {
+  async updateById (themeId: number, theme: ThemeUpdateInput): Promise<Theme> {
     return prisma.theme.update({
       where: {
         id: themeId
@@ -46,16 +46,16 @@ export const ThemeService = {
     const rawThemes = await IgdbClient.getThemes();
     const mappedThemes = rawThemes.map(mapIgdbResponseToDb);
 
-    for ( const theme of mappedThemes ) {
+    for (const theme of mappedThemes) {
       let existingTheme = await this.findById(theme.id);
-      if ( existingTheme ) {
-        if ( existingTheme.igdbChecksum !== theme.igdbChecksum ) {
-          await this.updateThemeById(existingTheme.id, theme);
+      if (existingTheme) {
+        if (existingTheme.igdbChecksum !== theme.igdbChecksum) {
+          await this.updateById(existingTheme.id, theme);
           updated++;
         }
       }
       else {
-        await this.createTheme(theme);
+        await this.create(theme);
         created++;
       }
 
@@ -63,7 +63,7 @@ export const ThemeService = {
     }
 
     console.log(`Theme sync complete. Total processed: ${totalProcessed}`)
-    return { updated, created, totalProcessed }
+    return {updated, created, totalProcessed}
   }
 }
 

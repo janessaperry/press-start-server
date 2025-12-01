@@ -18,19 +18,19 @@ type PlatformUpdateInput = {
 export const PlatformService = {
   async findById (id: number): Promise<Platform | null> {
     return prisma.platform.findUnique({
-      where: { id }
+      where: {id}
     })
   },
 
-  async createPlatform (data: PlatformCreateInput): Promise<Platform> {
+  async create (data: PlatformCreateInput): Promise<Platform> {
     return prisma.platform.create({
       data
     })
   },
 
-  async updatePlatformById (id: number, platformData: PlatformUpdateInput): Promise<Platform> {
+  async updateById (id: number, platformData: PlatformUpdateInput): Promise<Platform> {
     return prisma.platform.update({
-      where: { id },
+      where: {id},
       data: {
         name: platformData.name,
         abbreviation: platformData.abbreviation,
@@ -54,23 +54,23 @@ export const PlatformService = {
     const rawPlatforms = await IgdbClient.getPlatforms();
     const mappedPlatforms = rawPlatforms.map(mapIgdbResponseToDb);
 
-    for ( const platform of mappedPlatforms ) {
+    for (const platform of mappedPlatforms) {
       const existingPlatform = await this.findById(platform.id);
 
-      if ( existingPlatform ) {
-        if ( existingPlatform.igdbChecksum !== platform.igdbChecksum ) {
-          await this.updatePlatformById(existingPlatform.id, platform);
+      if (existingPlatform) {
+        if (existingPlatform.igdbChecksum !== platform.igdbChecksum) {
+          await this.updateById(existingPlatform.id, platform);
           updated++;
         }
       }
       else {
-        await this.createPlatform(platform);
+        await this.create(platform);
         created++;
       }
       totalProcessed++;
     }
 
-    return { updated, created, totalProcessed };
+    return {updated, created, totalProcessed};
   },
 }
 
