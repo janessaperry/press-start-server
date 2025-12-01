@@ -59,6 +59,7 @@ model Game {
   totalRating      Int?      @map("total_rating")
   totalRatingCount Int?      @map("total_rating_count")
   igdbChecksum     String    @map("igdb_checksum")
+  gameTypeId       Int       @map("game_type_id")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
@@ -66,7 +67,21 @@ model Game {
   themes    GameTheme[]
   platforms GamePlatform[]
 
+  gameType GameType @relation(fields: [gameTypeId], references: [id])
+
   @@map("games")
+}
+
+model GameType {
+  id           Int      @id
+  label        String
+  igdbChecksum String   @unique @map("igdb_checksum")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  Game Game[]
+
+  @@map("game_types")
 }
 
 model Genre {
