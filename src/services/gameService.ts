@@ -77,7 +77,8 @@ export const GameService = {
           mode: 'insensitive'
         }
       },
-      select
+      select,
+      take: 10
     })
   },
 
