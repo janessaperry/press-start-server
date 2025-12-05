@@ -53,7 +53,7 @@ model Game {
   id               Int       @id
   name             String
   slug             String    @unique
-  coverUrl         String?   @map("cover_url")
+  coverUrl         String    @map("cover_url")
   summary          String?
   releaseDate      DateTime? @map("release_date")
   totalRating      Int?      @map("total_rating")
