@@ -1,6 +1,6 @@
 import { prisma } from "../db/client.js";
 import { IgdbClient, RawGame } from "./igdbClient.js";
-import { Game } from '@prisma/client';
+import { Game, Prisma } from '@prisma/client';
 import { ENV } from "../config/env.js";
 
 type CreateGameInput = {
@@ -28,6 +28,38 @@ type UpdateGameInput = {
   igdbChecksum: string
 }
 
+type GameOverview = {
+  id: number,
+  name: string,
+  coverUrl: string,
+  releaseDate: Date | null,
+  slug: string,
+  totalRating: number | null,
+  platforms: {
+    platform: {
+      id: number,
+      abbreviation: string | null,
+    }
+  }[],
+  gameType: {
+    label: string
+  },
+}
+
+type GameOverviewDTO = {
+  id: number,
+  name: string,
+  coverUrl: string,
+  releaseDate: string,
+  slug: string,
+  totalRating: string,
+  platforms: {
+    id: number,
+    abbreviation: string | null,
+  }[],
+  gameType: string,
+}
+
 export const GameService = {
   async findById (id: number): Promise<Game | null> {
     return prisma.game.findUnique({
@@ -35,6 +67,104 @@ export const GameService = {
         id
       }
     })
+  },
+
+  async findByName (query: string, select: Prisma.GameSelect): Promise<Game[] | null> {
+    return prisma.game.findMany({
+      where: {
+        name: {
+          contains: query,
+          mode: 'insensitive'
+        }
+      },
+      select
+    })
+  },
+
+  async findComingSoonGames () {
+    let oneYearAhead = new Date();
+    oneYearAhead.setMonth(oneYearAhead.getMonth() + 12);
+
+    const data = await prisma.game.findMany({
+      where: {
+        releaseDate: {
+          gte: new Date(Date.now()),
+          lte: oneYearAhead
+        }
+      },
+      orderBy: {
+        releaseDate: 'asc'
+      },
+      select: {
+        id: true,
+        name: true,
+        coverUrl: true,
+        releaseDate: true,
+        slug: true,
+        totalRating: true,
+        platforms: {
+          select: {
+            platform: {
+              select: {
+                id: true,
+                abbreviation: true,
+              }
+            }
+          }
+        },
+        gameType: {
+          select: {
+            label: true
+          }
+        }
+      },
+      take: 18
+    });
+
+    return data.map(game => mapToGameOverviewDTO(game));
+  },
+
+  async findNewReleaseGames () {
+    let sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+    const data = await prisma.game.findMany({
+      where: {
+        releaseDate: {
+          gte: sixMonthsAgo,
+          lte: new Date()
+        }
+      },
+      orderBy: {
+        releaseDate: 'desc'
+      },
+      select: {
+        id: true,
+        name: true,
+        coverUrl: true,
+        releaseDate: true,
+        slug: true,
+        totalRating: true,
+        platforms: {
+          select: {
+            platform: {
+              select: {
+                id: true,
+                abbreviation: true,
+              }
+            }
+          }
+        },
+        gameType: {
+          select: {
+            label: true,
+          }
+        }
+      },
+      take: 18
+    })
+
+    return data.map(game => mapToGameOverviewDTO(game));
   },
 
   async createGame (game: CreateGameInput): Promise<Game> {
@@ -199,7 +329,7 @@ async function normalizeResponse (rawGame: RawGame) {
   }
 }
 
-function normalizeReleaseDates (releaseDates: RawGame["release_dates"]) {
+function normalizeReleaseDates (releaseDates: RawGame["release_dates"]): Date | undefined {
   if (!releaseDates) return;
 
   let releaseDate;
@@ -213,7 +343,7 @@ function normalizeReleaseDates (releaseDates: RawGame["release_dates"]) {
   return new Date(releaseDate * 1000);
 }
 
-function generateCoverUrl (coverInfo: RawGame["cover"]) {
+function generateCoverUrl (coverInfo: RawGame["cover"]): string {
   if (!coverInfo) return `${ENV.SERVER_URL}/public/images/no-cover.png`;
 
   const rawUrl = coverInfo.url;
@@ -236,5 +366,31 @@ async function filterValidPlatforms (platformsIds: number[]): Promise<number[]> 
   return validPlatforms;
 }
 
+function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
+  const releaseDate = game.releaseDate ? game.releaseDate.toLocaleDateString("en-US", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }) : "Release date unknown";
+  const rating = game.totalRating ? String(game.totalRating) : 'N/A';
+  const platforms = game.platforms.map(p => {
+    return {
+      id: p.platform.id,
+      abbreviation: p.platform.abbreviation
+    }
+  });
+  const gameType: string = game.gameType.label;
+
+  return {
+    id: game.id,
+    name: game.name,
+    coverUrl: game.coverUrl,
+    releaseDate,
+    slug: game.slug,
+    totalRating: rating,
+    platforms,
+    gameType
+  }
+}
 
 
