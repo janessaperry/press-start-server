@@ -12,7 +12,8 @@ type CreateGameInput = {
   releaseDate: Date | null,
   totalRating: number | null,
   totalRatingCount: number | null,
-  igdbChecksum: string
+  gameTypeId: number,
+  igdbChecksum: string,
 }
 
 type UpdateGameInput = {
@@ -23,6 +24,7 @@ type UpdateGameInput = {
   releaseDate: Date | null,
   totalRating: number | null,
   totalRatingCount: number | null,
+  gameTypeId: number,
   igdbChecksum: string
 }
 
@@ -42,8 +44,8 @@ export const GameService = {
   },
 
   async createGameGenres (gameId: number, genres: number[]) {
-    if ( !genres ) return;
-    for ( const genre of genres ) {
+    if (!genres) return;
+    for (const genre of genres) {
       await prisma.gameGenre.create({
         data: {
           gameId,
@@ -54,8 +56,8 @@ export const GameService = {
   },
 
   async createGameThemes (gameId: number, themes: number[]) {
-    if ( !themes ) return;
-    for ( const theme of themes ) {
+    if (!themes) return;
+    for (const theme of themes) {
       await prisma.gameTheme.create({
         data: {
           gameId,
@@ -66,8 +68,8 @@ export const GameService = {
   },
 
   async createGamePlatforms (gameId: number, platforms: number[]) {
-    if ( !platforms ) return;
-    for ( const platform of platforms ) {
+    if (!platforms) return;
+    for (const platform of platforms) {
       console.log(platform)
       await prisma.gamePlatform.create({
         data: {
@@ -80,7 +82,7 @@ export const GameService = {
 
   async updateGameById (id: number, gameDetails: UpdateGameInput): Promise<Game> {
     return prisma.game.update({
-      where: { id },
+      where: {id},
       data: {
         name: gameDetails.name,
         slug: gameDetails.slug,
@@ -89,37 +91,38 @@ export const GameService = {
         releaseDate: gameDetails.releaseDate,
         totalRating: gameDetails.totalRating,
         totalRatingCount: gameDetails.totalRatingCount,
+        gameTypeId: gameDetails.gameTypeId,
         igdbChecksum: gameDetails.igdbChecksum
       }
     })
   },
 
   async updateGameGenres (gameId: number, genres: number[]) {
-    if ( !genres ) return;
+    if (!genres) return;
 
     await prisma.gameGenre.deleteMany({
-      where: { gameId },
+      where: {gameId},
     })
 
     await this.createGameGenres(gameId, genres)
   },
 
   async updateGameThemes (gameId: number, themes: number[]) {
-    if ( !themes ) return;
+    if (!themes) return;
 
     await prisma.gameTheme.deleteMany({
-      where: { gameId },
+      where: {gameId},
     })
 
     await this.createGameThemes(gameId, themes);
   },
 
   async updateGamePlatforms (gameId: number, platforms: number[]) {
-    if ( !platforms ) return;
+    if (!platforms) return;
     console.log("platforms", platforms)
 
     await prisma.gamePlatform.deleteMany({
-      where: { gameId }
+      where: {gameId}
     })
 
     await this.createGamePlatforms(gameId, platforms)
@@ -132,31 +135,31 @@ export const GameService = {
     let updated = 0;
     let totalProcessed = 0;
 
-    while ( true ) {
+    while (true) {
       console.log(`Fetching IGDB games ${offset}–${offset + limit}...`);
 
       const rawGames = await IgdbClient.getGames(limit, offset);
-      if ( rawGames.length === 0 ) break;
+      if (rawGames.length === 0) break;
       const normalizedGames = await Promise.all(rawGames.map(normalizeResponse));
 
-      for ( const game of normalizedGames ) {
+      for (const game of normalizedGames) {
         let existingGame = await this.findById(game.gameDetails.id);
 
-        if ( existingGame ) {
-          if ( existingGame.igdbChecksum !== game.gameDetails.igdbChecksum ) {
+        if (existingGame) {
+          if (existingGame.igdbChecksum !== game.gameDetails.igdbChecksum) {
             await this.updateGameById(existingGame.id, game.gameDetails);
-            if ( game.gameGenres ) await this.updateGameGenres(existingGame.id, game.gameGenres);
-            if ( game.gameThemes ) await this.updateGameThemes(existingGame.id, game.gameThemes);
-            if ( game.gamePlatforms ) await this.updateGamePlatforms(existingGame.id, game.gamePlatforms);
+            if (game.gameGenres) await this.updateGameGenres(existingGame.id, game.gameGenres);
+            if (game.gameThemes) await this.updateGameThemes(existingGame.id, game.gameThemes);
+            if (game.gamePlatforms) await this.updateGamePlatforms(existingGame.id, game.gamePlatforms);
 
             updated++;
           }
         }
         else {
           await this.createGame(game.gameDetails);
-          if ( game.gameGenres ) await this.createGameGenres(game.gameDetails.id, game.gameGenres);
-          if ( game.gameThemes ) await this.createGameThemes(game.gameDetails.id, game.gameThemes);
-          if ( game.gamePlatforms ) await this.createGamePlatforms(game.gameDetails.id, game.gamePlatforms);
+          if (game.gameGenres) await this.createGameGenres(game.gameDetails.id, game.gameGenres);
+          if (game.gameThemes) await this.createGameThemes(game.gameDetails.id, game.gameThemes);
+          if (game.gamePlatforms) await this.createGamePlatforms(game.gameDetails.id, game.gamePlatforms);
 
           created++;
         }
@@ -168,7 +171,7 @@ export const GameService = {
     }
 
     console.log(`Game sync complete. Total processed: ${totalProcessed}`);
-    return { updated, created, totalProcessed };
+    return {updated, created, totalProcessed};
   }
 }
 
@@ -176,7 +179,7 @@ async function normalizeResponse (rawGame: RawGame) {
   const releaseDate = normalizeReleaseDates(rawGame.release_dates);
   const coverUrl = generateCoverUrl(rawGame.cover);
   const platforms = await filterValidPlatforms(rawGame.platforms);
-  
+
   return {
     gameDetails: {
       id: rawGame.id,
@@ -187,7 +190,8 @@ async function normalizeResponse (rawGame: RawGame) {
       releaseDate: releaseDate,
       totalRating: rawGame.total_rating && Math.round(rawGame.total_rating),
       totalRatingCount: rawGame.total_rating_count,
-      igdbChecksum: rawGame.checksum
+      gameTypeId: rawGame.game_type,
+      igdbChecksum: rawGame.checksum,
     },
     gameGenres: rawGame.genres,
     gameThemes: rawGame.themes,
@@ -195,23 +199,22 @@ async function normalizeResponse (rawGame: RawGame) {
   }
 }
 
-
 function normalizeReleaseDates (releaseDates: RawGame["release_dates"]) {
-  if ( !releaseDates ) return;
+  if (!releaseDates) return;
 
   let releaseDate;
-  for ( const date of releaseDates ) {
-    if ( date.release_region === 2 || date.release_region === 8 ) {
-      if ( !releaseDate || date.date < releaseDate ) releaseDate = date.date;
+  for (const date of releaseDates) {
+    if (date.release_region === 2 || date.release_region === 8) {
+      if (!releaseDate || date.date < releaseDate) releaseDate = date.date;
     }
   }
-  if ( !releaseDate ) return;
+  if (!releaseDate) return;
 
   return new Date(releaseDate * 1000);
 }
 
 function generateCoverUrl (coverInfo: RawGame["cover"]) {
-  if ( !coverInfo ) return `${ENV.SERVER_URL}/public/images/no-cover.png`;
+  if (!coverInfo) return `${ENV.SERVER_URL}/public/images/no-cover.png`;
 
   const rawUrl = coverInfo.url;
   const coverUrl = rawUrl.replace('t_thumb', 't_cover_big')
@@ -220,16 +223,18 @@ function generateCoverUrl (coverInfo: RawGame["cover"]) {
 }
 
 async function filterValidPlatforms (platformsIds: number[]): Promise<number[]> {
-  if ( !platformsIds ) return [];
+  if (!platformsIds) return [];
 
   let validPlatforms: number[] = [];
-  for ( const id of platformsIds ) {
+  for (const id of platformsIds) {
     const platform = await prisma.platform.findUnique({
-      where: { id }
+      where: {id}
     })
-    if ( platform ) validPlatforms.push(id);
+    if (platform) validPlatforms.push(id);
 
   }
   return validPlatforms;
 }
+
+
 

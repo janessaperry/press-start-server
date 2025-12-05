@@ -10,10 +10,15 @@ interface GameQuery {
 type GameOverviewDTO = {
   id: number,
   name: string,
-  coverUrl: string,
+  coverUrl: string | null,
   releaseDate: string,
   slug: string,
   totalRating: string,
+  platforms: {
+    id: number,
+    abbreviation: string | null,
+  }[],
+  gameType: string,
 }
 
 type GameDetailsDTO = {
@@ -27,14 +32,14 @@ type GameDetailsDTO = {
 }
 
 export const index = async (req: Request<any, any, any, GameQuery>, res: Response) => {
-  const { search, platform, status } = req.query;
+  const {search, platform, status} = req.query;
 
   let comingSoon;
   let newRelease;
-  if ( status ) {
+  if (status) {
     const statusArr = status.split(',');
 
-    if ( statusArr.includes('coming-soon') ) {
+    if (statusArr.includes('coming-soon')) {
       let oneYearAhead = new Date();
       oneYearAhead.setMonth(oneYearAhead.getMonth() + 12);
 
@@ -55,10 +60,25 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
           releaseDate: true,
           slug: true,
           totalRating: true,
+          platforms: {
+            select: {
+              platform: {
+                select: {
+                  id: true,
+                  abbreviation: true,
+                }
+              }
+            }
+          },
+          gameType: {
+            select: {
+              label: true
+            }
+          }
         },
         take: 18
       });
-
+      
       comingSoon = data.map((game): GameOverviewDTO => {
         const releaseDate = game.releaseDate ? game.releaseDate.toLocaleDateString("en-US", {
           day: "2-digit",
@@ -66,20 +86,29 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
           year: "numeric",
         }) : "Release date unknown";
         const rating = game.totalRating ? String(game.totalRating) : 'N/A';
-        const coverUrl = game.coverUrl ? game.coverUrl : "image.png";
+        const platforms = game.platforms.map(p => {
+          return {
+            id: p.platform.id,
+            abbreviation: p.platform.abbreviation
+          }
+        });
+        const gameType: string = game.gameType.label;
+
 
         return {
           id: game.id,
           name: game.name,
-          coverUrl,
+          coverUrl: game.coverUrl,
           releaseDate,
           slug: game.slug,
-          totalRating: rating
+          totalRating: rating,
+          platforms,
+          gameType
         }
       })
     }
 
-    if ( statusArr.includes('new-release') ) {
+    if (statusArr.includes('new-release')) {
       let sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
@@ -100,6 +129,21 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
           releaseDate: true,
           slug: true,
           totalRating: true,
+          platforms: {
+            select: {
+              platform: {
+                select: {
+                  id: true,
+                  abbreviation: true,
+                }
+              }
+            }
+          },
+          gameType: {
+            select: {
+              label: true,
+            }
+          }
         },
         take: 18
       })
@@ -111,15 +155,23 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
           year: "numeric",
         }) : "Release date unknown";
         const rating = game.totalRating ? String(game.totalRating) : 'N/A';
-        const coverUrl = game.coverUrl ? game.coverUrl : "image.png";
+        const platforms = game.platforms.map(p => {
+          return {
+            id: p.platform.id,
+            abbreviation: p.platform.abbreviation
+          }
+        });
+
 
         return {
           id: game.id,
           name: game.name,
-          coverUrl,
+          coverUrl: game.coverUrl,
           releaseDate,
           slug: game.slug,
-          totalRating: rating
+          totalRating: rating,
+          platforms,
+          gameType: game.gameType.label
         }
       })
     }
@@ -138,7 +190,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
 }
 
 export const show = async (req: Request, res: Response) => {
-  const { gameId } = req.params;
+  const {gameId} = req.params;
   console.log(gameId);
 
   res.status(200).json({
