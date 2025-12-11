@@ -6,7 +6,7 @@ router
   .post("/igdb-sync/game-types", AdminController.syncGameTypes)
   .post("/igdb-sync/genres", AdminController.syncGenres)
   .post("/igdb-sync/themes", AdminController.syncThemes)
-  .post("/igdb-sync/platforms", AdminController.syncPlatforms)
+  .post("/igdb-sync/consoles", AdminController.syncConsoles)
   .post("/igdb-sync/games", AdminController.syncGames)
   .post("/igdb-sync/all", AdminController.syncAll);
 

@@ -41,7 +41,7 @@ export type RawTheme = {
   checksum: string
 }
 
-export type RawPlatform = {
+export type RawConsole = {
   id: number,
   name: string,
   abbreviation: string,
@@ -150,7 +150,7 @@ export const IgdbClient = {
     }
   },
 
-  async getPlatforms () {
+  async getConsoles () {
     const data = `fields
     id, name, abbreviation, checksum;
     where id = (167,48,169,49,130,508,3,14,6);
@@ -164,7 +164,7 @@ export const IgdbClient = {
       return response.data;
     }
     catch (e) {
-      console.error(`Error fetching platforms: ${e}`)
+      console.error(`Error fetching consoles: ${e}`)
     }
   }
 }

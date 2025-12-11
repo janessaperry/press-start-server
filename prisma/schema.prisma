@@ -63,9 +63,9 @@ model Game {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  genres    GameGenre[]
-  themes    GameTheme[]
-  platforms GamePlatform[]
+  genres   GameGenre[]
+  themes   GameTheme[]
+  consoles GameConsole[]
 
   gameType GameType @relation(fields: [gameTypeId], references: [id])
 
@@ -108,17 +108,17 @@ model Theme {
   @@map("themes")
 }
 
-model Platform {
+model Console {
   id           Int      @id
   name         String   @unique
-  abbreviation String?
+  abbreviation String
   igdbChecksum String   @unique @map("igdb_checksum")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  games GamePlatform[]
+  games GameConsole[]
 
-  @@map("platforms")
+  @@map("consoles")
 }
 
 model GameGenre {
@@ -143,13 +143,13 @@ model GameTheme {
   @@map("game_themes")
 }
 
-model GamePlatform {
-  gameId     Int
-  platformId Int
-  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  platform   Platform @relation(fields: [platformId], references: [id])
+model GameConsole {
+  gameId    Int
+  consoleId Int
+  game      Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  console   Console @relation(fields: [consoleId], references: [id])
 
-  @@id([gameId, platformId])
-  @@index([platformId])
-  @@map("game_platforms")
+  @@id([gameId, consoleId])
+  @@index([consoleId])
+  @@map("game_consoles")
 }

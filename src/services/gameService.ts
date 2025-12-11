@@ -35,10 +35,10 @@ type GameOverview = {
   releaseDate: Date | null,
   slug: string,
   totalRating: number | null,
-  platforms: {
-    platform: {
+  consoles: {
+    console: {
       id: number,
-      abbreviation: string | null,
+      abbreviation: string,
     }
   }[],
   gameType: {
@@ -53,9 +53,9 @@ type GameOverviewDTO = {
   releaseDate: string,
   slug: string,
   totalRating: string,
-  platforms: {
+  consoles: {
     id: number,
-    abbreviation: string | null,
+    label: string,
   }[],
   gameType: string,
 }
@@ -103,9 +103,9 @@ export const GameService = {
         releaseDate: true,
         slug: true,
         totalRating: true,
-        platforms: {
+        consoles: {
           select: {
-            platform: {
+            console: {
               select: {
                 id: true,
                 abbreviation: true,
@@ -146,9 +146,9 @@ export const GameService = {
         releaseDate: true,
         slug: true,
         totalRating: true,
-        platforms: {
+        consoles: {
           select: {
-            platform: {
+            console: {
               select: {
                 id: true,
                 abbreviation: true,
@@ -174,38 +174,38 @@ export const GameService = {
     })
   },
 
-  async createGameGenres (gameId: number, genres: number[]) {
-    if (!genres) return;
-    for (const genre of genres) {
+  async createGameGenres (gameId: number, genreIds: number[]) {
+    if (!genreIds) return;
+    for (const genreId of genreIds) {
       await prisma.gameGenre.create({
         data: {
           gameId,
-          genreId: genre
+          genreId
         }
       })
     }
   },
 
-  async createGameThemes (gameId: number, themes: number[]) {
-    if (!themes) return;
-    for (const theme of themes) {
+  async createGameThemes (gameId: number, themeIds: number[]) {
+    if (!themeIds) return;
+    for (const themeId of themeIds) {
       await prisma.gameTheme.create({
         data: {
           gameId,
-          themeId: theme
+          themeId
         }
       })
     }
   },
 
-  async createGamePlatforms (gameId: number, platforms: number[]) {
-    if (!platforms) return;
-    for (const platform of platforms) {
-      console.log(platform)
-      await prisma.gamePlatform.create({
+  async createGameConsoles (gameId: number, consoleIds: number[]) {
+    if (!consoleIds) return;
+
+    for (const consoleId of consoleIds) {
+      await prisma.gameConsole.create({
         data: {
           gameId,
-          platformId: platform
+          consoleId
         }
       })
     }
@@ -228,35 +228,34 @@ export const GameService = {
     })
   },
 
-  async updateGameGenres (gameId: number, genres: number[]) {
-    if (!genres) return;
+  async updateGameGenres (gameId: number, genreIds: number[]) {
+    if (!genreIds) return;
 
     await prisma.gameGenre.deleteMany({
       where: {gameId},
     })
 
-    await this.createGameGenres(gameId, genres)
+    await this.createGameGenres(gameId, genreIds)
   },
 
-  async updateGameThemes (gameId: number, themes: number[]) {
-    if (!themes) return;
+  async updateGameThemes (gameId: number, themeIds: number[]) {
+    if (!themeIds) return;
 
     await prisma.gameTheme.deleteMany({
       where: {gameId},
     })
 
-    await this.createGameThemes(gameId, themes);
+    await this.createGameThemes(gameId, themeIds);
   },
 
-  async updateGamePlatforms (gameId: number, platforms: number[]) {
-    if (!platforms) return;
-    console.log("platforms", platforms)
+  async updateGameConsoles (gameId: number, consoleIds: number[]) {
+    if (!consoleIds) return;
 
-    await prisma.gamePlatform.deleteMany({
+    await prisma.gameConsole.deleteMany({
       where: {gameId}
     })
 
-    await this.createGamePlatforms(gameId, platforms)
+    await this.createGameConsoles(gameId, consoleIds)
   },
 
   async syncWithIgdb () {
@@ -281,7 +280,7 @@ export const GameService = {
             await this.updateGameById(existingGame.id, game.gameDetails);
             if (game.gameGenres) await this.updateGameGenres(existingGame.id, game.gameGenres);
             if (game.gameThemes) await this.updateGameThemes(existingGame.id, game.gameThemes);
-            if (game.gamePlatforms) await this.updateGamePlatforms(existingGame.id, game.gamePlatforms);
+            if (game.gameConsoles) await this.updateGameConsoles(existingGame.id, game.gameConsoles);
 
             updated++;
           }
@@ -290,7 +289,7 @@ export const GameService = {
           await this.createGame(game.gameDetails);
           if (game.gameGenres) await this.createGameGenres(game.gameDetails.id, game.gameGenres);
           if (game.gameThemes) await this.createGameThemes(game.gameDetails.id, game.gameThemes);
-          if (game.gamePlatforms) await this.createGamePlatforms(game.gameDetails.id, game.gamePlatforms);
+          if (game.gameConsoles) await this.createGameConsoles(game.gameDetails.id, game.gameConsoles);
 
           created++;
         }
@@ -309,7 +308,7 @@ export const GameService = {
 async function normalizeResponse (rawGame: RawGame) {
   const releaseDate = normalizeReleaseDates(rawGame.release_dates);
   const coverUrl = generateCoverUrl(rawGame.cover);
-  const platforms = await filterValidPlatforms(rawGame.platforms);
+  const consoles = await filterValidConsoles(rawGame.platforms);
 
   return {
     gameDetails: {
@@ -326,7 +325,7 @@ async function normalizeResponse (rawGame: RawGame) {
     },
     gameGenres: rawGame.genres,
     gameThemes: rawGame.themes,
-    gamePlatforms: platforms
+    gameConsoles: consoles
   }
 }
 
@@ -353,18 +352,18 @@ function generateCoverUrl (coverInfo: RawGame["cover"]): string {
   return `https:` + coverUrl;
 }
 
-async function filterValidPlatforms (platformsIds: number[]): Promise<number[]> {
-  if (!platformsIds) return [];
+async function filterValidConsoles (consoleIds: number[]): Promise<number[]> {
+  if (!consoleIds) return [];
 
-  let validPlatforms: number[] = [];
-  for (const id of platformsIds) {
-    const platform = await prisma.platform.findUnique({
+  let validConsoles: number[] = [];
+  for (const id of consoleIds) {
+    const consoleItem = await prisma.console.findUnique({
       where: {id}
     })
-    if (platform) validPlatforms.push(id);
+    if (consoleItem) validConsoles.push(id);
 
   }
-  return validPlatforms;
+  return validConsoles;
 }
 
 function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
@@ -373,11 +372,11 @@ function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
     month: "short",
     year: "numeric",
   }) : "Release date unknown";
-  const rating = game.totalRating ? String(game.totalRating) : 'N/A';
-  const platforms = game.platforms.map(p => {
+  const rating = game.totalRating ? String(game.totalRating) : 'n/a';
+  const consoles = game.consoles.map(c => {
     return {
-      id: p.platform.id,
-      abbreviation: p.platform.abbreviation
+      id: c.console.id,
+      label: c.console.abbreviation
     }
   });
   const gameType: string = game.gameType.label;
@@ -389,9 +388,7 @@ function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
     releaseDate,
     slug: game.slug,
     totalRating: rating,
-    platforms,
+    consoles,
     gameType
   }
 }
-
-
