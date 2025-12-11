@@ -60,6 +60,8 @@ model Game {
   totalRatingCount Int?      @map("total_rating_count")
   igdbChecksum     String    @map("igdb_checksum")
   gameTypeId       Int       @map("game_type_id")
+  publishers       Json      @default("[]")
+  developers       Json      @default("[]")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 

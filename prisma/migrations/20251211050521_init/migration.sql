@@ -33,25 +33,43 @@ CREATE TABLE "password_reset_tokens" (
 );
 
 -- CreateTable
-CREATE TABLE "game" (
+CREATE TABLE "games" (
     "id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
+    "cover_url" TEXT NOT NULL,
     "summary" TEXT,
     "release_date" TIMESTAMP(3),
     "total_rating" INTEGER,
     "total_rating_count" INTEGER,
-    "checksum" TEXT NOT NULL,
+    "igdb_checksum" TEXT NOT NULL,
+    "game_type_id" INTEGER NOT NULL,
+    "publishers" JSONB NOT NULL DEFAULT '[]',
+    "developers" JSONB NOT NULL DEFAULT '[]',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "game_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "games_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "game_types" (
+    "id" INTEGER NOT NULL,
+    "label" TEXT NOT NULL,
+    "igdb_checksum" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "game_types_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "genres" (
     "id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "igdb_checksum" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "genres_pkey" PRIMARY KEY ("id")
 );
@@ -60,18 +78,23 @@ CREATE TABLE "genres" (
 CREATE TABLE "themes" (
     "id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "igdb_checksum" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "themes_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "platforms" (
+CREATE TABLE "consoles" (
     "id" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    "abbreviation" TEXT,
+    "abbreviation" TEXT NOT NULL,
     "igdb_checksum" TEXT NOT NULL,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "platforms_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "consoles_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -91,11 +114,11 @@ CREATE TABLE "game_themes" (
 );
 
 -- CreateTable
-CREATE TABLE "game_platforms" (
+CREATE TABLE "game_consoles" (
     "gameId" INTEGER NOT NULL,
-    "platformId" INTEGER NOT NULL,
+    "consoleId" INTEGER NOT NULL,
 
-    CONSTRAINT "game_platforms_pkey" PRIMARY KEY ("gameId","platformId")
+    CONSTRAINT "game_consoles_pkey" PRIMARY KEY ("gameId","consoleId")
 );
 
 -- CreateIndex
@@ -105,19 +128,28 @@ CREATE UNIQUE INDEX "users_email_key" ON "users"("email");
 CREATE UNIQUE INDEX "password_reset_tokens_token_key" ON "password_reset_tokens"("token");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "game_slug_key" ON "game"("slug");
+CREATE UNIQUE INDEX "games_slug_key" ON "games"("slug");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "game_types_igdb_checksum_key" ON "game_types"("igdb_checksum");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "genres_name_key" ON "genres"("name");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "genres_igdb_checksum_key" ON "genres"("igdb_checksum");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "themes_name_key" ON "themes"("name");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "platforms_name_key" ON "platforms"("name");
+CREATE UNIQUE INDEX "themes_igdb_checksum_key" ON "themes"("igdb_checksum");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "platforms_igdb_checksum_key" ON "platforms"("igdb_checksum");
+CREATE UNIQUE INDEX "consoles_name_key" ON "consoles"("name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "consoles_igdb_checksum_key" ON "consoles"("igdb_checksum");
 
 -- CreateIndex
 CREATE INDEX "game_genres_genreId_idx" ON "game_genres"("genreId");
@@ -126,7 +158,7 @@ CREATE INDEX "game_genres_genreId_idx" ON "game_genres"("genreId");
 CREATE INDEX "game_themes_themeId_idx" ON "game_themes"("themeId");
 
 -- CreateIndex
-CREATE INDEX "game_platforms_platformId_idx" ON "game_platforms"("platformId");
+CREATE INDEX "game_consoles_consoleId_idx" ON "game_consoles"("consoleId");
 
 -- AddForeignKey
 ALTER TABLE "user_games" ADD CONSTRAINT "user_games_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -135,19 +167,22 @@ ALTER TABLE "user_games" ADD CONSTRAINT "user_games_user_id_fkey" FOREIGN KEY ("
 ALTER TABLE "password_reset_tokens" ADD CONSTRAINT "password_reset_tokens_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "game_genres" ADD CONSTRAINT "game_genres_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "games" ADD CONSTRAINT "games_game_type_id_fkey" FOREIGN KEY ("game_type_id") REFERENCES "game_types"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "game_genres" ADD CONSTRAINT "game_genres_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "games"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "game_genres" ADD CONSTRAINT "game_genres_genreId_fkey" FOREIGN KEY ("genreId") REFERENCES "genres"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "game_themes" ADD CONSTRAINT "game_themes_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "game_themes" ADD CONSTRAINT "game_themes_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "games"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "game_themes" ADD CONSTRAINT "game_themes_themeId_fkey" FOREIGN KEY ("themeId") REFERENCES "themes"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "game_platforms" ADD CONSTRAINT "game_platforms_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "game"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "game_consoles" ADD CONSTRAINT "game_consoles_gameId_fkey" FOREIGN KEY ("gameId") REFERENCES "games"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "game_platforms" ADD CONSTRAINT "game_platforms_platformId_fkey" FOREIGN KEY ("platformId") REFERENCES "platforms"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "game_consoles" ADD CONSTRAINT "game_consoles_consoleId_fkey" FOREIGN KEY ("consoleId") REFERENCES "consoles"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
