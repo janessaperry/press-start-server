@@ -2,11 +2,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ENV } from "../config/env.js";
 import { prisma } from "../db/client.js";
-import { User } from "@prisma/client";
+import { User } from "../generated/prisma/client";
 
 export const AuthService = {
   createAuthToken (user: User) {
-    return jwt.sign({ userId: user.id }, ENV.JWT_SECRET, {
+    return jwt.sign({userId: user.id}, ENV.JWT_SECRET, {
       expiresIn: "30 days",
     });
   },

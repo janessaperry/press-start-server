@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { GameTypeService } from "../services/gameTypeService.js";
 import { GenreService } from "../services/genreService.js";
 import { ThemeService } from "../services/themeService.js";
-import { ConsoleService } from "../services/consoleService.js";
+import { PlatformService } from "../services/platformService";
 import { GameService } from "../services/gameService.js";
 
 export type ProcessingCounts = {
@@ -16,7 +16,7 @@ export const syncAll = async (req: Request, res: Response) => {
     GameTypeService.syncWithIgdb(),
     GenreService.syncWithIgdb(),
     ThemeService.syncWithIgdb(),
-    ConsoleService.syncWithIgdb(),
+    PlatformService.syncWithIgdb(),
   ]);
 
   const gameCounts: ProcessingCounts = await GameService.syncWithIgdb();
@@ -62,12 +62,13 @@ export const syncThemes = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncConsoles = async (req: Request, res: Response) => {
-  const counts: ProcessingCounts = await ConsoleService.syncWithIgdb();
+export const syncPlatforms = async (req: Request, res: Response) => {
+  const {platformFamilyCounts, platformCounts} = await PlatformService.syncWithIgdb();
 
   res.status(200).json({
-    message: "Consoles synced.",
-    counts
+    message: "Platforms synced.",
+    platformFamilyCounts,
+    platformCounts,
   });
   return;
 }

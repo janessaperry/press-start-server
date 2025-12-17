@@ -1,5 +1,5 @@
 import { prisma } from "../db/client.js";
-import { User } from "@prisma/client";
+import { User } from "../generated/prisma/client";
 
 export const UserService = {
   async findByEmail (email: string): Promise<User | null> {
@@ -18,6 +18,4 @@ export const UserService = {
       }
     });
   },
-
-
 }

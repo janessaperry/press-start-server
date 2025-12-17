@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from "../db/client.js";
-import { User } from "@prisma/client";
+import { User } from "../generated/prisma/client"
 
 export const TokenService = {
   async generateToken (user: User) {
@@ -11,7 +11,7 @@ export const TokenService = {
       const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
 
       await prisma.passwordResetToken.deleteMany({
-        where: { userId: user.id },
+        where: {userId: user.id},
       });
 
       await prisma.passwordResetToken.create({
@@ -35,22 +35,22 @@ export const TokenService = {
     const recentToken = await prisma.passwordResetToken.findFirst({
       where: {
         userId: user.id,
-        createdAt: { gte: new Date(Date.now() - cooldownMs) }
+        createdAt: {gte: new Date(Date.now() - cooldownMs)}
       }
     });
 
-    if ( !recentToken ) return null;
+    if (!recentToken) return null;
 
     const timeElapsed = Date.now() - new Date(recentToken.createdAt).getTime();
-    const timeRemainingSeconds = Math.ceil(( cooldownMs - timeElapsed ) / 1000);
-    return { recentToken, timeRemainingSeconds }
+    const timeRemainingSeconds = Math.ceil((cooldownMs - timeElapsed) / 1000);
+    return {recentToken, timeRemainingSeconds}
   },
 
   async findTokenByPlain (plainToken: string) {
     const tokens = await prisma.passwordResetToken.findMany();
 
-    for ( const t of tokens ) {
-      if ( await bcrypt.compare(plainToken, t.token) ) {
+    for (const t of tokens) {
+      if (await bcrypt.compare(plainToken, t.token)) {
         return t;
       }
     }
@@ -67,11 +67,9 @@ export const TokenService = {
   async cleanupExpiredTokens () {
     const result = await prisma.passwordResetToken.deleteMany({
       where: {
-        expiresAt: { lt: new Date() }
+        expiresAt: {lt: new Date()}
       }
     })
     return result.count;
   },
-
-
 }
