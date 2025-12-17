@@ -1,18 +1,8 @@
 import { prisma } from "../db/client.js";
-import { Genre } from "@prisma/client";
+import { Genre, Prisma } from "../generated/prisma/client";
 import { IgdbClient, RawGenre } from "./igdbClient.js";
 import { ProcessingCounts } from "../controllers/adminController.js";
 
-type GenreCreateInput = {
-  id: number,
-  name: string,
-  igdbChecksum: string
-}
-
-type GenreUpdateInput = {
-  name: string,
-  igdbChecksum: string
-}
 
 export const GenreService = {
   async findById (id: number): Promise<Genre | null> {
@@ -21,13 +11,13 @@ export const GenreService = {
     })
   },
 
-  async create (genre: GenreCreateInput): Promise<Genre> {
+  async create (genre: Prisma.GenreCreateInput): Promise<Genre> {
     return prisma.genre.create({
       data: genre
     })
   },
 
-  async updateById (id: number, data: GenreUpdateInput): Promise<Genre> {
+  async updateById (id: number, data: Prisma.GenreUpdateInput): Promise<Genre> {
     return prisma.genre.update({
       where: {id},
       data: {
@@ -43,7 +33,7 @@ export const GenreService = {
     let totalProcessed = 0;
 
     const rawGenres: RawGenre[] = await IgdbClient.getGenres();
-    const mappedGenres: GenreCreateInput[] = rawGenres.map(mapIgdbResponseToDb);
+    const mappedGenres: Prisma.GenreCreateInput[] = rawGenres.map(mapIgdbResponseToDb);
 
     for (const genre of mappedGenres) {
       let existingGenre: Genre | null = await this.findById(genre.id);
@@ -66,7 +56,7 @@ export const GenreService = {
   }
 }
 
-function mapIgdbResponseToDb (igdbResponse: RawGenre): GenreCreateInput {
+function mapIgdbResponseToDb (igdbResponse: RawGenre): Prisma.GenreCreateInput {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,

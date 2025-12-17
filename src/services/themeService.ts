@@ -1,18 +1,8 @@
 import { prisma } from "../db/client.js";
-import { Theme } from "@prisma/client";
+import { Prisma, Theme } from "../generated/prisma/client"
 import { IgdbClient, RawTheme } from "./igdbClient.js";
 import { ProcessingCounts } from "../controllers/adminController.js";
 
-type ThemeCreateInput = {
-  id: number,
-  name: string,
-  igdbChecksum: string
-}
-
-type ThemeUpdateInput = {
-  name: string,
-  igdbChecksum: string
-}
 
 export const ThemeService = {
   async findById (id: number): Promise<Theme | null> {
@@ -21,13 +11,13 @@ export const ThemeService = {
     })
   },
 
-  async create (theme: ThemeCreateInput): Promise<Theme> {
+  async create (theme: Prisma.ThemeCreateInput): Promise<Theme> {
     return prisma.theme.create({
       data: theme
     })
   },
 
-  async updateById (themeId: number, theme: ThemeUpdateInput): Promise<Theme> {
+  async updateById (themeId: number, theme: Prisma.ThemeUpdateInput): Promise<Theme> {
     return prisma.theme.update({
       where: {
         id: themeId
@@ -45,7 +35,7 @@ export const ThemeService = {
     let totalProcessed = 0;
 
     const rawThemes: RawTheme[] = await IgdbClient.getThemes();
-    const mappedThemes: ThemeCreateInput[] = rawThemes.map(mapIgdbResponseToDb);
+    const mappedThemes: Prisma.ThemeCreateInput[] = rawThemes.map(mapIgdbResponseToDb);
 
     for (const theme of mappedThemes) {
       let existingTheme: Theme | null = await this.findById(theme.id);
@@ -68,7 +58,7 @@ export const ThemeService = {
   }
 }
 
-function mapIgdbResponseToDb (igdbResponse: RawTheme): ThemeCreateInput {
+function mapIgdbResponseToDb (igdbResponse: RawTheme): Prisma.ThemeCreateInput {
   return {
     id: igdbResponse.id,
     name: igdbResponse.name,
