@@ -5,12 +5,12 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -53,21 +53,33 @@ model Game {
   id               Int       @id
   name             String
   slug             String    @unique
-  coverUrl         String    @map("cover_url")
+  coverUrl         String?   @map("cover_url")
   summary          String?
   releaseDate      DateTime? @map("release_date")
-  totalRating      Int?      @map("total_rating")
+  totalRating      Float?    @map("total_rating")
   totalRatingCount Int?      @map("total_rating_count")
-  igdbChecksum     String    @map("igdb_checksum")
   gameTypeId       Int       @map("game_type_id")
-  publishers       Json      @default("[]")
-  developers       Json      @default("[]")
+  baseGameId       Int?      @map("base_game_id")
+  esrbRating       String?   @map("esrb_rating")
+  esrbThumbnail    String?   @map("esrb_thumbnail")
+  esrbDescriptions String[]  @default([]) @map("esrb_descriptions")
+  developers       String[]  @default([])
+  publishers       String[]  @default([])
+  igdbChecksum     String    @map("igdb_checksum")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
-  genres   GameGenre[]
-  themes   GameTheme[]
-  consoles GameConsole[]
+  genres      Genre[]      @relation("GameGenre")
+  themes      Theme[]      @relation("GameTheme")
+  platforms   Platform[]   @relation("GamePlatform")
+  collections Collection[] @relation("GameCollection")
+  franchises  Franchise[]  @relation("GameFranchise")
+
+  baseGame       Game?  @relation("GameVariant", fields: [baseGameId], references: [id])
+  relatedContent Game[] @relation("GameVariant")
+
+  similarTo   Game[] @relation("SimilarGames")
+  similarFrom Game[] @relation("SimilarGames")
 
   gameType GameType @relation(fields: [gameTypeId], references: [id])
 
@@ -93,7 +105,7 @@ model Genre {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  games GameGenre[]
+  games Game[] @relation("GameGenre")
 
   @@map("genres")
 }
@@ -105,53 +117,59 @@ model Theme {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  games GameTheme[]
+  games Game[] @relation("GameTheme")
 
   @@map("themes")
 }
 
-model Console {
+model Platform {
+  id               Int      @id
+  name             String   @unique
+  abbreviation     String
+  platformFamilyId Int      @map("platform_family_id")
+  igdbChecksum     String   @unique @map("igdb_checksum")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  platformFamily PlatformFamily @relation(fields: [platformFamilyId], references: [id])
+
+  games Game[] @relation("GamePlatform")
+
+  @@map("platforms")
+}
+
+model PlatformFamily {
   id           Int      @id
-  name         String   @unique
-  abbreviation String
+  name         String
   igdbChecksum String   @unique @map("igdb_checksum")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  games GameConsole[]
+  platforms Platform[]
 
-  @@map("consoles")
+  @@map("platform_families")
 }
 
-model GameGenre {
-  gameId  Int
-  genreId Int
-  game    Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  genre   Genre @relation(fields: [genreId], references: [id])
+model Collection {
+  id           Int      @id
+  name         String
+  igdbChecksum String   @map("igdb_checksum")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  @@id([gameId, genreId])
-  @@index([genreId])
-  @@map("game_genres")
+  games Game[] @relation("GameCollection")
+
+  @@map("collections")
 }
 
-model GameTheme {
-  gameId  Int
-  themeId Int
-  game    Game  @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  theme   Theme @relation(fields: [themeId], references: [id])
+model Franchise {
+  id           Int      @id
+  name         String
+  igdbChecksum String   @map("igdb_checksum")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
 
-  @@id([gameId, themeId])
-  @@index([themeId])
-  @@map("game_themes")
-}
+  games Game[] @relation("GameFranchise")
 
-model GameConsole {
-  gameId    Int
-  consoleId Int
-  game      Game    @relation(fields: [gameId], references: [id], onDelete: Cascade)
-  console   Console @relation(fields: [consoleId], references: [id])
-
-  @@id([gameId, consoleId])
-  @@index([consoleId])
-  @@map("game_consoles")
+  @@map("franchises")
 }
