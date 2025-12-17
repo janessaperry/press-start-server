@@ -1,5 +1,5 @@
 import axios from "axios";
-import { igdbConfig } from "../config/index.js";
+import { igdbConfig } from "../config";
 
 export type RawGame = {
   id: number,
@@ -18,9 +18,32 @@ export type RawGame = {
   total_rating_count?: number,
   checksum: string,
   game_type: number,
+  involved_companies?: {
+    id: number,
+    company: {
+      id: number,
+      name: string,
+    },
+    developer: boolean,
+    publisher: boolean,
+  }[],
+  age_ratings: {
+    organization: {
+      id: number,
+      name: string,
+    },
+    rating_category?: {
+      id: number,
+      rating: string
+    },
+    rating_content_descriptions?: {
+      id: number,
+      description: string
+    }[]
+  }[],
   genres: number[],
   themes: number[],
-  platforms: number[]
+  platforms: number[],
 }
 
 export type RawGameType = {
@@ -41,28 +64,28 @@ export type RawTheme = {
   checksum: string
 }
 
-export type RawConsole = {
+export type RawPlatformFamily = {
+  id: number,
+  name: string,
+  checksum: string
+}
+
+export type RawPlatform = {
   id: number,
   name: string,
   abbreviation: string,
+  platform_family: number,
   checksum: string
 }
 
 /**
  * todo add the following to the RawGame type / types and add to database after normalizing
- * fields used in .index method GameOverviewDTO
- * cover.url - send back valid url or no image url
- *
  * fields used in .show method GameDetailsDTO
- * age_ratings
- * collections
  * dlcs, expanded games, expansions
  * franchises
- * involved_companies
  * parent_game
  * similar_games
  * standalone_expansions
- *
  */
 
 
@@ -72,7 +95,7 @@ export const IgdbClient = {
     // where platforms = (167,48,169,49,130,508,3,14,6)
 
     let data = `fields 
-    age_ratings.organization,age_ratings.rating_content_descriptions.*,
+    age_ratings.organization.name,age_ratings.rating_category.rating,age_ratings.rating_content_descriptions.description,
     checksum,
     collections.name,collections.games,
     cover.url,
@@ -104,7 +127,7 @@ export const IgdbClient = {
 
     const response = await axios.post(`${igdbConfig.baseUrl}/games`, data, {
       headers: igdbConfig.headers
-    })
+    });
 
     return response.data;
   },
@@ -150,9 +173,27 @@ export const IgdbClient = {
     }
   },
 
-  async getConsoles () {
+  async getPlatformFamilies () {
     const data = `fields
-    id, name, abbreviation, checksum;
+    id, name, checksum;
+    where id != 3;
+    limit 50;
+    `
+
+    try {
+      const response = await axios.post(`${igdbConfig.baseUrl}/platform_families`, data, {
+        headers: igdbConfig.headers
+      });
+      return response.data;
+    }
+    catch (e) {
+      console.error(`Error fetching platform families: ${e}`)
+    }
+  },
+
+  async getPlatforms () {
+    const data = `fields
+    id, name, abbreviation, platform_family, checksum;
     where id = (167,48,169,49,130,508,3,14,6);
     limit 50;
     `;
@@ -164,7 +205,7 @@ export const IgdbClient = {
       return response.data;
     }
     catch (e) {
-      console.error(`Error fetching consoles: ${e}`)
+      console.error(`Error fetching platforms: ${e}`)
     }
   }
 }
