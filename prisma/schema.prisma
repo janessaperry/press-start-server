@@ -61,7 +61,7 @@ model Game {
   gameTypeId       Int       @map("game_type_id")
   baseGameId       Int?      @map("base_game_id")
   esrbRating       String?   @map("esrb_rating")
-  esrbThumbnail    String?   @map("esrb_thumbnail")
+  esrbThumbnailUrl String?   @map("esrb_thumbnail_url")
   esrbDescriptions String[]  @default([]) @map("esrb_descriptions")
   developers       String[]  @default([])
   publishers       String[]  @default([])
