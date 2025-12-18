@@ -32,11 +32,11 @@ export const GenreService = {
     let updated = 0;
     let totalProcessed = 0;
 
-    const rawGenres: RawGenre[] = await IgdbClient.getGenres();
-    const mappedGenres: Prisma.GenreCreateInput[] = rawGenres.map(mapIgdbResponseToDb);
+    const rawGenres = await IgdbClient.getGenres();
+    const mappedGenres = rawGenres.map(mapIgdbResponseToDb);
 
     for (const genre of mappedGenres) {
-      let existingGenre: Genre | null = await this.findById(genre.id);
+      let existingGenre = await this.findById(genre.id);
       if (existingGenre) {
         if (existingGenre.igdbChecksum !== genre.igdbChecksum) {
           await this.updateById(existingGenre.id, genre);

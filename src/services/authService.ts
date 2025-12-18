@@ -20,7 +20,7 @@ export const AuthService = {
     await this.updatePasswordTx(userId, hashedPassword);
   },
 
-  async hashPassword (plainPassword: string): Promise<string> {
+  async hashPassword (plainPassword: string) {
     return await bcrypt.hash(plainPassword, 10);
   },
 

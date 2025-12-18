@@ -32,11 +32,11 @@ export const GameTypeService = {
     let created = 0;
     let totalProcessed = 0;
 
-    const rawGameTypes: RawGameType[] = await IgdbClient.getGameTypes();
-    const mappedGameTypes: Prisma.GameTypeCreateInput[] = rawGameTypes.map(mapIgdbResponseToDb);
+    const rawGameTypes = await IgdbClient.getGameTypes();
+    const mappedGameTypes = rawGameTypes.map(mapIgdbResponseToDb);
 
     for (const gameType of mappedGameTypes) {
-      const existingGameType: GameType | null = await this.findById(gameType.id);
+      const existingGameType = await this.findById(gameType.id);
 
       if (existingGameType) {
         if (existingGameType.igdbChecksum !== gameType.igdbChecksum) {
@@ -69,7 +69,7 @@ function mapIgdbResponseToDb (igdbResponse: RawGameType): Prisma.GameTypeCreateI
  * - All other labels remain unchanged
  */
 function normalizeGameTypeLabel (id: number, label: string): string {
-  const expansionIds: number[] = [2, 4, 10];
+  const expansionIds = [2, 4, 10];
   if (expansionIds.includes(id)) {
     return "Expansion"
   }

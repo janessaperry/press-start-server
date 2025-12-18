@@ -34,11 +34,11 @@ export const ThemeService = {
     let updated = 0;
     let totalProcessed = 0;
 
-    const rawThemes: RawTheme[] = await IgdbClient.getThemes();
-    const mappedThemes: Prisma.ThemeCreateInput[] = rawThemes.map(mapIgdbResponseToDb);
+    const rawThemes = await IgdbClient.getThemes();
+    const mappedThemes = rawThemes.map(mapIgdbResponseToDb);
 
     for (const theme of mappedThemes) {
-      let existingTheme: Theme | null = await this.findById(theme.id);
+      let existingTheme = await this.findById(theme.id);
       if (existingTheme) {
         if (existingTheme.igdbChecksum !== theme.igdbChecksum) {
           await this.updateById(existingTheme.id, theme);

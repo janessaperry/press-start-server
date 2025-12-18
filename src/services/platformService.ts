@@ -75,11 +75,11 @@ export const PlatformService = {
       totalProcessed: 0
     }
 
-    const rawPlatformsFamilies: RawPlatformFamily[] = await IgdbClient.getPlatformFamilies();
+    const rawPlatformsFamilies = await IgdbClient.getPlatformFamilies();
     const mappedPlatformFamilies = rawPlatformsFamilies.map(mapRawPlatformFamilytoDb);
 
     for (const platformFamily of mappedPlatformFamilies) {
-      const existingPlatformFamily: PlatformFamily | null = await this.findPlatformFamilyById(platformFamily.id);
+      const existingPlatformFamily = await this.findPlatformFamilyById(platformFamily.id);
 
       if (existingPlatformFamily) {
         if (existingPlatformFamily.igdbChecksum !== platformFamily.igdbChecksum) {
@@ -94,7 +94,7 @@ export const PlatformService = {
       platformFamilyCounts.totalProcessed++;
     }
 
-    const rawPlatforms: RawPlatform[] = await IgdbClient.getPlatforms();
+    const rawPlatforms = await IgdbClient.getPlatforms();
     const mappedPlatforms = rawPlatforms.map(mapIgdbResponseToDb);
 
     for (const platform of mappedPlatforms) {

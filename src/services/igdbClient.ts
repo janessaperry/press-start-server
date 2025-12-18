@@ -87,8 +87,6 @@ export type RawPlatform = {
  * similar_games
  * standalone_expansions
  */
-
-
 export const IgdbClient = {
   async getGames (limit: number, offset: number) {
     // todo test with platform 508 only
@@ -132,7 +130,7 @@ export const IgdbClient = {
     return response.data;
   },
 
-  async getGameTypes () {
+  async getGameTypes (): Promise<RawGameType[]> {
     let data = `
     fields id, type, checksum;
     where id = (0,1,2,3,4,8,9,10,11);
@@ -144,7 +142,7 @@ export const IgdbClient = {
     return response.data;
   },
 
-  async getGenres () {
+  async getGenres (): Promise<RawGenre[]> {
     let data = `
     fields id, name, checksum;
     limit 50;
@@ -156,56 +154,42 @@ export const IgdbClient = {
     return response.data;
   },
 
-  async getThemes () {
+  async getThemes (): Promise<RawTheme[]> {
     let data = `fields
     id, name, checksum;
     where id != 42;
     limit 50;
     `;
-    try {
-      const response = await axios.post(`${igdbConfig.baseUrl}/themes`, data, {
-        headers: igdbConfig.headers
-      });
-      return response.data;
-    }
-    catch (e) {
-      console.error(`Error fetching themes: ${e}`)
-    }
+
+    const response = await axios.post(`${igdbConfig.baseUrl}/themes`, data, {
+      headers: igdbConfig.headers
+    });
+    return response.data;
   },
 
-  async getPlatformFamilies () {
+  async getPlatformFamilies (): Promise<RawPlatformFamily[]> {
     const data = `fields
     id, name, checksum;
     where id != 3;
     limit 50;
     `
 
-    try {
-      const response = await axios.post(`${igdbConfig.baseUrl}/platform_families`, data, {
-        headers: igdbConfig.headers
-      });
-      return response.data;
-    }
-    catch (e) {
-      console.error(`Error fetching platform families: ${e}`)
-    }
+    const response = await axios.post(`${igdbConfig.baseUrl}/platform_families`, data, {
+      headers: igdbConfig.headers
+    });
+    return response.data;
   },
 
-  async getPlatforms () {
+  async getPlatforms (): Promise<RawPlatform[]> {
     const data = `fields
     id, name, abbreviation, platform_family, checksum;
     where id = (167,48,169,49,130,508,3,14,6);
     limit 50;
     `;
 
-    try {
-      const response = await axios.post(`${igdbConfig.baseUrl}/platforms`, data, {
-        headers: igdbConfig.headers
-      })
-      return response.data;
-    }
-    catch (e) {
-      console.error(`Error fetching platforms: ${e}`)
-    }
+    const response = await axios.post(`${igdbConfig.baseUrl}/platforms`, data, {
+      headers: igdbConfig.headers
+    })
+    return response.data;
   }
 }
