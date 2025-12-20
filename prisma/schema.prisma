@@ -58,8 +58,6 @@ model Game {
   releaseDate      DateTime? @map("release_date")
   totalRating      Float?    @map("total_rating")
   totalRatingCount Int?      @map("total_rating_count")
-  gameTypeId       Int       @map("game_type_id")
-  baseGameId       Int?      @map("base_game_id")
   esrbRating       String?   @map("esrb_rating")
   esrbThumbnailUrl String?   @map("esrb_thumbnail_url")
   esrbDescriptions String[]  @default([]) @map("esrb_descriptions")
@@ -69,19 +67,21 @@ model Game {
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
 
+  gameTypeId Int      @map("game_type_id")
+  gameType   GameType @relation(fields: [gameTypeId], references: [id])
+
+  baseGameId     Int?   @map("base_game_id")
+  baseGame       Game?  @relation("GameVariant", fields: [baseGameId], references: [id])
+  relatedContent Game[] @relation("GameVariant")
+
   genres      Genre[]      @relation("GameGenre")
   themes      Theme[]      @relation("GameTheme")
   platforms   Platform[]   @relation("GamePlatform")
   collections Collection[] @relation("GameCollection")
   franchises  Franchise[]  @relation("GameFranchise")
 
-  baseGame       Game?  @relation("GameVariant", fields: [baseGameId], references: [id])
-  relatedContent Game[] @relation("GameVariant")
-
   similarTo   Game[] @relation("SimilarGames")
   similarFrom Game[] @relation("SimilarGames")
-
-  gameType GameType @relation(fields: [gameTypeId], references: [id])
 
   @@map("games")
 }
