@@ -16,17 +16,6 @@ export type RawGame = {
   }[],
   total_rating?: number,
   total_rating_count?: number,
-  checksum: string,
-  game_type: number,
-  involved_companies?: {
-    id: number,
-    company: {
-      id: number,
-      name: string,
-    },
-    developer: boolean,
-    publisher: boolean,
-  }[],
   age_ratings: {
     organization: {
       id: number,
@@ -41,6 +30,18 @@ export type RawGame = {
       description: string
     }[]
   }[],
+  involved_companies?: {
+    id: number,
+    company: {
+      id: number,
+      name: string,
+    },
+    developer: boolean,
+    publisher: boolean,
+  }[],
+  checksum: string,
+  game_type: number,
+  parent_game?: number,
   genres: number[],
   themes: number[],
   platforms: number[],
@@ -78,15 +79,6 @@ export type RawPlatform = {
   checksum: string
 }
 
-/**
- * todo add the following to the RawGame type / types and add to database after normalizing
- * fields used in .show method GameDetailsDTO
- * dlcs, expanded games, expansions
- * franchises
- * parent_game
- * similar_games
- * standalone_expansions
- */
 export const IgdbClient = {
   async getGames (limit: number, offset: number) {
     // todo test with platform 508 only
