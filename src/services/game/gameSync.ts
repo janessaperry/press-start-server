@@ -11,7 +11,8 @@ type Relations = {
 }
 
 type SelfRelations = {
-  baseGameId: number | null
+  baseGameId: number | null,
+  relatedContent: number[]
 }
 
 export const GameSync = {
@@ -72,6 +73,7 @@ export const GameSync = {
     let totalProcessed = 0;
 
     let baseGameConnections: {id: number, baseGameId: number}[] = [];
+    let relatedContentConnections: {id: number, relatedGameIds: number[]}[] = [];
 
     while (true) {
       console.log(`Fetching IGDB games ${offset}–${offset + limit}...`);
@@ -95,21 +97,37 @@ export const GameSync = {
 
         totalProcessed++;
 
-        if (game.selfRelations.baseGameId) baseGameConnections.push({
-          id: game.gameDetails.id,
-          baseGameId: game.selfRelations.baseGameId
-        })
+
+        if (game.selfRelations.baseGameId) {
+          baseGameConnections.push({
+            id: game.gameDetails.id,
+            baseGameId: game.selfRelations.baseGameId
+          })
+        }
+
+        if (game.selfRelations.relatedContent) {
+          relatedContentConnections.push({
+            id: game.gameDetails.id,
+            relatedGameIds: game.selfRelations.relatedContent
+          })
+        }
       }
 
       offset += limit;
     }
 
+    const baseGameIdsToValidate = new Set(baseGameConnections.map(game => game.baseGameId));
+    const existingBaseGames = await prisma.game.findMany({
+      where: {id: {in: Array.from(baseGameIdsToValidate)}},
+      select: {id: true}
+    })
+    const existingBaseGameIds = new Set(existingBaseGames.map(game => game.id));
+
     for (let i = 0; i < baseGameConnections.length; i++) {
       const gameId = baseGameConnections[i].id;
       const baseGameId = baseGameConnections[i].baseGameId;
 
-      const existingBaseGame = await GameService.findById(baseGameId);
-      if (existingBaseGame) {
+      if (existingBaseGameIds.has(baseGameId)) {
         await prisma.game.update({
           where: {id: gameId},
           data: {
@@ -123,6 +141,31 @@ export const GameSync = {
       }
     }
 
+    const relatedContentIdsToValidate = new Set(relatedContentConnections.flatMap(game => game.relatedGameIds))
+    const existingRelatedContentGames = await prisma.game.findMany({
+      where: {id: {in: Array.from(relatedContentIdsToValidate)}},
+      select: {id: true}
+    });
+    const existingRelatedContentIds = new Set(existingRelatedContentGames.map(game => game.id));
+
+    for (let i = 0; i < relatedContentConnections.length; i++) {
+      const baseGameId = relatedContentConnections[i].id;
+      const relatedGameIds = relatedContentConnections[i].relatedGameIds;
+
+      const validGameIds = relatedGameIds.filter(id => existingRelatedContentIds.has(id))
+      const connections = validGameIds.map(id => ({id}));
+
+      if (validGameIds.length > 0) {
+        await prisma.game.update({
+          where: {id: baseGameId},
+          data: {
+            relatedContent: {
+              connect: connections
+            }
+          }
+        })
+      }
+    }
 
     console.log(`Game sync complete. Total processed: ${totalProcessed}`);
     return {updated, created, totalProcessed};
@@ -145,6 +188,7 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
 
   const validPlatforms = await filterValidPlatforms(rawGame.platforms);
 
+  const relatedContent = new Set([...(rawGame.dlcs ?? []), ...(rawGame.expanded_games ?? []), ...(rawGame.expansions ?? []), ...(rawGame.standalone_expansions ?? [])]);
   return {
     gameDetails: {
       id: rawGame.id,
@@ -172,6 +216,7 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
     },
     selfRelations: {
       baseGameId: rawGame.parent_game ?? null,
+      relatedContent: [...relatedContent.values()]
     }
   }
 }
@@ -195,7 +240,7 @@ function generateCoverUrl (coverInfo: RawGame["cover"]): string | null {
   if (!coverInfo) return null;
 
   const rawUrl = coverInfo.url;
-  const coverUrl = rawUrl.replace('t_thumb', 't_cover_big')
+  const coverUrl = rawUrl.replace('t_thumb', 't_720p')
 
   return `https:` + coverUrl;
 }
@@ -213,7 +258,6 @@ async function filterValidPlatforms (platformIds: number[]): Promise<number[]> {
   }
   return validPlatforms;
 }
-
 
 function normalizeInvolvedCompanies (involvedCompanies: RawGame["involved_companies"]): {
   developers: string[],

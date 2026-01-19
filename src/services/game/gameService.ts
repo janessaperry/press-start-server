@@ -26,8 +26,25 @@ type GameDTO = {
   baseGame: {
     id: number,
     name: string,
-    coverUrl: string | null
+    coverUrl: string | null,
+    slug: string
   } | null,
+  relatedContent: {
+    expansions: {
+      id: number,
+      name: string,
+      coverUrl: string | null,
+      slug: string,
+      gameType: IdLabelDTO
+    }[],
+    dlcs: {
+      id: number,
+      name: string,
+      coverUrl: string | null,
+      slug: string,
+      gameType: IdLabelDTO
+    }[],
+  }
 }
 
 const gameOverviewSelect = {
@@ -100,7 +117,22 @@ const gameDetailsSelect = {
     select: {
       id: true,
       name: true,
+      slug: true,
       coverUrl: true,
+    }
+  },
+  relatedContent: {
+    select: {
+      id: true,
+      name: true,
+      coverUrl: true,
+      slug: true,
+      gameType: {
+        select: {
+          id: true,
+          label: true
+        }
+      },
     }
   }
 } satisfies Prisma.GameSelect;
@@ -125,6 +157,7 @@ export type GameDetailsDTO =
     | "genres"
     | "platforms"
     | "baseGame"
+    | "relatedContent"
   >
 
 export const GameService = {
@@ -151,12 +184,14 @@ export const GameService = {
     try {
       const foundGame = await prisma.game.findUnique({
         where: {id: Number(gameId)},
-        select: gameDetailsSelect
+        select: gameDetailsSelect,
       });
       if (!foundGame) return null;
 
       const genres = mapGenresToDTO(foundGame.genres);
       const platforms = mapPlatformsToDTO(foundGame.platforms);
+      const expansions = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 2 || relatedGame.gameType.id === 4 || relatedGame.gameType.id === 10)
+      const dlcs = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 1)
 
       return {
         id: foundGame.id,
@@ -175,6 +210,10 @@ export const GameService = {
         esrbThumbnailUrl: foundGame.esrbThumbnailUrl ?? null,
         esrbDescriptions: foundGame.esrbDescriptions,
         baseGame: foundGame.baseGame,
+        relatedContent: {
+          expansions,
+          dlcs
+        }
       }
     }
     catch (e) {

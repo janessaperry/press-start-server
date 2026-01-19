@@ -45,6 +45,10 @@ export type RawGame = {
   genres: number[],
   themes: number[],
   platforms: number[],
+  dlcs: number[],
+  expanded_games: number[],
+  expansions: number[],
+  standalone_expansions: number[],
 }
 
 export type RawGameType = {
