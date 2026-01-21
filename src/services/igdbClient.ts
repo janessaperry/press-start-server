@@ -49,6 +49,8 @@ export type RawGame = {
   expanded_games: number[],
   expansions: number[],
   standalone_expansions: number[],
+  collections: number[],
+  franchises: number[],
 }
 
 export type RawGameType = {
@@ -91,7 +93,7 @@ export const IgdbClient = {
     let data = `fields 
     age_ratings.organization.name,age_ratings.rating_category.rating,age_ratings.rating_content_descriptions.description,
     checksum,
-    collections.name,collections.games,
+    collections,
     cover.url,
     dlcs,expanded_games,expansions,
     franchises,
@@ -109,10 +111,10 @@ export const IgdbClient = {
     themes,
     total_rating,total_rating_count;
     
-    where platforms = (508) 
+    where platforms = (167,508) 
     & age_ratings.organization = 1
     & game_type = (0,1,2,3,4,8,9,10,11)
-    & themes != 42
+    & themes != (42)
     & release_dates.release_region = (2,8);
     
     limit ${limit};
