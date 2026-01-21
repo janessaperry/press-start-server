@@ -8,11 +8,12 @@ type Relations = {
   genreIds: number[],
   themeIds: number[],
   platformIds: number[],
+  // collectionIds: number[]
 }
 
 type SelfRelations = {
   baseGameId: number | null,
-  relatedContent: number[]
+  // relatedContent: number[]
 }
 
 export const GameSync = {
@@ -91,6 +92,7 @@ export const GameSync = {
           }
         }
         else {
+          console.log("GAME RELATIONS", game.relations)
           await this.createGame(game.gameDetails, game.relations);
           created++;
         }
@@ -98,6 +100,7 @@ export const GameSync = {
         totalProcessed++;
 
 
+        // collect relationship data during sync so we can check if the games exist in the db before connecting records
         if (game.selfRelations.baseGameId) {
           baseGameConnections.push({
             id: game.gameDetails.id,
@@ -105,17 +108,18 @@ export const GameSync = {
           })
         }
 
-        if (game.selfRelations.relatedContent) {
-          relatedContentConnections.push({
-            id: game.gameDetails.id,
-            relatedGameIds: game.selfRelations.relatedContent
-          })
-        }
+        // if (game.selfRelations.relatedContent) {
+        //   relatedContentConnections.push({
+        //     id: game.gameDetails.id,
+        //     relatedGameIds: game.selfRelations.relatedContent
+        //   })
+        // }
       }
 
       offset += limit;
     }
 
+    // get all unique base game ids that need validation, so we only query the db once
     const baseGameIdsToValidate = new Set(baseGameConnections.map(game => game.baseGameId));
     const existingBaseGames = await prisma.game.findMany({
       where: {id: {in: Array.from(baseGameIdsToValidate)}},
@@ -123,10 +127,12 @@ export const GameSync = {
     })
     const existingBaseGameIds = new Set(existingBaseGames.map(game => game.id));
 
+    // loop over original connections so we know which game should connect to which base game
     for (let i = 0; i < baseGameConnections.length; i++) {
       const gameId = baseGameConnections[i].id;
       const baseGameId = baseGameConnections[i].baseGameId;
 
+      // only connect if the base game exists
       if (existingBaseGameIds.has(baseGameId)) {
         await prisma.game.update({
           where: {id: gameId},
@@ -141,31 +147,31 @@ export const GameSync = {
       }
     }
 
-    const relatedContentIdsToValidate = new Set(relatedContentConnections.flatMap(game => game.relatedGameIds))
-    const existingRelatedContentGames = await prisma.game.findMany({
-      where: {id: {in: Array.from(relatedContentIdsToValidate)}},
-      select: {id: true}
-    });
-    const existingRelatedContentIds = new Set(existingRelatedContentGames.map(game => game.id));
-
-    for (let i = 0; i < relatedContentConnections.length; i++) {
-      const baseGameId = relatedContentConnections[i].id;
-      const relatedGameIds = relatedContentConnections[i].relatedGameIds;
-
-      const validGameIds = relatedGameIds.filter(id => existingRelatedContentIds.has(id))
-      const connections = validGameIds.map(id => ({id}));
-
-      if (validGameIds.length > 0) {
-        await prisma.game.update({
-          where: {id: baseGameId},
-          data: {
-            relatedContent: {
-              connect: connections
-            }
-          }
-        })
-      }
-    }
+    // const relatedContentIdsToValidate = new Set(relatedContentConnections.flatMap(game => game.relatedGameIds))
+    // const existingRelatedContentGames = await prisma.game.findMany({
+    //   where: {id: {in: Array.from(relatedContentIdsToValidate)}},
+    //   select: {id: true}
+    // });
+    // const existingRelatedContentIds = new Set(existingRelatedContentGames.map(game => game.id));
+    //
+    // for (let i = 0; i < relatedContentConnections.length; i++) {
+    //   const baseGameId = relatedContentConnections[i].id;
+    //   const relatedGameIds = relatedContentConnections[i].relatedGameIds;
+    //
+    //   const validGameIds = relatedGameIds.filter(id => existingRelatedContentIds.has(id))
+    //   const connections = validGameIds.map(id => ({id}));
+    //
+    //   if (validGameIds.length > 0) {
+    //     await prisma.game.update({
+    //       where: {id: baseGameId},
+    //       data: {
+    //         relatedContent: {
+    //           connect: connections
+    //         }
+    //       }
+    //     })
+    //   }
+    // }
 
     console.log(`Game sync complete. Total processed: ${totalProcessed}`);
     return {updated, created, totalProcessed};
@@ -188,7 +194,8 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
 
   const validPlatforms = await filterValidPlatforms(rawGame.platforms);
 
-  const relatedContent = new Set([...(rawGame.dlcs ?? []), ...(rawGame.expanded_games ?? []), ...(rawGame.expansions ?? []), ...(rawGame.standalone_expansions ?? [])]);
+  // const relatedContent = new Set([...(rawGame.dlcs ?? []), ...(rawGame.expanded_games ?? []), ...(rawGame.expansions ?? []), ...(rawGame.standalone_expansions ?? [])]);
+
   return {
     gameDetails: {
       id: rawGame.id,
@@ -213,10 +220,11 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
       genreIds: rawGame.genres ?? [],
       themeIds: rawGame.themes ?? [],
       platformIds: validPlatforms,
+      // collectionIds: rawGame.collections ?? []
     },
     selfRelations: {
       baseGameId: rawGame.parent_game ?? null,
-      relatedContent: [...relatedContent.values()]
+      // relatedContent: [...relatedContent.values()]
     }
   }
 }
