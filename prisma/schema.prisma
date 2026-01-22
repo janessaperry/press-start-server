@@ -53,13 +53,13 @@ model Game {
   id               Int       @id
   name             String
   slug             String    @unique
-  coverUrl         String?   @map("cover_url")
+  coverId          String?   @map("cover_id")
   summary          String?
   releaseDate      DateTime? @map("release_date")
   totalRating      Float?    @map("total_rating")
   totalRatingCount Int?      @map("total_rating_count")
   esrbRating       String?   @map("esrb_rating")
-  esrbThumbnailUrl String?   @map("esrb_thumbnail_url")
+  esrbThumbnailId  String?   @map("esrb_thumbnail_id")
   esrbDescriptions String[]  @default([]) @map("esrb_descriptions")
   developers       String[]  @default([])
   publishers       String[]  @default([])
