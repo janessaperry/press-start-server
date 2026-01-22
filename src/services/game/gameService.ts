@@ -11,7 +11,7 @@ type GameDTO = {
   id: number,
   name: string,
   slug: string,
-  coverUrl: string | null,
+  coverId: string | null,
   summary: string[],
   releaseDate: string | null,
   totalRating: number | null,
@@ -19,28 +19,28 @@ type GameDTO = {
   developers: string[],
   publishers: string[],
   esrbRating: string | null,
-  esrbThumbnailUrl: string | null,
+  esrbThumbnailId: string | null,
   esrbDescriptions: string[],
   genres: IdLabelDTO[],
   platforms: IdLabelDTO[],
   baseGame: {
     id: number,
     name: string,
-    coverUrl: string | null,
+    coverId: string | null,
     slug: string
   } | null,
   relatedContent: {
     expansions: {
       id: number,
       name: string,
-      coverUrl: string | null,
+      coverId: string | null,
       slug: string,
       gameType: IdLabelDTO
     }[],
     dlcs: {
       id: number,
       name: string,
-      coverUrl: string | null,
+      coverId: string | null,
       slug: string,
       gameType: IdLabelDTO
     }[],
@@ -50,7 +50,7 @@ type GameDTO = {
 const gameOverviewSelect = {
   id: true,
   name: true,
-  coverUrl: true,
+  coverId: true,
   releaseDate: true,
   slug: true,
   totalRating: true,
@@ -75,7 +75,7 @@ type GameOverviewDTO =
     | "id"
     | "name"
     | "slug"
-    | "coverUrl"
+    | "coverId"
     | "totalRating"
     | "gameType"
     | "platforms"
@@ -84,7 +84,7 @@ type GameOverviewDTO =
 const gameDetailsSelect = {
   id: true,
   name: true,
-  coverUrl: true,
+  coverId: true,
   releaseDate: true,
   slug: true,
   summary: true,
@@ -111,21 +111,21 @@ const gameDetailsSelect = {
   developers: true,
   publishers: true,
   esrbRating: true,
-  esrbThumbnailUrl: true,
+  esrbThumbnailId: true,
   esrbDescriptions: true,
   baseGame: {
     select: {
       id: true,
       name: true,
       slug: true,
-      coverUrl: true,
+      coverId: true,
     }
   },
   relatedContent: {
     select: {
       id: true,
       name: true,
-      coverUrl: true,
+      coverId: true,
       slug: true,
       gameType: {
         select: {
@@ -144,12 +144,12 @@ export type GameDetailsDTO =
     | "id"
     | "name"
     | "slug"
-    | "coverUrl"
+    | "coverId"
     | "summary"
     | "releaseDate"
     | "totalRating"
     | "esrbRating"
-    | "esrbThumbnailUrl"
+    | "esrbThumbnailId"
     | "esrbDescriptions"
     | "developers"
     | "publishers"
@@ -196,7 +196,7 @@ export const GameService = {
       return {
         id: foundGame.id,
         name: foundGame.name,
-        coverUrl: foundGame.coverUrl,
+        coverId: foundGame.coverId,
         releaseDate: foundGame.releaseDate ? foundGame.releaseDate.toISOString() : null,
         slug: foundGame.slug,
         summary: splitSummary(foundGame.summary),
@@ -207,7 +207,7 @@ export const GameService = {
         genres,
         platforms,
         esrbRating: foundGame.esrbRating || null,
-        esrbThumbnailUrl: foundGame.esrbThumbnailUrl ?? null,
+        esrbThumbnailId: foundGame.esrbThumbnailId ?? null,
         esrbDescriptions: foundGame.esrbDescriptions,
         baseGame: foundGame.baseGame,
         relatedContent: {
@@ -240,7 +240,7 @@ export const GameService = {
         id: true,
         name: true,
         slug: true,
-        coverUrl: true,
+        coverId: true,
         releaseDate: true,
         totalRating: true,
         platforms: {
@@ -279,7 +279,7 @@ export const GameService = {
       select: {
         id: true,
         name: true,
-        coverUrl: true,
+        coverId: true,
         releaseDate: true,
         slug: true,
         totalRating: true,
@@ -310,7 +310,7 @@ function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
   return {
     id: game.id,
     name: game.name,
-    coverUrl: game.coverUrl,
+    coverId: game.coverId,
     slug: game.slug,
     totalRating: game.totalRating,
     platforms,

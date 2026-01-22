@@ -40,7 +40,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
     const select = {
       id: true,
       name: true,
-      coverUrl: true,
+      coverId: true,
     }
     searchResults = await GameService.findByName(search, select);
   }

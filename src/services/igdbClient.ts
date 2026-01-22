@@ -7,7 +7,7 @@ export type RawGame = {
   slug: string,
   cover?: {
     id: number,
-    url: string
+    image_id: string
   },
   summary?: string,
   release_dates?: {
@@ -94,7 +94,7 @@ export const IgdbClient = {
     age_ratings.organization.name,age_ratings.rating_category.rating,age_ratings.rating_content_descriptions.description,
     checksum,
     collections,
-    cover.url,
+    cover.image_id,
     dlcs,expanded_games,expansions,
     franchises,
     game_type,
@@ -111,7 +111,7 @@ export const IgdbClient = {
     themes,
     total_rating,total_rating_count;
     
-    where platforms = (167,508) 
+    where platforms = (169,508) 
     & age_ratings.organization = 1
     & game_type = (0,1,2,3,4,8,9,10,11)
     & themes != (42)

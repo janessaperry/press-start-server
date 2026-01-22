@@ -1,7 +1,6 @@
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 import { IgdbClient, RawGame } from "../igdbClient.js";
-import { ENV } from "../../config/env.js";
 import { GameDetailsDTO, GameService } from "./gameService";
 
 type Relations = {
@@ -41,13 +40,13 @@ export const GameSync = {
       data: {
         name: gameDetails.name,
         slug: gameDetails.slug,
-        coverUrl: gameDetails.coverUrl,
+        coverId: gameDetails.coverId,
         summary: gameDetails.summary,
         releaseDate: gameDetails.releaseDate,
         totalRating: gameDetails.totalRating,
         totalRatingCount: gameDetails.totalRatingCount,
         esrbRating: gameDetails.esrbRating,
-        esrbThumbnailUrl: gameDetails.esrbThumbnailUrl,
+        esrbThumbnailId: gameDetails.esrbThumbnailId,
         esrbDescriptions: gameDetails.esrbDescriptions,
         developers: gameDetails.developers,
         publishers: gameDetails.publishers,
@@ -74,7 +73,6 @@ export const GameSync = {
     let totalProcessed = 0;
 
     let baseGameConnections: {id: number, baseGameId: number}[] = [];
-    let relatedContentConnections: {id: number, relatedGameIds: number[]}[] = [];
 
     while (true) {
       console.log(`Fetching IGDB games ${offset}–${offset + limit}...`);
@@ -92,7 +90,6 @@ export const GameSync = {
           }
         }
         else {
-          console.log("GAME RELATIONS", game.relations)
           await this.createGame(game.gameDetails, game.relations);
           created++;
         }
@@ -107,13 +104,6 @@ export const GameSync = {
             baseGameId: game.selfRelations.baseGameId
           })
         }
-
-        // if (game.selfRelations.relatedContent) {
-        //   relatedContentConnections.push({
-        //     id: game.gameDetails.id,
-        //     relatedGameIds: game.selfRelations.relatedContent
-        //   })
-        // }
       }
 
       offset += limit;
@@ -147,32 +137,6 @@ export const GameSync = {
       }
     }
 
-    // const relatedContentIdsToValidate = new Set(relatedContentConnections.flatMap(game => game.relatedGameIds))
-    // const existingRelatedContentGames = await prisma.game.findMany({
-    //   where: {id: {in: Array.from(relatedContentIdsToValidate)}},
-    //   select: {id: true}
-    // });
-    // const existingRelatedContentIds = new Set(existingRelatedContentGames.map(game => game.id));
-    //
-    // for (let i = 0; i < relatedContentConnections.length; i++) {
-    //   const baseGameId = relatedContentConnections[i].id;
-    //   const relatedGameIds = relatedContentConnections[i].relatedGameIds;
-    //
-    //   const validGameIds = relatedGameIds.filter(id => existingRelatedContentIds.has(id))
-    //   const connections = validGameIds.map(id => ({id}));
-    //
-    //   if (validGameIds.length > 0) {
-    //     await prisma.game.update({
-    //       where: {id: baseGameId},
-    //       data: {
-    //         relatedContent: {
-    //           connect: connections
-    //         }
-    //       }
-    //     })
-    //   }
-    // }
-
     console.log(`Game sync complete. Total processed: ${totalProcessed}`);
     return {updated, created, totalProcessed};
   }
@@ -184,30 +148,27 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
   relations: Relations,
   selfRelations: SelfRelations
 }> {
-  const coverUrl = generateCoverUrl(rawGame.cover);
   const releaseDate = normalizeReleaseDates(rawGame.release_dates);
 
-  const {esrbRating, esrbThumbnailUrl, esrbDescriptions} = normalizeAgeRatings(rawGame.age_ratings);
+  const {esrbRating, esrbThumbnailId, esrbDescriptions} = normalizeAgeRatings(rawGame.age_ratings);
 
   const involvedCompanies = rawGame.involved_companies;
   const {developers, publishers} = normalizeInvolvedCompanies(involvedCompanies);
 
   const validPlatforms = await filterValidPlatforms(rawGame.platforms);
 
-  // const relatedContent = new Set([...(rawGame.dlcs ?? []), ...(rawGame.expanded_games ?? []), ...(rawGame.expansions ?? []), ...(rawGame.standalone_expansions ?? [])]);
-
   return {
     gameDetails: {
       id: rawGame.id,
       name: rawGame.name,
       slug: rawGame.slug,
-      coverUrl,
+      coverId: rawGame.cover ? rawGame.cover.image_id : null,
       summary: rawGame.summary ?? null,
       releaseDate: releaseDate,
       totalRating: rawGame.total_rating ?? null,
       totalRatingCount: rawGame.total_rating_count ?? null,
       esrbRating,
-      esrbThumbnailUrl,
+      esrbThumbnailId,
       esrbDescriptions,
       developers,
       publishers,
@@ -242,15 +203,6 @@ function normalizeReleaseDates (releaseDates: RawGame["release_dates"]): Date | 
   if (!releaseDate) return null;
 
   return new Date(releaseDate * 1000);
-}
-
-function generateCoverUrl (coverInfo: RawGame["cover"]): string | null {
-  if (!coverInfo) return null;
-
-  const rawUrl = coverInfo.url;
-  const coverUrl = rawUrl.replace('t_thumb', 't_720p')
-
-  return `https:` + coverUrl;
 }
 
 async function filterValidPlatforms (platformIds: number[]): Promise<number[]> {
@@ -297,10 +249,10 @@ function normalizeInvolvedCompanies (involvedCompanies: RawGame["involved_compan
   return {developers, publishers};
 }
 
-function normalizeAgeRatings (ageRatings: RawGame["age_ratings"]): Pick<GameDetailsDTO, "esrbRating" | "esrbThumbnailUrl" | "esrbDescriptions"> {
-  let result: Pick<GameDetailsDTO, "esrbRating" | "esrbThumbnailUrl" | "esrbDescriptions"> = {
+function normalizeAgeRatings (ageRatings: RawGame["age_ratings"]): Pick<GameDetailsDTO, "esrbRating" | "esrbThumbnailId" | "esrbDescriptions"> {
+  let result: Pick<GameDetailsDTO, "esrbRating" | "esrbThumbnailId" | "esrbDescriptions"> = {
     esrbRating: '',
-    esrbThumbnailUrl: '',
+    esrbThumbnailId: '',
     esrbDescriptions: []
   };
   if (ageRatings && ageRatings.length === 0) return result;
@@ -311,7 +263,7 @@ function normalizeAgeRatings (ageRatings: RawGame["age_ratings"]): Pick<GameDeta
     const mappedCategory = mapRatingCategory(ratingItem.rating_category);
     if (mappedCategory) {
       result["esrbRating"] = mappedCategory.esrbRating;
-      result["esrbThumbnailUrl"] = mappedCategory.esrbThumbnailUrl;
+      result["esrbThumbnailId"] = mappedCategory.esrbThumbnailId;
     }
 
     result["esrbDescriptions"] = ratingItem.rating_content_descriptions
@@ -323,7 +275,7 @@ function normalizeAgeRatings (ageRatings: RawGame["age_ratings"]): Pick<GameDeta
 
 function mapRatingCategory (category: {id: number, rating: string} | undefined): {
   esrbRating: string,
-  esrbThumbnailUrl: string
+  esrbThumbnailId: string
 } | null {
   if (!category) return null;
 
@@ -332,33 +284,33 @@ function mapRatingCategory (category: {id: number, rating: string} | undefined):
     case 'E':
       return {
         esrbRating: 'Everyone',
-        esrbThumbnailUrl: `${ENV.SERVER_URL}/public/images/esrb-rating-e.svg`
+        esrbThumbnailId: "esrb-rating-e"
       };
     case 'T':
       return {
         esrbRating: 'Teen',
-        esrbThumbnailUrl: `${ENV.SERVER_URL}/public/images/esrb-rating-t.svg`
+        esrbThumbnailId: "esrb-rating-t"
       };
     case 'AO':
       return {
         esrbRating: 'Adults Only 18+',
-        esrbThumbnailUrl: `${ENV.SERVER_URL}/public/images/esrb-rating-ao.svg`
+        esrbThumbnailId: "esrb-rating-ao"
       };
     case 'E10+':
       return {
         esrbRating: 'Everyone 10+',
-        esrbThumbnailUrl: `${ENV.SERVER_URL}/public/images/esrb-rating-e10.svg`
+        esrbThumbnailId: "esrb-rating-e10"
       };
     case 'M':
       return {
         esrbRating: 'Mature 17+',
-        esrbThumbnailUrl: `${ENV.SERVER_URL}/public/images/esrb-rating-m.svg`
+        esrbThumbnailId: "esrb-rating-m"
       };
     case 'RP':
     default:
       return {
         esrbRating: 'Rating Pending',
-        esrbThumbnailUrl: `${ENV.SERVER_URL}/public/images/esrb-rating-rp.svg`
+        esrbThumbnailId: "esrb-rating-rp"
       };
   }
 }
