@@ -7,17 +7,15 @@ type Relations = {
   genreIds: number[],
   themeIds: number[],
   platformIds: number[],
-  // collectionIds: number[]
+  collectionIds: number[]
 }
 
 type SelfRelations = {
   baseGameId: number | null,
-  // relatedContent: number[]
 }
 
 export const GameSync = {
   async createGame (gameDetails: Prisma.GameCreateInput, relations: Relations): Promise<Game> {
-
     return prisma.game.create({
       data: {
         ...gameDetails,
@@ -30,6 +28,9 @@ export const GameSync = {
         platforms: {
           connect: relations.platformIds.map((platform) => ({id: platform}))
         },
+        collections: {
+          connect: relations.collectionIds.map((id) => ({id}))
+        }
       }
     })
   },
@@ -61,12 +62,15 @@ export const GameSync = {
         platforms: {
           set: relations.platformIds.map((platform) => ({id: platform}))
         },
+        collections: {
+          set: relations.collectionIds.map((id) => ({id}))
+        }
       },
     })
   },
 
   async syncWithIgdb () {
-    let limit = 100;
+    let limit = 500;
     let offset = 0;
     let created = 0;
     let updated = 0;
@@ -181,7 +185,7 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
       genreIds: rawGame.genres ?? [],
       themeIds: rawGame.themes ?? [],
       platformIds: validPlatforms,
-      // collectionIds: rawGame.collections ?? []
+      collectionIds: rawGame.collections ?? []
     },
     selfRelations: {
       baseGameId: rawGame.parent_game ?? null,

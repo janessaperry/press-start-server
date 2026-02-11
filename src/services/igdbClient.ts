@@ -85,6 +85,12 @@ export type RawPlatform = {
   checksum: string
 }
 
+export type RawCollection = {
+  id: number,
+  name: string,
+  checksum: string
+}
+
 export const IgdbClient = {
   async getGames (limit: number, offset: number) {
     // todo test with platform 508 only
@@ -111,7 +117,7 @@ export const IgdbClient = {
     themes,
     total_rating,total_rating_count;
     
-    where platforms = (169,508) 
+    where platforms = (508) 
     & age_ratings.organization = 1
     & game_type = (0,1,2,3,4,8,9,10,11)
     & themes != (42)
@@ -188,6 +194,20 @@ export const IgdbClient = {
     const response = await axios.post(`${igdbConfig.baseUrl}/platforms`, data, {
       headers: igdbConfig.headers
     })
+    return response.data;
+  },
+
+  async getCollections (limit: number, offset: number): Promise<RawCollection[]> {
+    const data = `fields
+    id, name, checksum;
+    limit ${limit};
+    offset ${offset};
+    `;
+
+    const response = await axios.post(`${igdbConfig.baseUrl}/collections`, data, {
+      headers: igdbConfig.headers
+    });
+
     return response.data;
   }
 }

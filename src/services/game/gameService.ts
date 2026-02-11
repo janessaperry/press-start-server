@@ -23,6 +23,16 @@ type GameDTO = {
   esrbDescriptions: string[],
   genres: IdLabelDTO[],
   platforms: IdLabelDTO[],
+  collections: {
+    id: number,
+    name: string,
+    games: {
+      id: number,
+      name: string,
+      slug: string
+      coverId: string | null,
+    }[]
+  }[],
   baseGame: {
     id: number,
     name: string,
@@ -44,7 +54,7 @@ type GameDTO = {
       slug: string,
       gameType: IdLabelDTO
     }[],
-  }
+  },
 }
 
 const gameOverviewSelect = {
@@ -108,6 +118,20 @@ const gameDetailsSelect = {
       abbreviation: true,
     }
   },
+  collections: {
+    select: {
+      id: true,
+      name: true,
+      games: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          coverId: true
+        }
+      }
+    }
+  },
   developers: true,
   publishers: true,
   esrbRating: true,
@@ -156,6 +180,7 @@ export type GameDetailsDTO =
     | "gameType"
     | "genres"
     | "platforms"
+    | "collections"
     | "baseGame"
     | "relatedContent"
   >
@@ -206,6 +231,7 @@ export const GameService = {
         publishers: foundGame.publishers,
         genres,
         platforms,
+        collections: foundGame.collections,
         esrbRating: foundGame.esrbRating || null,
         esrbThumbnailId: foundGame.esrbThumbnailId ?? null,
         esrbDescriptions: foundGame.esrbDescriptions,
@@ -333,3 +359,7 @@ function mapGenresToDTO (genres: GameDetails["genres"]): IdLabelDTO[] {
 function mapPlatformsToDTO (platforms: GameDetails["platforms"]): IdLabelDTO[] {
   return platforms.map(platform => ({id: platform.id, label: platform.abbreviation}));
 }
+
+// function mapCollectionsToDTO (collections: GameDetails["collections"]): IdLabelDTO[] {
+//   return collections.map(collection => ({id: collection.id, label: collection.name}))
+// }
