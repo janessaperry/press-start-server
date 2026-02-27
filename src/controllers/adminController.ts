@@ -4,6 +4,7 @@ import { GenreService } from "../services/genreService.js";
 import { ThemeService } from "../services/themeService.js";
 import { PlatformService } from "../services/platformService";
 import { CollectionService } from "../services/collectionService";
+import { FranchiseService } from "../services/franchiseService";
 import { GameSync } from "../services/game/gameSync";
 
 export type ProcessingCounts = {
@@ -82,6 +83,16 @@ export const syncCollections = async (req: Request, res: Response) => {
     message: "Collections synced.",
     counts
   });
+  return;
+}
+
+export const syncFranchises = async (req: Request, res: Response) => {
+  const counts: ProcessingCounts = await FranchiseService.syncWithIgdb();
+
+  res.status(200).json({
+    message: "Franchises synced.",
+    counts
+  })
   return;
 }
 

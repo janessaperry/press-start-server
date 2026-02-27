@@ -8,6 +8,7 @@ router
   .post("/igdb-sync/themes", AdminController.syncThemes)
   .post("/igdb-sync/platforms", AdminController.syncPlatforms)
   .post("/igdb-sync/collections", AdminController.syncCollections)
+  .post("/igdb-sync/franchises", AdminController.syncFranchises)
   .post("/igdb-sync/games", AdminController.syncGames)
   .post("/igdb-sync/all", AdminController.syncAll);
 

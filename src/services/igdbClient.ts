@@ -91,6 +91,12 @@ export type RawCollection = {
   checksum: string
 }
 
+export type RawFranchise = {
+  id: number,
+  name: string,
+  checksum: string
+}
+
 export const IgdbClient = {
   async getGames (limit: number, offset: number) {
     // todo test with platform 508 only
@@ -205,6 +211,19 @@ export const IgdbClient = {
     `;
 
     const response = await axios.post(`${igdbConfig.baseUrl}/collections`, data, {
+      headers: igdbConfig.headers
+    });
+
+    return response.data;
+  },
+
+  async getFranchises (limit: number, offset: number) {
+    const data = `fields
+      id, name, checksum;
+      limit ${limit};
+      offset ${offset};
+    `;
+    const response = await axios.post(`${igdbConfig.baseUrl}/franchises`, data, {
       headers: igdbConfig.headers
     });
 
