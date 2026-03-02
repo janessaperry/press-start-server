@@ -63,6 +63,7 @@ model Game {
   esrbDescriptions String[]  @default([]) @map("esrb_descriptions")
   developers       String[]  @default([])
   publishers       String[]  @default([])
+  screenshotIds    String[]  @default([]) @map("screenshot_ids")
   igdbChecksum     String    @map("igdb_checksum")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")

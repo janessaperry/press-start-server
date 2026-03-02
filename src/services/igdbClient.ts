@@ -39,6 +39,10 @@ export type RawGame = {
     developer: boolean,
     publisher: boolean,
   }[],
+  screenshots: {
+    id: number,
+    image_id: string
+  }[],
   checksum: string,
   game_type: number,
   parent_game?: number,
@@ -116,6 +120,7 @@ export const IgdbClient = {
     parent_game,
     platforms,
     release_dates.date,release_dates.release_region,
+    screenshots.id, screenshots.image_id,
     similar_games,
     slug,
     standalone_expansions,

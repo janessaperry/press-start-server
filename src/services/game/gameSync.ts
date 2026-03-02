@@ -55,6 +55,7 @@ export const GameSync = {
         esrbDescriptions: gameDetails.esrbDescriptions,
         developers: gameDetails.developers,
         publishers: gameDetails.publishers,
+        screenshotIds: gameDetails.screenshotIds,
         igdbChecksum: gameDetails.igdbChecksum,
         gameType: gameDetails.gameType,
         genres: {
@@ -166,6 +167,8 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
   const {developers, publishers} = normalizeInvolvedCompanies(involvedCompanies);
 
   const validPlatforms = await filterValidPlatforms(rawGame.platforms);
+  console.log(rawGame.screenshots)
+  const screenshotIds = rawGame.screenshots ? rawGame.screenshots.map(item => item.image_id) : [];
 
   return {
     gameDetails: {
@@ -182,6 +185,7 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
       esrbDescriptions,
       developers,
       publishers,
+      screenshotIds,
       igdbChecksum: rawGame.checksum,
       gameType: {
         connect: {id: rawGame.game_type}

@@ -17,6 +17,7 @@ type GameDTO = {
   gameType: IdLabelDTO,
   developers: string[],
   publishers: string[],
+  screenshotIds: string[],
   esrbRating: string | null,
   esrbThumbnailId: string | null,
   esrbDescriptions: string[],
@@ -157,6 +158,7 @@ const gameDetailsSelect = {
   },
   developers: true,
   publishers: true,
+  screenshotIds: true,
   esrbRating: true,
   esrbThumbnailId: true,
   esrbDescriptions: true,
@@ -200,6 +202,7 @@ export type GameDetailsDTO =
     | "esrbDescriptions"
     | "developers"
     | "publishers"
+    | "screenshotIds"
     | "gameType"
     | "genres"
     | "platforms"
@@ -240,7 +243,8 @@ export const GameService = {
       const genres = mapGenresToDTO(foundGame.genres);
       const platforms = mapPlatformsToDTO(foundGame.platforms);
       const expansions = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 2 || relatedGame.gameType.id === 4 || relatedGame.gameType.id === 10)
-      const dlcs = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 1)
+      const dlcs = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 1);
+      console.log(foundGame.screenshotIds)
 
       return {
         id: foundGame.id,
@@ -253,6 +257,7 @@ export const GameService = {
         gameType: foundGame.gameType,
         developers: foundGame.developers,
         publishers: foundGame.publishers,
+        screenshotIds: foundGame.screenshotIds,
         genres,
         platforms,
         collections: foundGame.collections,
