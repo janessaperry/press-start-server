@@ -1,7 +1,6 @@
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 
-
 type IdLabelDTO = {
   id: number,
   label: string
@@ -24,6 +23,16 @@ type GameDTO = {
   genres: IdLabelDTO[],
   platforms: IdLabelDTO[],
   collections: {
+    id: number,
+    name: string,
+    games: {
+      id: number,
+      name: string,
+      slug: string
+      coverId: string | null,
+    }[]
+  }[],
+  franchises: {
     id: number,
     name: string,
     games: {
@@ -132,6 +141,20 @@ const gameDetailsSelect = {
       }
     }
   },
+  franchises: {
+    select: {
+      id: true,
+      name: true,
+      games: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          coverId: true
+        }
+      }
+    }
+  },
   developers: true,
   publishers: true,
   esrbRating: true,
@@ -181,6 +204,7 @@ export type GameDetailsDTO =
     | "genres"
     | "platforms"
     | "collections"
+    | "franchises"
     | "baseGame"
     | "relatedContent"
   >
@@ -232,6 +256,7 @@ export const GameService = {
         genres,
         platforms,
         collections: foundGame.collections,
+        franchises: foundGame.franchises,
         esrbRating: foundGame.esrbRating || null,
         esrbThumbnailId: foundGame.esrbThumbnailId ?? null,
         esrbDescriptions: foundGame.esrbDescriptions,

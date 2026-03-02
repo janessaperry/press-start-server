@@ -8,6 +8,7 @@ type Relations = {
   themeIds: number[],
   platformIds: number[],
   collectionIds: number[]
+  franchiseIds: number[]
 }
 
 type SelfRelations = {
@@ -30,6 +31,9 @@ export const GameSync = {
         },
         collections: {
           connect: relations.collectionIds.map((id) => ({id}))
+        },
+        franchises: {
+          connect: relations.franchiseIds.map((id) => ({id}))
         }
       }
     })
@@ -64,6 +68,9 @@ export const GameSync = {
         },
         collections: {
           set: relations.collectionIds.map((id) => ({id}))
+        },
+        franchises: {
+          set: relations.franchiseIds.map((id) => ({id}))
         }
       },
     })
@@ -99,7 +106,6 @@ export const GameSync = {
         }
 
         totalProcessed++;
-
 
         // collect relationship data during sync so we can check if the games exist in the db before connecting records
         if (game.selfRelations.baseGameId) {
@@ -185,11 +191,11 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
       genreIds: rawGame.genres ?? [],
       themeIds: rawGame.themes ?? [],
       platformIds: validPlatforms,
-      collectionIds: rawGame.collections ?? []
+      collectionIds: rawGame.collections ?? [],
+      franchiseIds: rawGame.franchises ?? [],
     },
     selfRelations: {
       baseGameId: rawGame.parent_game ?? null,
-      // relatedContent: [...relatedContent.values()]
     }
   }
 }
