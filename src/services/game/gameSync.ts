@@ -167,7 +167,6 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
   const {developers, publishers} = normalizeInvolvedCompanies(involvedCompanies);
 
   const validPlatforms = await filterValidPlatforms(rawGame.platforms);
-  console.log(rawGame.screenshots)
   const screenshotIds = rawGame.screenshots ? rawGame.screenshots.map(item => item.image_id) : [];
 
   return {

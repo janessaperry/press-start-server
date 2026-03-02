@@ -244,7 +244,6 @@ export const GameService = {
       const platforms = mapPlatformsToDTO(foundGame.platforms);
       const expansions = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 2 || relatedGame.gameType.id === 4 || relatedGame.gameType.id === 10)
       const dlcs = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 1);
-      console.log(foundGame.screenshotIds)
 
       return {
         id: foundGame.id,
