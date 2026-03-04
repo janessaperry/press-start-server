@@ -23,6 +23,14 @@ type GameDTO = {
   esrbDescriptions: string[],
   genres: IdLabelDTO[],
   platforms: IdLabelDTO[],
+  timeToBeat: {
+    id: number,
+    gameId: number,
+    hastily: number | null,
+    normally: number | null,
+    completely: number | null,
+    count: number | null,
+  } | null,
   collections: {
     id: number,
     name: string,
@@ -128,6 +136,16 @@ const gameDetailsSelect = {
       abbreviation: true,
     }
   },
+  timeToBeat: {
+    select: {
+      id: true,
+      gameId: true,
+      hastily: true,
+      normally: true,
+      completely: true,
+      count: true,
+    }
+  },
   collections: {
     select: {
       id: true,
@@ -202,6 +220,7 @@ export type GameDetailsDTO =
     | "esrbDescriptions"
     | "developers"
     | "publishers"
+    | "timeToBeat"
     | "screenshotIds"
     | "gameType"
     | "genres"
@@ -259,6 +278,7 @@ export const GameService = {
         screenshotIds: foundGame.screenshotIds,
         genres,
         platforms,
+        timeToBeat: foundGame.timeToBeat,
         collections: foundGame.collections,
         franchises: foundGame.franchises,
         esrbRating: foundGame.esrbRating || null,
