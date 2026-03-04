@@ -101,6 +101,16 @@ export type RawFranchise = {
   checksum: string
 }
 
+export type RawTimeToBeat = {
+  id: number,
+  game_id: number,
+  hastily: number,
+  normally: number,
+  completely: number,
+  count: number,
+  checksum: string
+}
+
 export const IgdbClient = {
   async getGames (limit: number, offset: number) {
     // todo test with platform 508 only
@@ -222,7 +232,7 @@ export const IgdbClient = {
     return response.data;
   },
 
-  async getFranchises (limit: number, offset: number) {
+  async getFranchises (limit: number, offset: number): Promise<RawFranchise[]> {
     const data = `fields
       id, name, checksum;
       limit ${limit};
@@ -232,6 +242,19 @@ export const IgdbClient = {
       headers: igdbConfig.headers
     });
 
+    return response.data;
+  },
+
+  async getTimeToBeat (limit: number, offset: number): Promise<RawTimeToBeat[]> {
+    const data = `fields 
+      id, game_id, hastily, normally, completely, count, checksum;
+      limit ${limit};
+      offset ${offset};
+    `;
+
+    const response = await axios.post(`${igdbConfig.baseUrl}/game_time_to_beats`, data, {
+      headers: igdbConfig.headers
+    });
     return response.data;
   }
 }

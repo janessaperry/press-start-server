@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
-import { GameTypeService } from "../services/gameTypeService.js";
-import { GenreService } from "../services/genreService.js";
-import { ThemeService } from "../services/themeService.js";
-import { PlatformService } from "../services/platformService";
 import { CollectionService } from "../services/collectionService";
 import { FranchiseService } from "../services/franchiseService";
 import { GameSync } from "../services/game/gameSync";
+import { GameTypeService } from "../services/gameTypeService.js";
+import { GenreService } from "../services/genreService.js";
+import { PlatformService } from "../services/platformService";
+import { ThemeService } from "../services/themeService.js";
+import { TimeToBeatService } from "../services/timeToBeatService";
 
 export type ProcessingCounts = {
   updated: number,
@@ -23,6 +24,7 @@ export const syncAll = async (req: Request, res: Response) => {
   ]);
 
   const gameCounts: ProcessingCounts = await GameSync.syncWithIgdb();
+  const timeToBeatCounts: ProcessingCounts = await TimeToBeatService.syncWithIgdb();
 
   res.status(200).json({
     message: "Full sync complete!",
@@ -30,7 +32,8 @@ export const syncAll = async (req: Request, res: Response) => {
     genreCounts,
     themeCounts,
     consoleCounts,
-    gameCounts
+    gameCounts,
+    timeToBeatCounts
   })
   return;
 }
@@ -101,6 +104,16 @@ export const syncGames = async (req: Request, res: Response) => {
 
   res.status(200).json({
     message: "Games synced.",
+    counts
+  });
+  return;
+}
+
+export const syncTimeToBeat = async (req: Request, res: Response) => {
+  const counts: ProcessingCounts = await TimeToBeatService.syncWithIgdb();
+
+  res.status(200).json({
+    message: "Time to beat synced.",
     counts
   });
   return;

@@ -10,6 +10,7 @@ router
   .post("/igdb-sync/collections", AdminController.syncCollections)
   .post("/igdb-sync/franchises", AdminController.syncFranchises)
   .post("/igdb-sync/games", AdminController.syncGames)
+  .post("/igdb-sync/time-to-beat", AdminController.syncTimeToBeat)
   .post("/igdb-sync/all", AdminController.syncAll);
 
 export default router;

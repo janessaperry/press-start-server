@@ -81,6 +81,8 @@ model Game {
   collections Collection[] @relation("GameCollection")
   franchises  Franchise[]  @relation("GameFranchise")
 
+  timeToBeat TimeToBeat?
+
   similarTo   Game[] @relation("SimilarGames")
   similarFrom Game[] @relation("SimilarGames")
 
@@ -173,4 +175,17 @@ model Franchise {
   games Game[] @relation("GameFranchise")
 
   @@map("franchises")
+}
+
+model TimeToBeat {
+  id           Int    @id
+  gameId       Int    @unique @map("game_id")
+  game         Game   @relation(fields: [gameId], references: [id])
+  hastily      Int?
+  normally     Int?
+  completely   Int?
+  count        Int?
+  igdbChecksum String @unique @map("igdb_checksum")
+
+  @@map("time_to_beat")
 }
