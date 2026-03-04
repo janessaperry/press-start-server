@@ -139,7 +139,6 @@ export const show = async (req: Request, res: Response) => {
 
 
   res.status(200).json({
-    "message": `request made to /show/${gameId}`,
     gameDetails
   })
 }

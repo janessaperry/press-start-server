@@ -388,7 +388,3 @@ function mapGenresToDTO (genres: GameDetails["genres"]): IdLabelDTO[] {
 function mapPlatformsToDTO (platforms: GameDetails["platforms"]): IdLabelDTO[] {
   return platforms.map(platform => ({id: platform.id, label: platform.abbreviation}));
 }
-
-// function mapCollectionsToDTO (collections: GameDetails["collections"]): IdLabelDTO[] {
-//   return collections.map(collection => ({id: collection.id, label: collection.name}))
-// }
