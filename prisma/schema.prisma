@@ -144,6 +144,7 @@ model Platform {
 model PlatformFamily {
   id           Int      @id
   name         String
+  slug         String   @unique
   igdbChecksum String   @unique @map("igdb_checksum")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
