@@ -15,12 +15,13 @@ export type ProcessingCounts = {
 }
 
 export const syncAll = async (req: Request, res: Response) => {
-  const [gameTypeCounts, genreCounts, themeCounts, consoleCounts] = await Promise.all([
+  const [gameTypeCounts, genreCounts, themeCounts, platformCounts, collectionCounts, franchiseCounts] = await Promise.all([
     GameTypeService.syncWithIgdb(),
     GenreService.syncWithIgdb(),
     ThemeService.syncWithIgdb(),
     PlatformService.syncWithIgdb(),
     CollectionService.syncWithIgdb(),
+    FranchiseService.syncWithIgdb(),
   ]);
 
   const gameCounts: ProcessingCounts = await GameSync.syncWithIgdb();
@@ -31,7 +32,9 @@ export const syncAll = async (req: Request, res: Response) => {
     gameTypeCounts,
     genreCounts,
     themeCounts,
-    consoleCounts,
+    platformCounts,
+    collectionCounts,
+    franchiseCounts,
     gameCounts,
     timeToBeatCounts
   })

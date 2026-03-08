@@ -78,6 +78,7 @@ export type RawTheme = {
 export type RawPlatformFamily = {
   id: number,
   name: string,
+  slug: string,
   checksum: string
 }
 
@@ -194,7 +195,7 @@ export const IgdbClient = {
 
   async getPlatformFamilies (): Promise<RawPlatformFamily[]> {
     const data = `fields
-    id, name, checksum;
+    id, name, slug, checksum;
     where id != 3;
     limit 50;
     `

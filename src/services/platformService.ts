@@ -1,7 +1,7 @@
+import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { Platform, PlatformFamily, Prisma } from "../generated/prisma/client";
 import { IgdbClient, RawPlatform, RawPlatformFamily } from "./igdbClient.js";
-import { ProcessingCounts } from "../controllers/adminController.js";
 
 export const PlatformService = {
   async findPlatformFamilyById (id: number): Promise<PlatformFamily | null> {
@@ -21,6 +21,7 @@ export const PlatformService = {
       where: {id},
       data: {
         name: data.name,
+        slug: data.slug,
         igdbChecksum: data.igdbChecksum
       }
     })
@@ -129,6 +130,7 @@ function mapRawPlatformFamilytoDb (igdbResponse: RawPlatformFamily): Prisma.Plat
   return {
     id: igdbResponse.id,
     name: platformFamilyName,
+    slug: igdbResponse.slug,
     igdbChecksum: igdbResponse.checksum
   }
 }
