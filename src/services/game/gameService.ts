@@ -24,11 +24,10 @@ type GameDTO = {
   genres: IdLabelDTO[],
   platforms: IdLabelDTO[],
   timeToBeat: {
-    id: number,
-    gameId: number,
-    hastily: number | null,
-    normally: number | null,
-    completely: number | null,
+    times: {
+      label: string;
+      value: number | null
+    }[],
     count: number | null,
   } | null,
   collections: {
@@ -138,8 +137,6 @@ const gameDetailsSelect = {
   },
   timeToBeat: {
     select: {
-      id: true,
-      gameId: true,
       hastily: true,
       normally: true,
       completely: true,
@@ -263,6 +260,7 @@ export const GameService = {
       const platforms = mapPlatformsToDTO(foundGame.platforms);
       const expansions = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 2 || relatedGame.gameType.id === 4 || relatedGame.gameType.id === 10)
       const dlcs = foundGame.relatedContent.filter(relatedGame => relatedGame.gameType.id === 1);
+      const timeToBeat = mapTimeToBeatToDTO(foundGame.timeToBeat);
 
       return {
         id: foundGame.id,
@@ -278,7 +276,7 @@ export const GameService = {
         screenshotIds: foundGame.screenshotIds,
         genres,
         platforms,
-        timeToBeat: foundGame.timeToBeat,
+        timeToBeat,
         collections: foundGame.collections,
         franchises: foundGame.franchises,
         esrbRating: foundGame.esrbRating || null,
@@ -407,4 +405,15 @@ function mapGenresToDTO (genres: GameDetails["genres"]): IdLabelDTO[] {
 
 function mapPlatformsToDTO (platforms: GameDetails["platforms"]): IdLabelDTO[] {
   return platforms.map(platform => ({id: platform.id, label: platform.abbreviation}));
+}
+
+function mapTimeToBeatToDTO (timeToBeat: GameDetails["timeToBeat"]): GameDetailsDTO["timeToBeat"] | null {
+  return timeToBeat ? {
+    times: [
+      {label: "hastily", value: timeToBeat.hastily},
+      {label: "normally", value: timeToBeat.normally},
+      {label: "completely", value: timeToBeat.completely},
+    ],
+    count: timeToBeat.count
+  } : null;
 }
