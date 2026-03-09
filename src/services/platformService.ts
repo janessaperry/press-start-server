@@ -122,15 +122,13 @@ export const PlatformService = {
  * Maps IGDB platform family data to Prisma PlatformFamilyCreateInput format.
  *
  * Note:
- * - Rename Linux (ID 4) platform family to "PC"
+ * - Rename Linux (ID 4) platform family name and slug
  */
 function mapRawPlatformFamilytoDb (igdbResponse: RawPlatformFamily): Prisma.PlatformFamilyCreateInput {
-  const platformFamilyName = igdbResponse.id === 4 ? "PC" : igdbResponse.name;
-
   return {
     id: igdbResponse.id,
-    name: platformFamilyName,
-    slug: igdbResponse.slug,
+    name: igdbResponse.id === 4 ? "PC" : igdbResponse.name,
+    slug: igdbResponse.id === 4 ? "pc" : igdbResponse.slug,
     igdbChecksum: igdbResponse.checksum
   }
 }
