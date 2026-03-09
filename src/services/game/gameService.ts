@@ -1,3 +1,4 @@
+import { GameQuery } from "../../controllers/gamesController";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 
@@ -74,26 +75,27 @@ type GameDTO = {
   },
 }
 
-const gameOverviewSelect = {
-  id: true,
-  name: true,
-  coverId: true,
-  releaseDate: true,
-  slug: true,
-  totalRating: true,
-  platforms: {
-    select: {
-      id: true,
-      abbreviation: true,
-    }
-  },
-  gameType: {
-    select: {
-      id: true,
-      label: true
-    }
-  },
-} satisfies Prisma.GameSelect;
+export const
+  gameOverviewSelect = {
+    id: true,
+    name: true,
+    coverId: true,
+    releaseDate: true,
+    slug: true,
+    totalRating: true,
+    platforms: {
+      select: {
+        id: true,
+        abbreviation: true,
+      }
+    },
+    gameType: {
+      select: {
+        id: true,
+        label: true
+      }
+    },
+  } satisfies Prisma.GameSelect;
 
 type GameOverview = Prisma.GameGetPayload<{select: typeof gameOverviewSelect}>;
 
@@ -235,7 +237,43 @@ export const GameService = {
     })
   },
 
-  async findByName (query: string, select: Prisma.GameSelect): Promise<Game[] | null> {
+  async findAll (filters: GameQuery) {
+    const {search, platformFamily, platform, genres, limit, offset} = filters;
+
+    let whereQuery = {};
+    let takeQuery = limit ?? 10;
+    if (search) {
+      whereQuery = {
+        name: {
+          contains: search,
+          mode: 'insensitive'
+        },
+      }
+    }
+
+    if (platformFamily) {
+      whereQuery = {
+        ...whereQuery,
+        platforms: {
+          some: {
+            platformFamily: {
+              slug: platformFamily
+            }
+          }
+        }
+      }
+    }
+
+    let result = await prisma.game.findMany({
+      where: whereQuery,
+      take: takeQuery,
+      select: gameOverviewSelect,
+    })
+
+    return result.map(mapToGameOverviewDTO);
+  },
+
+  async findByName (query: string) {
     return prisma.game.findMany({
       where: {
         name: {
@@ -243,7 +281,11 @@ export const GameService = {
           mode: 'insensitive'
         }
       },
-      select,
+      select: {
+        id: true,
+        name: true,
+        coverId: true,
+      },
       take: 10
     })
   },
@@ -374,7 +416,6 @@ export const GameService = {
 
     return data.map(game => mapToGameOverviewDTO(game));
   },
-
 }
 
 function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {

@@ -1,24 +1,46 @@
 import { Request, Response } from "express";
 import { GameDetailsDTO, GameService } from "../services/game/gameService.js";
 
-type GameQuery = {
+export type GameQuery = {
   search?: string,
-  console?: string,
+  platformFamily?: string,
+  platform?: string,
+  genres?: string,
   status?: string,
+  limit?: number,
+  offset?: number,
 }
 
 export const index = async (req: Request<any, any, any, GameQuery>, res: Response) => {
-  const {search, console, status} = req.query;
-
-  let searchResults;
-  if (search) {
-    const select = {
-      id: true,
-      name: true,
-      coverId: true,
-    }
-    searchResults = await GameService.findByName(search, select);
+  const {search, platformFamily, platform, genres, status, limit, offset} = req.query;
+  /**
+   * filters:
+   * search
+   * platformFamily
+   * platform
+   * genre
+   *
+   * gameType
+   * theme
+   * collection or franchise
+   * timeToBeat
+   * rating
+   * releaseDate
+   * esrbRating
+   * sortBy
+   * sortOrder
+   * limit
+   * offset
+   */
+  const filters = {
+    search,
+    platformFamily,
+    platform,
+    genres,
+    limit,
+    offset
   }
+  const filteredResults = await GameService.findAll(filters);
 
   let comingSoon;
   let newRelease;
@@ -35,10 +57,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
   }
 
   res.status(200).json({
-    "message": "request made to /index",
-    "searchQuery": search,
-    "searchResults": searchResults,
-    "console": console,
+    filteredResults,
     status: {
       comingSoon,
       newRelease
@@ -60,6 +79,16 @@ export const show = async (req: Request, res: Response) => {
 
   res.status(200).json({
     gameDetails
+  });
+  return;
+}
+
+export const search = async (req: Request<any, any, any, GameQuery>, res: Response) => {
+  const {searchQuery} = req.params;
+
+  const searchResults = await GameService.findByName(searchQuery);
+  res.status(200).json({
+    searchResults
   });
   return;
 }
