@@ -1,13 +1,14 @@
-import express, { Request, Response } from 'express';
 import cors from 'cors';
 
 import 'dotenv/config';
+import express, { Request, Response } from 'express';
 import { ENV } from "./config/env.js";
+import { initializeJobs } from "./jobs";
 
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import filtersRoutes from "./routes/filtersRoutes";
 import gamesRoutes from "./routes/gamesRoutes.js";
-import { initializeJobs } from "./jobs";
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.get('/', (req: Request, res: Response) => {
 app.use("/admin", adminRoutes)
 app.use("/auth", authRoutes)
 app.use("/games", gamesRoutes)
+app.use("/filters", filtersRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   console.log(process.env.NODE_ENV);

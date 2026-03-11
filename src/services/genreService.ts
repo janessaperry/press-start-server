@@ -1,10 +1,19 @@
+import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { Genre, Prisma } from "../generated/prisma/client";
 import { IgdbClient, RawGenre } from "./igdbClient.js";
-import { ProcessingCounts } from "../controllers/adminController.js";
 
 
 export const GenreService = {
+  async findAll () {
+    return prisma.genre.findMany({
+      select: {
+        id: true,
+        name: true
+      }
+    })
+  },
+
   async findById (id: number): Promise<Genre | null> {
     return prisma.genre.findUnique({
       where: {id}

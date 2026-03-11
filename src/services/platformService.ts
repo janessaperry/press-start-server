@@ -4,6 +4,15 @@ import { Platform, PlatformFamily, Prisma } from "../generated/prisma/client";
 import { IgdbClient, RawPlatform, RawPlatformFamily } from "./igdbClient.js";
 
 export const PlatformService = {
+  async findAllPlatformFamily () {
+    return prisma.platformFamily.findMany({
+      select: {
+        id: true,
+        name: true
+      }
+    });
+  },
+
   async findPlatformFamilyById (id: number): Promise<PlatformFamily | null> {
     return prisma.platformFamily.findUnique({
       where: {id}
@@ -23,6 +32,15 @@ export const PlatformService = {
         name: data.name,
         slug: data.slug,
         igdbChecksum: data.igdbChecksum
+      }
+    })
+  },
+
+  async findAllPlatform () {
+    return prisma.platform.findMany({
+      select: {
+        id: true,
+        abbreviation: true
       }
     })
   },

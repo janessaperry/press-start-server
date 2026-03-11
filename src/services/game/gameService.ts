@@ -264,6 +264,32 @@ export const GameService = {
       }
     }
 
+    if (platform) {
+      whereQuery = {
+        ...whereQuery,
+        platforms: {
+          some: {
+            id: {
+              in: platform.split(",").map(id => Number(id.trim()))
+            }
+          }
+        }
+      }
+    }
+
+    if (genres) {
+      whereQuery = {
+        ...whereQuery,
+        genres: {
+          some: {
+            id: {
+              in: genres.split(",").map(id => Number(id.trim()))
+            }
+          }
+        }
+      }
+    }
+
     let result = await prisma.game.findMany({
       where: whereQuery,
       take: takeQuery,
