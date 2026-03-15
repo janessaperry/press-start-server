@@ -9,6 +9,9 @@ export const PlatformService = {
       select: {
         id: true,
         name: true
+      },
+      orderBy: {
+        name: 'asc'
       }
     });
   },
@@ -41,6 +44,9 @@ export const PlatformService = {
       select: {
         id: true,
         abbreviation: true
+      },
+      orderBy: {
+        abbreviation: 'asc'
       }
     })
   },

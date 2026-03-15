@@ -257,7 +257,9 @@ export const GameService = {
         platforms: {
           some: {
             platformFamily: {
-              slug: platformFamily
+              id: {
+                in: platformFamily.split(",").map(id => Number(id.trim()))
+              },
             }
           }
         }

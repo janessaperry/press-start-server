@@ -10,6 +10,9 @@ export const GenreService = {
       select: {
         id: true,
         name: true
+      },
+      orderBy: {
+        name: 'asc'
       }
     })
   },
