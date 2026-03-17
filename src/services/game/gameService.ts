@@ -314,9 +314,13 @@ export const GameService = {
       take: takeQuery,
       select: gameOverviewSelect,
       orderBy: orderByQuery,
-    })
+    });
+    const count = await prisma.game.count({ where: whereQuery });
 
-    return result.map(mapToGameOverviewDTO);
+    return {
+      games: result.map(mapToGameOverviewDTO),
+      count
+    };
   },
 
   async findByName (query: string) {
@@ -465,7 +469,7 @@ export const GameService = {
 }
 
 function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
-  const platforms = mapPlatformsToDTO(game.platforms)
+  const platforms = mapPlatformsToDTO(game.platforms);
 
   return {
     id: game.id,
