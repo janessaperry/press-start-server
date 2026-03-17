@@ -9,17 +9,13 @@ export type GameQuery = {
   status?: string,
   limit?: number,
   offset?: number,
+  sorting: string,
 }
 
 export const index = async (req: Request<any, any, any, GameQuery>, res: Response) => {
-  const {search, platformFamily, platform, genres, status, limit, offset} = req.query;
+  const { search, platformFamily, platform, genres, status, limit, offset, sorting } = req.query;
   /**
    * filters:
-   * search
-   * platformFamily
-   * platform
-   * genre
-   *
    * gameType
    * theme
    * collection or franchise
@@ -38,7 +34,8 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
     platform,
     genres,
     limit,
-    offset
+    offset,
+    sorting,
   }
   const filteredResults = await GameService.findAll(filters);
 
@@ -67,7 +64,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
 }
 
 export const show = async (req: Request, res: Response) => {
-  const {gameId} = req.params;
+  const { gameId } = req.params;
 
   const gameDetails: GameDetailsDTO | null = await GameService.getGameDetails(Number(gameId));
   if (!gameDetails) {
@@ -84,7 +81,7 @@ export const show = async (req: Request, res: Response) => {
 }
 
 export const search = async (req: Request<any, any, any, GameQuery>, res: Response) => {
-  const {searchQuery} = req.params;
+  const { searchQuery } = req.params;
 
   const searchResults = await GameService.findByName(searchQuery);
   res.status(200).json({

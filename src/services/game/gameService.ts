@@ -97,7 +97,7 @@ export const
     },
   } satisfies Prisma.GameSelect;
 
-type GameOverview = Prisma.GameGetPayload<{select: typeof gameOverviewSelect}>;
+type GameOverview = Prisma.GameGetPayload<{ select: typeof gameOverviewSelect }>;
 
 type GameOverviewDTO =
   Pick<GameDTO,
@@ -203,7 +203,7 @@ const gameDetailsSelect = {
   }
 } satisfies Prisma.GameSelect;
 
-export type GameDetails = Prisma.GameGetPayload<{select: typeof gameDetailsSelect}>;
+export type GameDetails = Prisma.GameGetPayload<{ select: typeof gameDetailsSelect }>;
 
 export type GameDetailsDTO =
   Pick<GameDTO,
@@ -233,15 +233,32 @@ export type GameDetailsDTO =
 export const GameService = {
   async findById (id: number): Promise<Game | null> {
     return prisma.game.findUnique({
-      where: {id}
+      where: { id }
     })
   },
 
   async findAll (filters: GameQuery) {
-    const {search, platformFamily, platform, genres, limit, offset} = filters;
+    const { search, platformFamily, platform, genres, limit, offset, sorting = "createdAt-desc" } = filters;
+
+
+    //todo what happens with broken sorting string? or an invalid string? e.g., date-added
+    const [ sortCategory, sortOrder ] = sorting.split('-');
+    /**
+     * categories: createdAt, name, releaseDate
+     * orders: asc, desc
+     */
 
     let whereQuery = {};
     let takeQuery = limit ?? 10;
+    const orderByQuery = { [sortCategory]: sortOrder }
+    if (search) {
+      whereQuery = {
+        name: {
+          contains: search,
+          mode: 'insensitive'
+        },
+      }
+    }
     if (search) {
       whereQuery = {
         name: {
@@ -296,6 +313,7 @@ export const GameService = {
       where: whereQuery,
       take: takeQuery,
       select: gameOverviewSelect,
+      orderBy: orderByQuery,
     })
 
     return result.map(mapToGameOverviewDTO);
@@ -321,7 +339,7 @@ export const GameService = {
   async getGameDetails (gameId: number): Promise<GameDetailsDTO | null> {
     try {
       const foundGame = await prisma.game.findUnique({
-        where: {id: Number(gameId)},
+        where: { id: Number(gameId) },
         select: gameDetailsSelect,
       });
       if (!foundGame) return null;
@@ -469,19 +487,19 @@ function splitSummary (summary: string | null): string[] {
 }
 
 function mapGenresToDTO (genres: GameDetails["genres"]): IdLabelDTO[] {
-  return genres.map(genre => ({id: genre.id, label: genre.name}))
+  return genres.map(genre => ({ id: genre.id, label: genre.name }))
 }
 
 function mapPlatformsToDTO (platforms: GameDetails["platforms"]): IdLabelDTO[] {
-  return platforms.map(platform => ({id: platform.id, label: platform.abbreviation}));
+  return platforms.map(platform => ({ id: platform.id, label: platform.abbreviation }));
 }
 
 function mapTimeToBeatToDTO (timeToBeat: GameDetails["timeToBeat"]): GameDetailsDTO["timeToBeat"] | null {
   return timeToBeat ? {
     times: [
-      {label: "hastily", value: timeToBeat.hastily},
-      {label: "normally", value: timeToBeat.normally},
-      {label: "completely", value: timeToBeat.completely},
+      { label: "hastily", value: timeToBeat.hastily },
+      { label: "normally", value: timeToBeat.normally },
+      { label: "completely", value: timeToBeat.completely },
     ],
     count: timeToBeat.count
   } : null;
