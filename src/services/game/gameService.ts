@@ -234,6 +234,13 @@ export type GameFilters = {
   platformFamily?: string,
   platform?: string,
   genres?: string,
+  gameType?: string,
+  themes?: string,
+  franchises?: string,
+  timeToBeat?: string,
+  rating?: string,
+  releaseDate?: string,
+  esrbRating?: string,
   status?: string,
   parsedLimit: number,
   parsedOffset: number,
@@ -249,26 +256,24 @@ export const GameService = {
   },
 
   async findAll (filters: GameFilters) {
-    const { search, platformFamily, platform, genres, parsedLimit, parsedOffset, sortCategory, sortOrder } = filters;
+    const {
+      search,
+      platformFamily, platform,
+      genres, gameType, themes, franchises,
+      timeToBeat, rating, releaseDate, esrbRating,
+      parsedLimit, parsedOffset,
+      sortCategory, sortOrder
+    } = filters;
 
     /**
      * sorting notes - need to validate still
      * categories: createdAt, name, releaseDate
      * orders: asc, desc
      */
-
     let whereQuery = {};
     let takeQuery = parsedLimit;
     let skipQuery = parsedOffset;
     const orderByQuery = { [sortCategory]: sortOrder }
-    if (search) {
-      whereQuery = {
-        name: {
-          contains: search,
-          mode: 'insensitive'
-        },
-      }
-    }
     if (search) {
       whereQuery = {
         name: {
@@ -316,6 +321,59 @@ export const GameService = {
             }
           }
         }
+      }
+    }
+
+    if (gameType) {
+      whereQuery = {
+        ...whereQuery,
+        gameTypeId: {
+          in: gameType.split(",").map(id => Number(id.trim()))
+        }
+      }
+    }
+
+    if (themes) {
+      whereQuery = {
+        ...whereQuery,
+        themes: {
+          some: {
+            id: {
+              in: themes.split(",").map(id => Number(id.trim()))
+            }
+          }
+        }
+      }
+    }
+
+    if (franchises) {
+      whereQuery = {
+        ...whereQuery,
+        franchises: {
+          some: {
+            id: {
+              in: franchises.split(",").map(id => Number(id.trim()))
+            }
+          }
+        }
+      }
+    }
+
+    if (timeToBeat) {
+      whereQuery = {
+        ...whereQuery,
+      }
+    }
+
+    if (rating) {
+      whereQuery = {
+        ...whereQuery
+      }
+    }
+
+    if (releaseDate) {
+      whereQuery = {
+        ...whereQuery
       }
     }
 

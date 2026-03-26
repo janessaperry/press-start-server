@@ -6,6 +6,13 @@ export type GameQuery = {
   platformFamily?: string,
   platform?: string,
   genres?: string,
+  gameType?: string,
+  themes?: string,
+  franchises?: string,
+  timeToBeat?: string,
+  rating?: string,
+  releaseDate?: string,
+  esrbRating?: string,
   status?: string,
   limit?: string,
   offset?: string,
@@ -13,28 +20,32 @@ export type GameQuery = {
 }
 
 export const index = async (req: Request<any, any, any, GameQuery>, res: Response) => {
-  const { search, platformFamily, platform, genres, status, limit, offset, sorting = "createdAt-desc" } = req.query;
+  const {
+    search,
+    platformFamily, platform,
+    genres, gameType, themes, franchises,
+    timeToBeat, rating, releaseDate, esrbRating,
+    status,
+    limit, offset, sorting = "createdAt-desc"
+  } = req.query;
   const parsedLimit = Number(limit) || 20;
   const parsedOffset = Number(offset) || 0;
 
   //todo what happens with broken sorting string? or an invalid string? e.g., date-added
   const [ sortCategory, sortOrder ] = sorting.split('-');
 
-  /**
-   * filters:
-   * gameType
-   * theme
-   * collection or franchise
-   * timeToBeat
-   * rating
-   * releaseDate
-   * esrbRating
-   */
   const filters = {
     search,
     platformFamily,
     platform,
     genres,
+    gameType,
+    themes,
+    franchises,
+    timeToBeat,
+    rating,
+    releaseDate,
+    esrbRating,
     parsedLimit,
     parsedOffset,
     sortCategory,
