@@ -1,4 +1,3 @@
-import { GameQuery } from "../../controllers/gamesController";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 
@@ -230,6 +229,18 @@ export type GameDetailsDTO =
     | "relatedContent"
   >
 
+export type GameFilters = {
+  search?: string,
+  platformFamily?: string,
+  platform?: string,
+  genres?: string,
+  status?: string,
+  parsedLimit: number,
+  parsedOffset: number,
+  sortCategory: string,
+  sortOrder: string,
+}
+
 export const GameService = {
   async findById (id: number): Promise<Game | null> {
     return prisma.game.findUnique({
@@ -237,19 +248,18 @@ export const GameService = {
     })
   },
 
-  async findAll (filters: GameQuery) {
-    const { search, platformFamily, platform, genres, limit, offset, sorting = "createdAt-desc" } = filters;
+  async findAll (filters: GameFilters) {
+    const { search, platformFamily, platform, genres, parsedLimit, parsedOffset, sortCategory, sortOrder } = filters;
 
-
-    //todo what happens with broken sorting string? or an invalid string? e.g., date-added
-    const [ sortCategory, sortOrder ] = sorting.split('-');
     /**
+     * sorting notes - need to validate still
      * categories: createdAt, name, releaseDate
      * orders: asc, desc
      */
 
     let whereQuery = {};
-    let takeQuery = limit ?? 10;
+    let takeQuery = parsedLimit;
+    let skipQuery = parsedOffset;
     const orderByQuery = { [sortCategory]: sortOrder }
     if (search) {
       whereQuery = {
@@ -312,6 +322,7 @@ export const GameService = {
     let result = await prisma.game.findMany({
       where: whereQuery,
       take: takeQuery,
+      skip: skipQuery,
       select: gameOverviewSelect,
       orderBy: orderByQuery,
     });
