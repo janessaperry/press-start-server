@@ -266,7 +266,7 @@ export const GameService = {
       sortCategory, sortOrder
     } = filters;
 
-    let timeToBeatOrQuery: { normally: { gte: number, lte: number | null } }[] = [];
+    let timeToBeatOrQuery: { normally: { gte: number, lte: number | undefined } }[] = [];
     if (timeToBeat) {
       const selectedTtbIds = timeToBeat.split(",").map(ttb => Number(ttb.trim()));
       const ranges = selectedTtbIds.map(ttbId => TIME_TO_BEAT_FILTERS.find(ttbFilter => ttbFilter.id === ttbId)).filter(Boolean) as typeof TIME_TO_BEAT_FILTERS;
@@ -274,7 +274,7 @@ export const GameService = {
         return {
           normally: {
             gte: ttbRange.min,
-            lte: ttbRange.max
+            lte: ttbRange.max ? ttbRange.max : undefined
           }
         }
       })
