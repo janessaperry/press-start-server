@@ -1,3 +1,4 @@
+import { TIME_TO_BEAT_FILTERS } from "../../controllers/filtersController";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 
@@ -265,6 +266,20 @@ export const GameService = {
       sortCategory, sortOrder
     } = filters;
 
+    let timeToBeatOrQuery: { normally: { gte: number, lte: number | null } }[] = [];
+    if (timeToBeat) {
+      const selectedTtbIds = timeToBeat.split(",").map(ttb => Number(ttb.trim()));
+      const ranges = selectedTtbIds.map(ttbId => TIME_TO_BEAT_FILTERS.find(ttbFilter => ttbFilter.id === ttbId)).filter(Boolean) as typeof TIME_TO_BEAT_FILTERS;
+      timeToBeatOrQuery = ranges.map(ttbRange => {
+        return {
+          normally: {
+            gte: ttbRange.min,
+            lte: ttbRange.max
+          }
+        }
+      })
+    }
+
     /**
      * sorting notes - need to validate still
      * categories: createdAt, name, releaseDate
@@ -359,9 +374,13 @@ export const GameService = {
       }
     }
 
-    if (timeToBeat) {
+    if (timeToBeatOrQuery?.length > 0) {
       whereQuery = {
         ...whereQuery,
+        timeToBeat: {
+          is: { OR: timeToBeatOrQuery },
+          isNot: null
+        }
       }
     }
 
