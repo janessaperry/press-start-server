@@ -16,6 +16,12 @@ export const TOTAL_RATING_FILTERS = [
   { id: 3, label: '3+ stars', min: 40 },
 ]
 
+export const RELEASE_DATE_FILTERS = [
+  { id: 1, label: 'New releases', minMonths: -6, maxMonths: 0 },
+  { id: 2, label: 'Coming soon', minMonths: 0, maxMonths: 12 },
+  { id: 3, label: 'Announced (date TDB)', minMonths: null, maxMonths: null },
+]
+
 export const index = async (req: Request, res: Response) => {
   const [ platformFamily, platform, genres ] = await Promise.all([
     await PlatformService.findAllPlatformFamily(),
@@ -29,7 +35,8 @@ export const index = async (req: Request, res: Response) => {
     platform: platform.map(p => ({ id: p.id, label: p.abbreviation })),
     genres: genres.map(g => ({ id: g.id, label: g.name })),
     timeToBeat: TIME_TO_BEAT_FILTERS.map(ttb => ({ id: ttb.id, label: ttb.label })),
-    totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label }))
+    totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
+    releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
   });
   return;
 }

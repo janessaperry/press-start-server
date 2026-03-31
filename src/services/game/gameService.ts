@@ -1,6 +1,7 @@
-import { TIME_TO_BEAT_FILTERS, TOTAL_RATING_FILTERS } from "../../controllers/filtersController";
+import { RELEASE_DATE_FILTERS, TIME_TO_BEAT_FILTERS, TOTAL_RATING_FILTERS } from "../../controllers/filtersController";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
+import { getReleaseDateOffset } from "../../utils/dateUtils";
 
 type IdLabelDTO = {
   id: number,
@@ -12,7 +13,7 @@ type GameDTO = {
   name: string,
   slug: string,
   coverId: string | null,
-  summary: string[],
+  summary: string | null,
   releaseDate: string | null,
   totalRating: number | null,
   gameType: IdLabelDTO,
@@ -289,6 +290,23 @@ export const GameService = {
       }
     }
 
+    let releaseDateOrQuery: { releaseDate: { lte: Date, gte: Date } | null }[] = [];
+    const todayDate = new Date(Date.now());
+    if (releaseDate) {
+      const selectedReleaseDates: number[] = releaseDate.split(",").map(releaseDate => Number(releaseDate.trim()));
+      const validReleaseDates = selectedReleaseDates.map(releaseDateId => RELEASE_DATE_FILTERS.find(releaseDateFilter => releaseDateId === releaseDateFilter.id)).filter((Boolean)) as typeof RELEASE_DATE_FILTERS;
+
+      releaseDateOrQuery = validReleaseDates.map(rd => {
+        if (rd.id === 3) return { releaseDate: null };
+        return {
+          releaseDate: {
+            gte: rd.minMonths === 0 ? todayDate : getReleaseDateOffset(todayDate, rd.minMonths as number),
+            lte: rd.maxMonths === 0 ? todayDate : getReleaseDateOffset(todayDate, rd.maxMonths as number),
+          }
+        }
+      })
+    }
+
     /**
      * sorting notes - need to validate still
      * categories: createdAt, name, releaseDate
@@ -383,7 +401,7 @@ export const GameService = {
       }
     }
 
-    if (timeToBeatOrQuery?.length > 0) {
+    if (timeToBeatOrQuery.length > 0) {
       whereQuery = {
         ...whereQuery,
         timeToBeat: {
@@ -402,9 +420,10 @@ export const GameService = {
       }
     }
 
-    if (releaseDate) {
+    if (releaseDateOrQuery.length > 0) {
       whereQuery = {
-        ...whereQuery
+        ...whereQuery,
+        OR: releaseDateOrQuery
       }
     }
 
@@ -460,7 +479,7 @@ export const GameService = {
         coverId: foundGame.coverId,
         releaseDate: foundGame.releaseDate ? foundGame.releaseDate.toISOString() : null,
         slug: foundGame.slug,
-        summary: splitSummary(foundGame.summary),
+        summary: foundGame.summary,
         totalRating: foundGame.totalRating,
         gameType: foundGame.gameType,
         developers: foundGame.developers,
@@ -580,14 +599,6 @@ function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
     platforms,
     gameType: game.gameType,
   }
-}
-
-function splitSummary (summary: string | null): string[] {
-  if (!summary) return [];
-
-  let summaryArr = summary.split("\n");
-  summaryArr = summaryArr.filter(string => string !== "");
-  return summaryArr;
 }
 
 function mapGenresToDTO (genres: GameDetails["genres"]): IdLabelDTO[] {
