@@ -1,4 +1,4 @@
-import { TIME_TO_BEAT_FILTERS } from "../../controllers/filtersController";
+import { TIME_TO_BEAT_FILTERS, TOTAL_RATING_FILTERS } from "../../controllers/filtersController";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 
@@ -280,6 +280,15 @@ export const GameService = {
       })
     }
 
+    let totalRatingWhereQuery: number | undefined = undefined;
+    if (rating) {
+      const selectedRatings = rating.split(",").map(rating => Number(rating.trim())).filter(Boolean);
+      const validSelections = selectedRatings.map(rating => TOTAL_RATING_FILTERS.find(ratingFilter => ratingFilter.id === rating)).filter(Boolean) as typeof TOTAL_RATING_FILTERS;
+      for (let i = 0; i < validSelections.length; i++) {
+        if (!totalRatingWhereQuery || validSelections[i].min < totalRatingWhereQuery) totalRatingWhereQuery = validSelections[i].min;
+      }
+    }
+
     /**
      * sorting notes - need to validate still
      * categories: createdAt, name, releaseDate
@@ -384,9 +393,12 @@ export const GameService = {
       }
     }
 
-    if (rating) {
+    if (totalRatingWhereQuery) {
       whereQuery = {
-        ...whereQuery
+        ...whereQuery,
+        totalRating: {
+          gte: totalRatingWhereQuery
+        }
       }
     }
 

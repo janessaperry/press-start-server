@@ -87,6 +87,11 @@ model Game {
   similarFrom Game[] @relation("SimilarGames")
 
   @@map("games")
+  @@index([name])
+  @@index([releaseDate])
+  @@index([createdAt])
+  @@index([gameTypeId])
+  @@index([esrbRating])
 }
 
 model GameType {
@@ -139,6 +144,7 @@ model Platform {
   games Game[] @relation("GamePlatform")
 
   @@map("platforms")
+  @@index([platformFamilyId])
 }
 
 model PlatformFamily {
@@ -189,4 +195,5 @@ model TimeToBeat {
   igdbChecksum String @unique @map("igdb_checksum")
 
   @@map("time_to_beat")
+  @@index([normally])
 }
