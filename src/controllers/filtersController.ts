@@ -22,6 +22,13 @@ export const RELEASE_DATE_FILTERS = [
   { id: 3, label: 'Announced (date TDB)', minMonths: null, maxMonths: null },
 ]
 
+export const GAME_TYPE_FILTERS = [
+  { id: 1, label: 'DLC', gameTypeIds: [ 1 ] },
+  { id: 2, label: 'Expansion', gameTypeIds: [ 2, 4, 10 ] },
+  { id: 3, label: 'Bundles', gameTypeIds: [ 3 ] },
+  { id: 4, label: 'Ports, Remakes & Remasters', gameTypeIds: [ 8, 9, 11 ] }
+]
+
 export const index = async (req: Request, res: Response) => {
   const [ platformFamily, platform, genres ] = await Promise.all([
     await PlatformService.findAllPlatformFamily(),
@@ -37,6 +44,7 @@ export const index = async (req: Request, res: Response) => {
     timeToBeat: TIME_TO_BEAT_FILTERS.map(ttb => ({ id: ttb.id, label: ttb.label })),
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
     releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
+    gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label }))
   });
   return;
 }

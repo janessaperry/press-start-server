@@ -1,13 +1,12 @@
+import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { GameType, Prisma } from "../generated/prisma/client";
 import { IgdbClient, RawGameType } from "./igdbClient.js";
-import { ProcessingCounts } from "../controllers/adminController.js";
-
 
 export const GameTypeService = {
   async findById (id: number): Promise<GameType | null> {
     return prisma.gameType.findUnique({
-      where: {id}
+      where: { id }
     });
   },
 
@@ -19,7 +18,7 @@ export const GameTypeService = {
 
   async updateById (id: number, data: Prisma.GameTypeUpdateInput): Promise<GameType> {
     return prisma.gameType.update({
-      where: {id},
+      where: { id },
       data: {
         label: data.label,
         igdbChecksum: data.igdbChecksum
@@ -51,7 +50,7 @@ export const GameTypeService = {
       totalProcessed++;
     }
     console.log(`Game type sync complete. Total processed: ${totalProcessed}`)
-    return {updated, created, totalProcessed};
+    return { updated, created, totalProcessed };
   }
 }
 
@@ -69,7 +68,7 @@ function mapIgdbResponseToDb (igdbResponse: RawGameType): Prisma.GameTypeCreateI
  * - All other labels remain unchanged
  */
 function normalizeGameTypeLabel (id: number, label: string): string {
-  const expansionIds = [2, 4, 10];
+  const expansionIds = [ 2, 4, 10 ];
   if (expansionIds.includes(id)) {
     return "Expansion"
   }

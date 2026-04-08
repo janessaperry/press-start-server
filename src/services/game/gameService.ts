@@ -1,4 +1,9 @@
-import { RELEASE_DATE_FILTERS, TIME_TO_BEAT_FILTERS, TOTAL_RATING_FILTERS } from "../../controllers/filtersController";
+import {
+  GAME_TYPE_FILTERS,
+  RELEASE_DATE_FILTERS,
+  TIME_TO_BEAT_FILTERS,
+  TOTAL_RATING_FILTERS
+} from "../../controllers/filtersController";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 import { getReleaseDateOffset } from "../../utils/dateUtils";
@@ -267,6 +272,16 @@ export const GameService = {
       sortCategory, sortOrder
     } = filters;
 
+    let gameTypeQuery: number[] = [];
+    if (gameType) {
+      const selectedIds = gameType.split(",").map(id => Number(id.trim()));
+      const matchedFilters = selectedIds.map(id => GAME_TYPE_FILTERS.find(gtFilter => gtFilter.id === id)).filter(Boolean) as typeof GAME_TYPE_FILTERS;
+      gameTypeQuery = matchedFilters.flatMap(gtFilter => gtFilter.gameTypeIds);
+    }
+    if (!gameType || gameTypeQuery.length === 0) {
+      gameTypeQuery = [ 0 ];
+    }
+
     let timeToBeatOrQuery: { normally: { gte: number, lte: number | undefined } }[] = [];
     if (timeToBeat) {
       const selectedTtbIds = timeToBeat.split(",").map(ttb => Number(ttb.trim()));
@@ -312,10 +327,15 @@ export const GameService = {
      * categories: createdAt, name, releaseDate
      * orders: asc, desc
      */
-    let whereQuery = {};
+    let whereQuery: {} = {
+      gameTypeId: {
+        in: gameTypeQuery
+      }
+    };
     let takeQuery = parsedLimit;
     let skipQuery = parsedOffset;
     const orderByQuery = { [sortCategory]: sortOrder }
+
     if (search) {
       whereQuery = {
         name: {
@@ -362,15 +382,6 @@ export const GameService = {
               in: genres.split(",").map(id => Number(id.trim()))
             }
           }
-        }
-      }
-    }
-
-    if (gameType) {
-      whereQuery = {
-        ...whereQuery,
-        gameTypeId: {
-          in: gameType.split(",").map(id => Number(id.trim()))
         }
       }
     }
