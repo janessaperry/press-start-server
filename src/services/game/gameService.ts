@@ -245,7 +245,7 @@ export type GameFilters = {
   themes?: string,
   franchises?: string,
   timeToBeat?: string,
-  rating?: string,
+  totalRating?: string,
   releaseDate?: string,
   esrbRating?: string,
   status?: string,
@@ -267,7 +267,7 @@ export const GameService = {
       search,
       platformFamily, platform,
       genres, gameType, themes, franchises,
-      timeToBeat, rating, releaseDate, esrbRating,
+      timeToBeat, totalRating, releaseDate, esrbRating,
       parsedLimit, parsedOffset,
       sortCategory, sortOrder
     } = filters;
@@ -297,8 +297,8 @@ export const GameService = {
     }
 
     let totalRatingWhereQuery: number | undefined = undefined;
-    if (rating) {
-      const selectedRatings = rating.split(",").map(rating => Number(rating.trim())).filter(Boolean);
+    if (totalRating) {
+      const selectedRatings = totalRating.split(",").map(rating => Number(rating.trim())).filter(Boolean);
       const validSelections = selectedRatings.map(rating => TOTAL_RATING_FILTERS.find(ratingFilter => ratingFilter.id === rating)).filter(Boolean) as typeof TOTAL_RATING_FILTERS;
       for (let i = 0; i < validSelections.length; i++) {
         if (!totalRatingWhereQuery || validSelections[i].min < totalRatingWhereQuery) totalRatingWhereQuery = validSelections[i].min;

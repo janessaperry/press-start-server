@@ -10,7 +10,7 @@ export type GameQuery = {
   themes?: string,
   franchises?: string,
   timeToBeat?: string,
-  rating?: string,
+  totalRating?: string,
   releaseDate?: string,
   esrbRating?: string,
   status?: string,
@@ -24,7 +24,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
     search,
     platformFamily, platform,
     genres, gameType, themes, franchises,
-    timeToBeat, rating, releaseDate, esrbRating,
+    timeToBeat, totalRating, releaseDate, esrbRating,
     status,
     limit, offset, sorting = "createdAt-desc"
   } = req.query;
@@ -43,7 +43,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
     themes,
     franchises,
     timeToBeat,
-    rating,
+    totalRating,
     releaseDate,
     esrbRating,
     parsedLimit,
