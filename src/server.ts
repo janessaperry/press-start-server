@@ -1,12 +1,13 @@
 import cors from 'cors';
-
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
+
 import { ENV } from "./config/env.js";
 import { initializeJobs } from "./jobs";
 
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
+import collectionRoutes from "./routes/collectionRoutes.js";
 import filtersRoutes from "./routes/filtersRoutes";
 import gamesRoutes from "./routes/gamesRoutes.js";
 
@@ -22,8 +23,9 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use("/admin", adminRoutes)
 app.use("/auth", authRoutes)
-app.use("/games", gamesRoutes)
 app.use("/filters", filtersRoutes)
+app.use("/games", gamesRoutes)
+app.use("/users/:userId/collection", collectionRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   console.log(process.env.NODE_ENV);

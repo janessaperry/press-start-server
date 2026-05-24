@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 
-import { validateEmailFormat, validatePasswordFormat } from "../utils/validators.js";
-
 import { prisma } from "../db/client.js";
+import { AuthService } from "../services/authService.js";
 import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
 import { UserService } from "../services/userService.js";
-import { AuthService } from "../services/authService.js";
+
+import { validateEmailFormat, validatePasswordFormat } from "../utils/validators.js";
 
 
 export const register = async (req: Request, res: Response) => {
@@ -95,7 +95,8 @@ export const login = async (req: Request, res: Response) => {
 
     res.status(200).json({
       message: "Sign in successful",
-      token
+      token,
+      userId: user.id
     });
 
   }
