@@ -1,7 +1,7 @@
-import bcrypt from "bcrypt";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from '../src/generated/prisma/client'
+import bcrypt from "bcrypt";
 import { ENV } from "../src/config/env";
+import { PrismaClient } from '../src/generated/prisma/client'
 
 const connectionString = ENV.DATABASE_URL;
 
@@ -33,22 +33,22 @@ async function main () {
     data: [
       {
         userId: userOne.id,
-        igdbGameId: "1234567890",
+        igdbGameId: 366893,
         status: "Wishlist",
       },
       {
         userId: userOne.id,
-        igdbGameId: "34567890",
+        igdbGameId: 358525,
         status: "Want to Play",
       },
       {
         userId: userTwo.id,
-        igdbGameId: "1234590",
+        igdbGameId: 358535,
         status: "Played",
       },
       {
         userId: userTwo.id,
-        igdbGameId: "34567890",
+        igdbGameId: 325594,
         status: "Want to Play",
       },
     ]

@@ -28,12 +28,14 @@ model User {
 
 model UserGame {
   id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
   userId     Int      @map("user_id")
-  igdbGameId String   @map("igdb_game_id")
+  igdbGameId Int      @map("igdb_game_id")
   status     String
   createdAt  DateTime @default(now()) @map("created_at")
   updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user        User @relation(fields: [userId], references: [id])
+  gameDetails Game @relation(fields: [igdbGameId], references: [id])
 
   @@map("user_games")
 }
@@ -67,6 +69,8 @@ model Game {
   igdbChecksum     String    @map("igdb_checksum")
   createdAt        DateTime  @default(now()) @map("created_at")
   updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  userGames UserGame[]
 
   gameTypeId Int      @map("game_type_id")
   gameType   GameType @relation(fields: [gameTypeId], references: [id])

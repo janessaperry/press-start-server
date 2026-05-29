@@ -8,7 +8,7 @@
     "start": "tsx dist/index.ts",
     "dev": "tsx watch src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "reset": "npx prisma migrate reset --skip-seed",
+    "reset": "npx prisma migrate reset",
     "migrate": "npx prisma migrate dev --create-only",
     "seed": "npx prisma db seed",
     "generate": "npx prisma generate"
