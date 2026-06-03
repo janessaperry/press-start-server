@@ -7,9 +7,9 @@ import { initializeJobs } from "./jobs";
 
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
-import collectionRoutes from "./routes/collectionRoutes.js";
 import filtersRoutes from "./routes/filtersRoutes";
 import gamesRoutes from "./routes/gamesRoutes.js";
+import libraryRoutes from "./routes/libraryRoutes.js";
 
 const app = express();
 
@@ -25,7 +25,7 @@ app.use("/admin", adminRoutes)
 app.use("/auth", authRoutes)
 app.use("/filters", filtersRoutes)
 app.use("/games", gamesRoutes)
-app.use("/users/:userId/collection", collectionRoutes)
+app.use("/users/:userId/library", libraryRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   console.log(process.env.NODE_ENV);
