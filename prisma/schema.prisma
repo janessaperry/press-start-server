@@ -27,17 +27,34 @@ model User {
 }
 
 model UserGame {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @map("user_id")
-  igdbGameId    Int      @map("igdb_game_id")
-  libraryStatus String
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id               Int            @id @default(autoincrement())
+  userId           Int            @map("user_id")
+  igdbGameId       Int            @map("igdb_game_id")
+  libraryStatus    LibraryStatus? @map("library_status")
+  libraryConsoleId Int?           @map("library_console_id")
+  libraryFormat    LibraryFormat? @map("library_format")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
-  user        User @relation(fields: [userId], references: [id])
-  gameDetails Game @relation(fields: [igdbGameId], references: [id])
+  user           User      @relation(fields: [userId], references: [id])
+  gameDetails    Game      @relation(fields: [igdbGameId], references: [id])
+  libraryConsole Platform? @relation(fields: [libraryConsoleId], references: [id])
 
+  @@unique(name: "userIdGameId", [userId, igdbGameId])
   @@map("user_games")
+}
+
+enum LibraryStatus {
+  PLAYING
+  WANT_TO_PLAY
+  PLAYED
+  ON_PAUSE
+  WISHLIST
+}
+
+enum LibraryFormat {
+  PHYSICAL
+  DIGITAL
 }
 
 model PasswordResetToken {
@@ -90,12 +107,12 @@ model Game {
   similarTo   Game[] @relation("SimilarGames")
   similarFrom Game[] @relation("SimilarGames")
 
-  @@map("games")
   @@index([name])
   @@index([releaseDate])
   @@index([createdAt])
   @@index([gameTypeId])
   @@index([esrbRating])
+  @@map("games")
 }
 
 model GameType {
@@ -145,10 +162,11 @@ model Platform {
 
   platformFamily PlatformFamily @relation(fields: [platformFamilyId], references: [id])
 
-  games Game[] @relation("GamePlatform")
+  games     Game[]     @relation("GamePlatform")
+  userGames UserGame[]
 
-  @@map("platforms")
   @@index([platformFamilyId])
+  @@map("platforms")
 }
 
 model PlatformFamily {
@@ -198,6 +216,6 @@ model TimeToBeat {
   count        Int?
   igdbChecksum String @unique @map("igdb_checksum")
 
-  @@map("time_to_beat")
   @@index([normally])
+  @@map("time_to_beat")
 }
