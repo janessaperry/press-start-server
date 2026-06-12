@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { LibraryStatus } from "../generated/prisma/enums";
 import { GenreService } from "../services/genreService";
 import { PlatformService } from "../services/platformService";
 
@@ -29,6 +30,17 @@ export const GAME_TYPE_FILTERS = [
   { id: 4, label: 'Ports, Remakes & Remasters', gameTypeIds: [ 8, 9, 11 ] }
 ]
 
+export const LIBRARY_STATUS_FILTERS = Object.values(LibraryStatus).map((value, index) => {
+  const wordsToSkip = new Set(["to", "a", "an", "on", "the"]);
+  const label = value.replaceAll("_", " ").toLowerCase()
+    .split(" ").map((word, i) => {
+      return i !== 0 && wordsToSkip.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1)
+    }).join(" ");
+
+  return {id: index + 1, label}
+});
+console.log(LIBRARY_STATUS_FILTERS);
+
 export const index = async (req: Request, res: Response) => {
   const [ platformFamily, platform, genres ] = await Promise.all([
     await PlatformService.findAllPlatformFamily(),
@@ -44,7 +56,8 @@ export const index = async (req: Request, res: Response) => {
     timeToBeat: TIME_TO_BEAT_FILTERS.map(ttb => ({ id: ttb.id, label: ttb.label })),
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
     releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
-    gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label }))
+    gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label })),
+    libraryStatus: LIBRARY_STATUS_FILTERS
   });
   return;
 }
