@@ -53,8 +53,8 @@ enum LibraryStatus {
 }
 
 enum LibraryFormat {
-  PHYSICAL
   DIGITAL
+  PHYSICAL
 }
 
 model PasswordResetToken {
