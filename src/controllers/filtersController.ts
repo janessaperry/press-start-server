@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { LibraryStatus } from "../generated/prisma/enums";
+import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums";
 import { GenreService } from "../services/genreService";
 import { PlatformService } from "../services/platformService";
 
@@ -39,7 +39,11 @@ export const LIBRARY_STATUS_FILTERS = Object.values(LibraryStatus).map((value, i
 
   return {id: index + 1, label}
 });
-console.log(LIBRARY_STATUS_FILTERS);
+
+export const LIBRARY_FORMAT_FILTERS = Object.values(LibraryFormat).map((value, index) => {
+  const label = value.charAt(0) + value.slice(1).toLowerCase();
+  return {id: index + 1, label}
+});
 
 export const index = async (req: Request, res: Response) => {
   const [ platformFamily, platform, genres ] = await Promise.all([
@@ -57,7 +61,8 @@ export const index = async (req: Request, res: Response) => {
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
     releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
     gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label })),
-    libraryStatus: LIBRARY_STATUS_FILTERS
+    libraryStatus: LIBRARY_STATUS_FILTERS,
+    libraryFormat: LIBRARY_FORMAT_FILTERS
   });
   return;
 }
