@@ -27,26 +27,26 @@ model User {
 }
 
 model UserGame {
-  id               Int            @id @default(autoincrement())
-  userId           Int            @map("user_id")
-  igdbGameId       Int            @map("igdb_game_id")
-  libraryStatus    LibraryStatus? @map("library_status")
-  libraryConsoleId Int?           @map("library_console_id")
-  libraryFormat    LibraryFormat? @map("library_format")
-  createdAt        DateTime       @default(now()) @map("created_at")
-  updatedAt        DateTime       @updatedAt @map("updated_at")
+  id                Int            @id @default(autoincrement())
+  userId            Int            @map("user_id")
+  igdbGameId        Int            @map("igdb_game_id")
+  libraryStatus     LibraryStatus? @map("library_status")
+  libraryPlatformId Int?           @map("library_platform_id")
+  libraryFormat     LibraryFormat? @map("library_format")
+  createdAt         DateTime       @default(now()) @map("created_at")
+  updatedAt         DateTime       @updatedAt @map("updated_at")
 
-  user           User      @relation(fields: [userId], references: [id])
-  gameDetails    Game      @relation(fields: [igdbGameId], references: [id])
-  libraryConsole Platform? @relation(fields: [libraryConsoleId], references: [id])
+  user            User      @relation(fields: [userId], references: [id])
+  gameDetails     Game      @relation(fields: [igdbGameId], references: [id])
+  libraryPlatform Platform? @relation(fields: [libraryPlatformId], references: [id])
 
   @@unique(name: "userIdGameId", [userId, igdbGameId])
   @@map("user_games")
 }
 
 enum LibraryStatus {
-  PLAYING
   WANT_TO_PLAY
+  PLAYING
   PLAYED
   ON_PAUSE
   WISHLIST

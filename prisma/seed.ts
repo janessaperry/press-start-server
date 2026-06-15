@@ -34,22 +34,22 @@ async function main () {
       {
         userId: userOne.id,
         igdbGameId: 366893,
-        libraryStatus: "Wishlist",
+        libraryStatus: "WISHLIST",
       },
       {
         userId: userOne.id,
         igdbGameId: 358525,
-        libraryStatus: "Want to Play",
+        libraryStatus: "WANT_TO_PLAY",
       },
       {
         userId: userTwo.id,
         igdbGameId: 358535,
-        libraryStatus: "Played",
+        libraryStatus: "PLAYED",
       },
       {
         userId: userTwo.id,
         igdbGameId: 325594,
-        libraryStatus: "Want to Play",
+        libraryStatus: "WANT_TO_PLAY",
       },
     ]
   })
