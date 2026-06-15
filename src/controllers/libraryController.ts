@@ -1,14 +1,17 @@
 import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
-import { LibraryStatus } from "../generated/prisma/enums.js";
+import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums.js";
 
 const VALID_STATUSES = Object.values(LibraryStatus);
+function labelToEnum (label: string): string {
+  return label.toUpperCase().replaceAll(" ", "_");
+}
 
 type CreateLibraryBody = {
-  gameId: string;
-  selectedPlatform?: string;
-  selectedFormat?: string;
-  libraryStatus?: LibraryStatus;
+  gameId: number;
+  libraryPlatform?:  {id: number, label: string};
+  libraryFormat?:  {id: number, label: string};
+  libraryStatus?: {id: number, label: string};
 };
 
 export const index = async (req: Request, res: Response) => {
@@ -22,7 +25,8 @@ export const index = async (req: Request, res: Response) => {
   const library = await prisma.userGame.findMany({
     where: { userId },
     include: {
-      gameDetails: true
+      gameDetails: true,
+      libraryPlatform: true,
     },
     orderBy: { createdAt: "desc" },
   });
@@ -44,8 +48,20 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
     return;
   }
 
+  const rawLibraryPlatform = req.body.libraryPlatform;
+  let libraryPlatformId = rawLibraryPlatform && rawLibraryPlatform.id !== 0 ? rawLibraryPlatform.id : null;
+  const validPlatform = libraryPlatformId && await prisma.platform.findUnique({
+    where: {id: libraryPlatformId}
+  });
+  // set invalid platform to null since it's optional anyway. this is really only for direct api requests.
+  if (!validPlatform) libraryPlatformId = null;
+
+  const rawLibraryFormat = req.body.libraryFormat;
+  const libraryFormat = rawLibraryFormat && rawLibraryFormat.id !== 0 ? labelToEnum(rawLibraryFormat.label) as LibraryFormat : null;
+
   const rawLibraryStatus = req.body.libraryStatus;
-  const libraryStatus = rawLibraryStatus && VALID_STATUSES.includes(rawLibraryStatus) ? (rawLibraryStatus as LibraryStatus) : LibraryStatus.WANT_TO_PLAY;
+  const libraryStatus = rawLibraryStatus && rawLibraryStatus.id !== 0 ? labelToEnum(rawLibraryStatus.label) as LibraryStatus : LibraryStatus.WANT_TO_PLAY;
+
 
   const existing = await prisma.userGame.findFirst({ where: { userId, igdbGameId } });
   if (existing) {
@@ -57,6 +73,8 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
     data: {
       userId,
       igdbGameId,
+      libraryPlatformId,
+      libraryFormat,
       libraryStatus
     },
   });
