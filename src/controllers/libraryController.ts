@@ -1,11 +1,12 @@
 import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
-import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums.js";
+import { LibraryStatus } from "../generated/prisma/enums.js";
+import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "./filtersController";
 
-const VALID_STATUSES = Object.values(LibraryStatus);
-function labelToEnum (label: string): string {
-  return label.toUpperCase().replaceAll(" ", "_");
-}
+// const VALID_STATUSES = Object.values(LibraryStatus);
+// function labelToEnum (label: string): string {
+//   return label.toUpperCase().replaceAll(" ", "_");
+// }
 
 type CreateLibraryBody = {
   gameId: number;
@@ -34,6 +35,47 @@ export const index = async (req: Request, res: Response) => {
   res.status(200).json({ library });
 };
 
+export const show = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+  const igdbGameId = Number(req.params.gameId);
+
+  const foundGame = await prisma.userGame.findUnique({
+    where: {
+      userIdGameId: {
+        userId, igdbGameId
+      }
+    },
+    select: {
+      libraryPlatform: {
+        select: {
+          id: true,
+          abbreviation: true
+        }
+      },
+      libraryFormat: true,
+      libraryStatus: true,
+    }
+  })
+
+  if (!foundGame) {
+    res.status(404).json({
+      message: "library show method: game not found"
+    });
+    return;
+  }
+
+  res.status(200).json({
+    message: "library show method: game details",
+    libraryPlatform: foundGame.libraryPlatform ? {
+      id: foundGame.libraryPlatform.id,
+      label: foundGame.libraryPlatform.abbreviation
+    } : undefined,
+    libraryFormat: foundGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => foundGame.libraryFormat === item.enum) : undefined,
+    libraryStatus: foundGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => foundGame.libraryStatus === item.enum) : undefined,
+  })
+  return;
+}
+
 export const create = async (req: Request<any, any, CreateLibraryBody>, res: Response) => {
   const userId = Number(req.params.userId);
 
@@ -57,11 +99,10 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
   if (!validPlatform) libraryPlatformId = null;
 
   const rawLibraryFormat = req.body.libraryFormat;
-  const libraryFormat = rawLibraryFormat && rawLibraryFormat.id !== 0 ? labelToEnum(rawLibraryFormat.label) as LibraryFormat : null;
+  const libraryFormat = LIBRARY_FORMAT_FILTERS.find(filter => filter.id === rawLibraryFormat?.id)?.enum ?? null;
 
   const rawLibraryStatus = req.body.libraryStatus;
-  const libraryStatus = rawLibraryStatus && rawLibraryStatus.id !== 0 ? labelToEnum(rawLibraryStatus.label) as LibraryStatus : LibraryStatus.WANT_TO_PLAY;
-
+  const libraryStatus = LIBRARY_STATUS_FILTERS.find(filter => filter.id === rawLibraryStatus?.id)?.enum ?? LibraryStatus.WANT_TO_PLAY;
 
   const existing = await prisma.userGame.findFirst({ where: { userId, igdbGameId } });
   if (existing) {
@@ -82,17 +123,24 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
   res.status(201).json({ userGame });
 };
 
+export const update = async (req: Request, res: Response) => {
+  res.status(200).json({
+    message: "testing update endpoint response"
+  })
+  return
+}
+
 export const remove = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
 
   const foundUser = await prisma.user.findUnique({
     where: { id: userId }
-  });
+  })
   if (!foundUser) {
     res.status(404).json({
       message: "User not found"
-    });
+    })
     return;
   }
 
@@ -103,11 +151,11 @@ export const remove = async (req: Request, res: Response) => {
         igdbGameId
       }
     }
-  });
+  })
   if (!foundUserGame) {
     res.status(404).json({
       message: "Game not found in user's library."
-    });
+    })
     return;
   }
 
@@ -123,9 +171,9 @@ export const remove = async (req: Request, res: Response) => {
       userId: true,
       igdbGameId: true
     }
-  });
+  })
 
   res.status(200).json({
     message: `Game ${igdbGameId} removed from user ${userId}'s library.`
-  });
+  })
 }

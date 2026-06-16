@@ -30,20 +30,18 @@ export const GAME_TYPE_FILTERS = [
   { id: 4, label: 'Ports, Remakes & Remasters', gameTypeIds: [ 8, 9, 11 ] }
 ]
 
-export const LIBRARY_STATUS_FILTERS = Object.values(LibraryStatus).map((value, index) => {
-  const wordsToSkip = new Set(["to", "a", "an", "on", "the"]);
-  const label = value.replaceAll("_", " ").toLowerCase()
-    .split(" ").map((word, i) => {
-      return i !== 0 && wordsToSkip.has(word) ? word : word.charAt(0).toUpperCase() + word.slice(1)
-    }).join(" ");
+export const LIBRARY_FORMAT_FILTERS = [
+  {id: 1, label: 'Digital', enum: LibraryFormat.DIGITAL},
+  {id: 2, label: 'Physical', enum: LibraryFormat.PHYSICAL},
+]
 
-  return {id: index + 1, label}
-});
-
-export const LIBRARY_FORMAT_FILTERS = Object.values(LibraryFormat).map((value, index) => {
-  const label = value.charAt(0) + value.slice(1).toLowerCase();
-  return {id: index + 1, label}
-});
+export const LIBRARY_STATUS_FILTERS = [
+  {id: 1, label: 'Want to Play', enum: LibraryStatus.WANT_TO_PLAY},
+  {id: 2, label: 'Playing', enum: LibraryStatus.PLAYING},
+  {id: 3, label: 'Played', enum: LibraryStatus.PLAYED},
+  {id: 4, label: 'On Pause', enum: LibraryStatus.ON_PAUSE},
+  {id: 5, label: 'Wishlist', enum: LibraryStatus.WISHLIST},
+]
 
 export const index = async (req: Request, res: Response) => {
   const [ platformFamily, platform, genres ] = await Promise.all([
