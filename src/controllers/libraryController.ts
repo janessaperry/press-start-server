@@ -1,18 +1,16 @@
 import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
+import { Prisma } from "../generated/prisma/client";
+
 import { LibraryStatus } from "../generated/prisma/enums.js";
 import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "./filtersController";
 
-// const VALID_STATUSES = Object.values(LibraryStatus);
-// function labelToEnum (label: string): string {
-//   return label.toUpperCase().replaceAll(" ", "_");
-// }
-
+// this is the request body!
 type CreateLibraryBody = {
   gameId: number;
-  libraryPlatform?:  {id: number, label: string};
-  libraryFormat?:  {id: number, label: string};
-  libraryStatus?: {id: number, label: string};
+  libraryPlatform?: { id: number, label: string };
+  libraryFormat?: { id: number, label: string };
+  libraryStatus?: { id: number, label: string };
 };
 
 export const index = async (req: Request, res: Response) => {
@@ -124,10 +122,37 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
 };
 
 export const update = async (req: Request, res: Response) => {
+  const userId = Number(req.params.userId);
+  const igdbGameId = Number(req.params.gameId);
+
+  const updatedData = req.body;
+  const data: Prisma.UserGameUncheckedUpdateInput = {};
+  if (Object.hasOwn(updatedData, 'libraryPlatform')) {
+    data['libraryPlatformId'] = updatedData.libraryPlatform.id
+  }
+  if (Object.hasOwn(updatedData, 'libraryFormat')) {
+    data['libraryFormat'] = updatedData.libraryFormat.enum
+  }
+  if (Object.hasOwn(updatedData, 'libraryStatus')) {
+    data['libraryStatus'] = updatedData.libraryStatus.enum
+  }
+  console.log("DATA:", data)
+
+  const updatedGame = await prisma.userGame.update({
+    where: {
+      userIdGameId: {
+        userId,
+        igdbGameId
+      }
+    },
+    data
+  });
+
   res.status(200).json({
-    message: "testing update endpoint response"
+    message: "testing update endpoint response",
+    updatedGame
   })
-  return
+  return;
 }
 
 export const remove = async (req: Request, res: Response) => {
@@ -159,21 +184,16 @@ export const remove = async (req: Request, res: Response) => {
     return;
   }
 
-  const deletedItem = await prisma.userGame.delete({
+  await prisma.userGame.delete({
     where: {
       userIdGameId: {
         userId,
         igdbGameId
       },
-    },
-    select: {
-      id: true,
-      userId: true,
-      igdbGameId: true
     }
   })
 
-  res.status(200).json({
-    message: `Game ${igdbGameId} removed from user ${userId}'s library.`
+  res.status(204).json({
+    message: `Game ${igdbGameId} removed from user ${userId}'s library.`,
   })
 }
