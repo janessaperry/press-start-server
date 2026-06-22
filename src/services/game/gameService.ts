@@ -598,7 +598,7 @@ export const GameService = {
   },
 }
 
-function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
+export function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
   const platforms = mapPlatformsToDTO(game.platforms);
 
   return {

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
 import { Prisma } from "../generated/prisma/client";
-
 import { LibraryStatus } from "../generated/prisma/enums.js";
+import { mapToGameOverviewDTO } from "../services/game/gameService";
 import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "./filtersController";
 
 // this is the request body!
@@ -23,14 +23,72 @@ export const index = async (req: Request, res: Response) => {
 
   const library = await prisma.userGame.findMany({
     where: { userId },
-    include: {
-      gameDetails: true,
-      libraryPlatform: true,
+    select: {
+      id: true,
+      libraryStatus: true,
+      libraryFormat: true,
+      libraryPlatform: {
+        select: {
+          id: true,
+          abbreviation: true,
+        },
+      },
+      gameDetails: {
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          coverId: true,
+          releaseDate: true,
+          totalRating: true,
+          platforms: {
+            select: {
+              id: true,
+              abbreviation: true,
+            }
+          },
+          gameType: {
+            select: {
+              id: true,
+              label: true
+            }
+          },
+        },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  res.status(200).json({ library });
+  const libraryGames = library.map(libraryGame => (
+    {
+      id: libraryGame.id,
+      libraryStatus: libraryGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => item.enum === libraryGame.libraryStatus) : undefined,
+      libraryFormat: libraryGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => item.enum === libraryGame.libraryFormat) : undefined,
+      libraryPlatform: libraryGame.libraryPlatform ? {
+        id: libraryGame.libraryPlatform.id,
+        label: libraryGame.libraryPlatform.abbreviation
+      } : undefined,
+      gameOverview: mapToGameOverviewDTO(libraryGame.gameDetails)
+    }
+  ));
+
+  const libraryStatusCounts = await prisma.userGame.groupBy({
+    where: { userId },
+    by: [ 'libraryStatus' ],
+    _count: true,
+  });
+
+  const counts: { label: string, count: number }[] = LIBRARY_STATUS_FILTERS.map((item) => {
+    const count = libraryStatusCounts.find((count) => item.enum === count.libraryStatus)?._count ?? 0;
+    return {label: item.label, count}
+  })
+
+
+  res.status(200).json({
+    library: libraryGames,
+    libraryStatusCounts: counts,
+    libraryTotalCount: counts.reduce((sum, current) => sum + current.count, 0)
+  });
 };
 
 export const show = async (req: Request, res: Response) => {
@@ -91,7 +149,7 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
   const rawLibraryPlatform = req.body.libraryPlatform;
   let libraryPlatformId = rawLibraryPlatform && rawLibraryPlatform.id !== 0 ? rawLibraryPlatform.id : null;
   const validPlatform = libraryPlatformId && await prisma.platform.findUnique({
-    where: {id: libraryPlatformId}
+    where: { id: libraryPlatformId }
   });
   // set invalid platform to null since it's optional anyway. this is really only for direct api requests.
   if (!validPlatform) libraryPlatformId = null;
