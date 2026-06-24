@@ -141,6 +141,9 @@ const gameDetailsSelect = {
     select: {
       id: true,
       abbreviation: true,
+    },
+    orderBy: {
+      abbreviation: 'asc',
     }
   },
   timeToBeat: {

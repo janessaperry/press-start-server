@@ -59,8 +59,8 @@ export const index = async (req: Request, res: Response) => {
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
     releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
     gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label })),
-    libraryStatusOptions: LIBRARY_STATUS_FILTERS,
-    libraryFormatOptions: LIBRARY_FORMAT_FILTERS
+    libraryStatus: LIBRARY_STATUS_FILTERS,
+    libraryFormat: LIBRARY_FORMAT_FILTERS
   });
   return;
 }

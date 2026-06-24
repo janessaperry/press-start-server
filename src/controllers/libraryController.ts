@@ -45,6 +45,9 @@ export const index = async (req: Request, res: Response) => {
             select: {
               id: true,
               abbreviation: true,
+            },
+            orderBy: {
+              abbreviation: 'asc',
             }
           },
           gameType: {
