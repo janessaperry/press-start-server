@@ -19,8 +19,42 @@ export const GenreService = {
 
   async findById (id: number): Promise<Genre | null> {
     return prisma.genre.findUnique({
-      where: {id}
+      where: { id }
     })
+  },
+
+  async findByUserId (userId: number) {
+    const response = await prisma.userGame.findMany({
+      where: { userId },
+      select: {
+        gameDetails: {
+          select: {
+            genres: {
+              select: {
+                id: true,
+                name: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const allGenres = response.flatMap(game => {
+      return game.gameDetails.genres
+    })
+
+    const uniqueGenreIds = new Set();
+    const libraryGenres = [];
+    for (const genre of allGenres) {
+      if (!uniqueGenreIds.has(genre.id)) {
+        libraryGenres.push(genre);
+        uniqueGenreIds.add(genre.id);
+      }
+    }
+
+    libraryGenres.sort((a, b) => a.name.localeCompare(b.name));
+    return libraryGenres;
   },
 
   async create (genre: Prisma.GenreCreateInput): Promise<Genre> {
@@ -31,7 +65,7 @@ export const GenreService = {
 
   async updateById (id: number, data: Prisma.GenreUpdateInput): Promise<Genre> {
     return prisma.genre.update({
-      where: {id},
+      where: { id },
       data: {
         name: data.name,
         igdbChecksum: data.igdbChecksum
@@ -64,7 +98,7 @@ export const GenreService = {
     }
 
     console.log(`Genre sync complete. Total processed: ${totalProcessed}`)
-    return {updated, created, totalProcessed}
+    return { updated, created, totalProcessed }
   }
 }
 

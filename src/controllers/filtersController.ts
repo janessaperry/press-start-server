@@ -31,30 +31,37 @@ export const GAME_TYPE_FILTERS = [
 ]
 
 export const LIBRARY_FORMAT_FILTERS = [
-  {id: 1, label: 'Digital', enum: LibraryFormat.DIGITAL},
-  {id: 2, label: 'Physical', enum: LibraryFormat.PHYSICAL},
+  { id: 1, label: 'Digital', enum: LibraryFormat.DIGITAL },
+  { id: 2, label: 'Physical', enum: LibraryFormat.PHYSICAL },
 ]
 
 export const LIBRARY_STATUS_FILTERS = [
-  {id: 1, label: 'Want to Play', enum: LibraryStatus.WANT_TO_PLAY},
-  {id: 2, label: 'Playing', enum: LibraryStatus.PLAYING},
-  {id: 3, label: 'Played', enum: LibraryStatus.PLAYED},
-  {id: 4, label: 'On Pause', enum: LibraryStatus.ON_PAUSE},
-  {id: 5, label: 'Wishlist', enum: LibraryStatus.WISHLIST},
+  { id: 1, label: 'Want to Play', enum: LibraryStatus.WANT_TO_PLAY },
+  { id: 2, label: 'Playing', enum: LibraryStatus.PLAYING },
+  { id: 3, label: 'Played', enum: LibraryStatus.PLAYED },
+  { id: 4, label: 'On Pause', enum: LibraryStatus.ON_PAUSE },
+  { id: 5, label: 'Wishlist', enum: LibraryStatus.WISHLIST },
 ]
 
 export const index = async (req: Request, res: Response) => {
+  const context = req.query.context;
+  const userId = Number(req.query.userId);
+
   const [ platformFamily, platform, genres ] = await Promise.all([
     await PlatformService.findAllPlatformFamily(),
     await PlatformService.findAllPlatform(),
     await GenreService.findAll(),
   ]);
 
+  const userLibraryGenres = context === 'library' && userId
+    ? await GenreService.findByUserId(userId)
+    : [];
+
   res.status(200).json({
     message: "filters index response",
     platformFamily: platformFamily.map(pf => ({ id: pf.id, label: pf.name })),
     platform: platform.map(p => ({ id: p.id, label: p.abbreviation })),
-    genres: genres.map(g => ({ id: g.id, label: g.name })),
+    genres: context === 'library' ? userLibraryGenres.map(g => ({ id: g.id, label: g.name })) : genres.map(g => ({ id: g.id, label: g.name })),
     timeToBeat: TIME_TO_BEAT_FILTERS.map(ttb => ({ id: ttb.id, label: ttb.label })),
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
     releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
