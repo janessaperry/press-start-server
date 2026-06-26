@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
 import { Prisma } from "../generated/prisma/client";
 import { LibraryStatus } from "../generated/prisma/enums.js";
-import { mapToGameOverviewDTO } from "../services/game/gameService";
+import { libraryService } from "../services/libraryService";
 import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "./filtersController";
 
 // this is the request body!
@@ -21,76 +21,13 @@ export const index = async (req: Request, res: Response) => {
     return;
   }
 
-  const library = await prisma.userGame.findMany({
-    where: { userId },
-    select: {
-      id: true,
-      libraryStatus: true,
-      libraryFormat: true,
-      libraryPlatform: {
-        select: {
-          id: true,
-          abbreviation: true,
-        },
-      },
-      gameDetails: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          coverId: true,
-          releaseDate: true,
-          totalRating: true,
-          platforms: {
-            select: {
-              id: true,
-              abbreviation: true,
-            },
-            orderBy: {
-              abbreviation: 'asc',
-            }
-          },
-          gameType: {
-            select: {
-              id: true,
-              label: true
-            }
-          },
-        },
-      },
-    },
-    orderBy: { createdAt: "desc" },
-  });
-
-  const libraryGames = library.map(libraryGame => (
-    {
-      id: libraryGame.id,
-      libraryStatus: libraryGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => item.enum === libraryGame.libraryStatus) : undefined,
-      libraryFormat: libraryGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => item.enum === libraryGame.libraryFormat) : undefined,
-      libraryPlatform: libraryGame.libraryPlatform ? {
-        id: libraryGame.libraryPlatform.id,
-        label: libraryGame.libraryPlatform.abbreviation
-      } : undefined,
-      gameOverview: mapToGameOverviewDTO(libraryGame.gameDetails)
-    }
-  ));
-
-  const libraryStatusCounts = await prisma.userGame.groupBy({
-    where: { userId },
-    by: [ 'libraryStatus' ],
-    _count: true,
-  });
-
-  const counts: { label: string, count: number }[] = LIBRARY_STATUS_FILTERS.map((item) => {
-    const count = libraryStatusCounts.find((count) => item.enum === count.libraryStatus)?._count ?? 0;
-    return {label: item.label, count}
-  })
-
+  const libraryGames = await libraryService.findAll(userId);
+  const libraryCounts = await libraryService.getCounts(userId);
 
   res.status(200).json({
     library: libraryGames,
-    libraryStatusCounts: counts,
-    libraryTotalCount: counts.reduce((sum, current) => sum + current.count, 0)
+    libraryStatusCounts: libraryCounts,
+    libraryTotalCount: libraryCounts.reduce((sum, current) => sum + current.count, 0)
   });
 };
 
@@ -98,24 +35,7 @@ export const show = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
 
-  const foundGame = await prisma.userGame.findUnique({
-    where: {
-      userIdGameId: {
-        userId, igdbGameId
-      }
-    },
-    select: {
-      libraryPlatform: {
-        select: {
-          id: true,
-          abbreviation: true
-        }
-      },
-      libraryFormat: true,
-      libraryStatus: true,
-    }
-  })
-
+  const foundGame = await libraryService.findById(userId, igdbGameId)
   if (!foundGame) {
     res.status(404).json({
       message: "library show method: game not found"
