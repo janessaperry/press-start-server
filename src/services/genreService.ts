@@ -24,7 +24,7 @@ export const GenreService = {
   },
 
   async findByUserId (userId: number) {
-    const response = await prisma.userGame.findMany({
+    const userLibrary = await prisma.userGame.findMany({
       where: { userId },
       select: {
         gameDetails: {
@@ -40,7 +40,7 @@ export const GenreService = {
       }
     });
 
-    const allGenres = response.flatMap(game => {
+    const allGenres = userLibrary.flatMap(game => {
       return game.gameDetails.genres
     })
 

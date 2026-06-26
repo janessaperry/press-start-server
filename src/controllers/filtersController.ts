@@ -33,6 +33,12 @@ export const GAME_TYPE_FILTERS = [
 export const LIBRARY_FORMAT_FILTERS = [
   { id: 1, label: 'Digital', enum: LibraryFormat.DIGITAL },
   { id: 2, label: 'Physical', enum: LibraryFormat.PHYSICAL },
+  { id: 999, label: 'Unspecified', enum: null },
+]
+
+export const LIBRARY_FORMAT_CONTROLS = [
+  { id: 1, label: 'Digital', enum: LibraryFormat.DIGITAL },
+  { id: 2, label: 'Physical', enum: LibraryFormat.PHYSICAL },
 ]
 
 export const LIBRARY_STATUS_FILTERS = [
@@ -46,28 +52,43 @@ export const LIBRARY_STATUS_FILTERS = [
 export const index = async (req: Request, res: Response) => {
   const context = req.query.context;
   const userId = Number(req.query.userId);
+  const isLibrary = context === 'library';
 
   const [ platformFamily, platform, genres ] = await Promise.all([
-    await PlatformService.findAllPlatformFamily(),
-    await PlatformService.findAllPlatform(),
-    await GenreService.findAll(),
+    PlatformService.findAllPlatformFamily(),
+    PlatformService.findAllPlatform(),
+    isLibrary ? Promise.resolve([]) : GenreService.findAll(),
   ]);
 
-  const userLibraryGenres = context === 'library' && userId
+  const userLibraryGenres = isLibrary && userId
     ? await GenreService.findByUserId(userId)
     : [];
+
+  if (isLibrary) platform.push({ id: 0, abbreviation: 'Unspecified' });
+  const gameTypeFilters = isLibrary ? [
+    {
+      id: 0,
+      label: 'Main Game',
+      gameTypeIds: [ 0 ]
+    }, ...GAME_TYPE_FILTERS
+  ] : GAME_TYPE_FILTERS;
+
 
   res.status(200).json({
     message: "filters index response",
     platformFamily: platformFamily.map(pf => ({ id: pf.id, label: pf.name })),
     platform: platform.map(p => ({ id: p.id, label: p.abbreviation })),
-    genres: context === 'library' ? userLibraryGenres.map(g => ({ id: g.id, label: g.name })) : genres.map(g => ({ id: g.id, label: g.name })),
+    genres: isLibrary ? userLibraryGenres.map(g => ({ id: g.id, label: g.name })) : genres.map(g => ({
+      id: g.id,
+      label: g.name
+    })),
     timeToBeat: TIME_TO_BEAT_FILTERS.map(ttb => ({ id: ttb.id, label: ttb.label })),
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
     releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
-    gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label })),
-    libraryStatus: LIBRARY_STATUS_FILTERS,
-    libraryFormat: LIBRARY_FORMAT_FILTERS
+    gameType: gameTypeFilters.map(gt => ({ id: gt.id, label: gt.label })),
+    libraryStatus: isLibrary ? LIBRARY_STATUS_FILTERS : undefined,
+    libraryFormat: isLibrary ? LIBRARY_FORMAT_FILTERS : undefined,
+    libraryFormatControls: isLibrary ? LIBRARY_FORMAT_CONTROLS : undefined,
   });
   return;
 }
