@@ -43,8 +43,8 @@ export const LIBRARY_FORMAT_CONTROLS = [
 
 export const LIBRARY_STATUS_FILTERS = [
   { id: 1, label: 'Want to Play', enum: LibraryStatus.WANT_TO_PLAY },
-  { id: 2, label: 'Playing', enum: LibraryStatus.PLAYING },
-  { id: 3, label: 'Played', enum: LibraryStatus.PLAYED },
+  { id: 2, label: 'Currently Playing', enum: LibraryStatus.PLAYING },
+  { id: 3, label: 'Done Playing', enum: LibraryStatus.PLAYED },
   { id: 4, label: 'On Pause', enum: LibraryStatus.ON_PAUSE },
   { id: 5, label: 'Wishlist', enum: LibraryStatus.WISHLIST },
 ]

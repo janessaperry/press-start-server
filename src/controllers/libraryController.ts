@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
 import { Prisma } from "../generated/prisma/client";
 import { LibraryStatus } from "../generated/prisma/enums.js";
-import { libraryService } from "../services/libraryService";
+import { LibraryGameFilters, libraryService } from "../services/libraryService";
 import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "./filtersController";
 
 // this is the request body!
@@ -13,19 +13,52 @@ type CreateLibraryBody = {
   libraryStatus?: { id: number, label: string };
 };
 
-export const index = async (req: Request, res: Response) => {
-  const userId = Number(req.params.userId);
+type LibraryGameQuery = {
+  libraryStatus?: string;
+  libraryFormat?: string;
+  gameType?: string;
+  platform?: string;
+  releaseDate?: string;
+  totalRating?: string;
+  genres?: string;
+  timeToBeat?: string;
+  limit?: string;
+  offset?: string;
+  sorting?: string;
+}
 
+export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: Response) => {
+  const userId = Number(req.params.userId);
   if (isNaN(userId)) {
     res.status(400).json({ message: "invalid user id" });
     return;
   }
 
-  const libraryGames = await libraryService.findAll(userId);
+  const {
+    libraryStatus, libraryFormat,
+    gameType, platform, releaseDate, totalRating, genres, timeToBeat,
+    limit, offset, sorting = "createdAt-desc"
+  } = req.query;
+
+  const parsedLimit = Number(limit) || 20;
+  const parsedOffset = Number(offset) || 0;
+  const [ sortCategory, sortOrder ] = sorting.split('-');
+
+  const filters: LibraryGameFilters = {
+    libraryStatus, libraryFormat,
+    gameType, platform, releaseDate, totalRating, genres, timeToBeat,
+    parsedLimit, parsedOffset, sortCategory, sortOrder
+  };
+
+  const library = await libraryService.findAll(userId, filters);
+  // using id '2' (status: playing -> see enums.ts in generated prisma client) to work with logic inside libraryService
+  const currentlyPlaying = await libraryService.findAll(userId, { libraryStatus: '2' });
   const libraryCounts = await libraryService.getCounts(userId);
 
   res.status(200).json({
-    library: libraryGames,
+    library: library.games,
+    filteredCount: library.filteredCount,
+    currentlyPlaying: currentlyPlaying.games,
     libraryStatusCounts: libraryCounts,
     libraryTotalCount: libraryCounts.reduce((sum, current) => sum + current.count, 0)
   });
