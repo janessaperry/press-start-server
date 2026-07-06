@@ -103,9 +103,9 @@ export const
     },
   } satisfies Prisma.GameSelect;
 
-type GameOverview = Prisma.GameGetPayload<{ select: typeof gameOverviewSelect }>;
+export type GameOverview = Prisma.GameGetPayload<{ select: typeof gameOverviewSelect }>;
 
-type GameOverviewDTO =
+export type GameOverviewDTO =
   Pick<GameDTO,
     | "id"
     | "name"
@@ -240,22 +240,22 @@ export type GameDetailsDTO =
   >
 
 export type GameFilters = {
-  search?: string,
-  platformFamily?: string,
-  platform?: string,
-  genres?: string,
-  gameType?: string,
-  themes?: string,
-  franchises?: string,
-  timeToBeat?: string,
-  totalRating?: string,
-  releaseDate?: string,
-  esrbRating?: string,
-  status?: string,
-  parsedLimit: number,
-  parsedOffset: number,
-  sortCategory: string,
-  sortOrder: string,
+  search?: string;
+  platformFamily?: string;
+  platform?: string;
+  genres?: string;
+  gameType?: string;
+  themes?: string;
+  franchises?: string;
+  timeToBeat?: string;
+  totalRating?: string;
+  releaseDate?: string;
+  esrbRating?: string;
+  status?: string;
+  parsedLimit: number;
+  parsedOffset: number;
+  sortCategory: string;
+  sortOrder: string;
 }
 
 export const GameService = {

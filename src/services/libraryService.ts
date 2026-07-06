@@ -1,9 +1,18 @@
-import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "../controllers/filtersController";
+import {
+  LIBRARY_FORMAT_FILTERS,
+  LIBRARY_GAME_TYPE_FILTERS,
+  LIBRARY_STATUS_FILTERS,
+  TIME_TO_BEAT_FILTERS,
+  TOTAL_RATING_FILTERS
+} from "../controllers/filtersController";
 import { prisma } from "../db/client";
 import { Prisma } from "../generated/prisma/client.js";
 import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums"
-import { GameFilters, mapToGameOverviewDTO } from "./game/gameService";
+import { GameFilters, GameOverviewDTO, mapToGameOverviewDTO } from "./game/gameService";
 
+type LibraryGameOverviewDTO = GameOverviewDTO & {
+  timeToBeat: number | null;
+}
 
 const libraryGameSelect = {
   id: true,
@@ -38,9 +47,17 @@ const libraryGameSelect = {
           label: true
         }
       },
+      timeToBeat: {
+        select: {
+          id: true,
+          normally: true,
+        }
+      }
     },
   },
 } satisfies Prisma.UserGameSelect;
+
+type LibraryGameOverview = Prisma.UserGameGetPayload<{ select: typeof libraryGameSelect }>['gameDetails'];
 
 export type LibraryGameFilters = {
   libraryStatus?: string;
@@ -51,10 +68,9 @@ export const libraryService = {
   async findAll (userId: number, filters: LibraryGameFilters) {
     const {
       libraryStatus, libraryFormat,
-      gameType, platform, releaseDate, totalRating, genres, timeToBeat,
+      gameType, platform, totalRating, genres, timeToBeat,
       parsedLimit, parsedOffset
     } = filters;
-    // console.log("libraryService findAll", filters)
 
     let whereQuery: {} = {
       userId
@@ -97,7 +113,94 @@ export const libraryService = {
       }
     }
 
-    //todo unspecified (null) is a valid platform filter
+    if (gameType) {
+      const gameTypeFilterIds = gameType.split(",");
+      const gameTypeQuery = gameTypeFilterIds.flatMap((id: string) => LIBRARY_GAME_TYPE_FILTERS
+        .find((filter) => filter.id === Number(id))?.gameTypeIds).filter((item) => item !== undefined);
+
+      whereQuery = {
+        ...whereQuery,
+        gameDetails: {
+          gameTypeId: {
+            in: gameTypeQuery
+          }
+        }
+      }
+    }
+
+    // id = 0 is a valid filter for null records in db
+    if (platform) {
+      const platformIds = platform.split(",").map((id: string) => (Number(id.trim())));
+      const orQuery = platformIds.map((id) => {
+        if (id === 0) return { libraryPlatformId: null }
+        else return { libraryPlatformId: id }
+      });
+
+      whereQuery = {
+        ...whereQuery,
+        OR: orQuery
+      }
+    }
+
+    if (totalRating) {
+      const totalRatingIds = totalRating.split(",").map((id) => Number(id.trim()));
+      const validRatingIds = totalRatingIds.filter(id => TOTAL_RATING_FILTERS.find(filter => filter.id === id));
+
+      const minRating = validRatingIds.length > 0 ? Math.min(...validRatingIds) : undefined;
+      if (minRating !== undefined) {
+        const totalRatingQuery = TOTAL_RATING_FILTERS.find((rating) => rating.id === minRating)!.min;
+
+        whereQuery = {
+          ...whereQuery,
+          gameDetails: {
+            totalRating: {
+              gte: totalRatingQuery
+            }
+          }
+        }
+      }
+    }
+
+    if (genres) {
+      const genreIds = genres.split(",").map((id: string) => Number(id.trim()));
+      whereQuery = {
+        ...whereQuery,
+        gameDetails: {
+          genres: {
+            some: {
+              id: { in: genreIds }
+            }
+          }
+        }
+      }
+    }
+
+    if (timeToBeat) {
+      const ttbIds = timeToBeat.split(",").map((id: string) => Number(id.trim()));
+      // const validTtbIds = ttbIds.filter((ttbId) => TIME_TO_BEAT_FILTERS.find((filter) => ttbId === filter.id))
+      const validTtbIds = TIME_TO_BEAT_FILTERS.filter((ttbFilter) => ttbIds.find((id) => id === ttbFilter.id))
+
+      const orConditions = validTtbIds.map((ttbItem) => {
+        if (ttbItem.max === null) {
+          return { normally: { gte: ttbItem.min } }
+        }
+        else {
+          return { normally: { gte: ttbItem.min, lte: ttbItem.max } }
+        }
+      })
+
+      if (orConditions.length > 0) {
+        whereQuery = {
+          ...whereQuery,
+          gameDetails: {
+            timeToBeat: {
+              OR: orConditions
+            }
+          }
+        }
+      }
+    }
+
 
     const libraryResult = await prisma.userGame.findMany({
       where: whereQuery,
@@ -116,7 +219,7 @@ export const libraryService = {
           id: libraryGame.libraryPlatform.id,
           label: libraryGame.libraryPlatform.abbreviation
         } : undefined,
-        gameOverview: mapToGameOverviewDTO(libraryGame.gameDetails)
+        gameOverview: mapToLibraryGameOverviewDTO(libraryGame.gameDetails)
       }
     ))
     const filteredCount = await prisma.userGame.count({ where: whereQuery });
@@ -135,9 +238,9 @@ export const libraryService = {
       _count: true,
     });
 
-    const counts: { label: string, count: number }[] = LIBRARY_STATUS_FILTERS.map((item) => {
+    const counts: { enum: LibraryStatus, label: string, count: number }[] = LIBRARY_STATUS_FILTERS.map((item) => {
       const count = libraryStatusCounts.find((count) => item.enum === count.libraryStatus)?._count ?? 0;
-      return { label: item.label, count }
+      return { enum: item.enum, label: item.label, count }
     });
 
     return counts;
@@ -161,5 +264,12 @@ export const libraryService = {
         libraryStatus: true,
       }
     })
+  }
+}
+
+function mapToLibraryGameOverviewDTO (game: LibraryGameOverview): LibraryGameOverviewDTO {
+  return {
+    ...mapToGameOverviewDTO(game),
+    timeToBeat: game.timeToBeat?.normally ?? null
   }
 }

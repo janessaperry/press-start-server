@@ -30,6 +30,11 @@ export const GAME_TYPE_FILTERS = [
   { id: 4, label: 'Ports, Remakes & Remasters', gameTypeIds: [ 8, 9, 11 ] }
 ]
 
+export const LIBRARY_GAME_TYPE_FILTERS = [
+  { id: 0, label: 'Main Game', gameTypeIds: [ 0 ] },
+  ...GAME_TYPE_FILTERS
+]
+
 export const LIBRARY_FORMAT_FILTERS = [
   { id: 1, label: 'Digital', enum: LibraryFormat.DIGITAL },
   { id: 2, label: 'Physical', enum: LibraryFormat.PHYSICAL },
@@ -65,17 +70,9 @@ export const index = async (req: Request, res: Response) => {
     : [];
 
   if (isLibrary) platform.push({ id: 0, abbreviation: 'Unspecified' });
-  const gameTypeFilters = isLibrary ? [
-    {
-      id: 0,
-      label: 'Main Game',
-      gameTypeIds: [ 0 ]
-    }, ...GAME_TYPE_FILTERS
-  ] : GAME_TYPE_FILTERS;
-
+  const gameTypeFilters = isLibrary ? LIBRARY_GAME_TYPE_FILTERS : GAME_TYPE_FILTERS;
 
   res.status(200).json({
-    message: "filters index response",
     platformFamily: platformFamily.map(pf => ({ id: pf.id, label: pf.name })),
     platform: platform.map(p => ({ id: p.id, label: p.abbreviation })),
     genres: isLibrary ? userLibraryGenres.map(g => ({ id: g.id, label: g.name })) : genres.map(g => ({
@@ -84,7 +81,10 @@ export const index = async (req: Request, res: Response) => {
     })),
     timeToBeat: TIME_TO_BEAT_FILTERS.map(ttb => ({ id: ttb.id, label: ttb.label })),
     totalRating: TOTAL_RATING_FILTERS.map(rating => ({ id: rating.id, label: rating.label })),
-    releaseDate: RELEASE_DATE_FILTERS.map(releaseDate => ({ id: releaseDate.id, label: releaseDate.label })),
+    releaseDate: !isLibrary ? RELEASE_DATE_FILTERS.map(releaseDate => ({
+      id: releaseDate.id,
+      label: releaseDate.label
+    })) : undefined,
     gameType: gameTypeFilters.map(gt => ({ id: gt.id, label: gt.label })),
     libraryStatus: isLibrary ? LIBRARY_STATUS_FILTERS : undefined,
     libraryFormat: isLibrary ? LIBRARY_FORMAT_FILTERS : undefined,
