@@ -64,12 +64,26 @@ export type LibraryGameFilters = {
   libraryFormat?: string;
 } & Partial<GameFilters>;
 
+const VALID_SORT_CATEGORIES = ['createdAt', 'name', 'releaseDate'] as const;
+const VALID_SORT_ORDERS = ['asc', 'desc'] as const;
+type SortCategory = typeof VALID_SORT_CATEGORIES[number];
+type SortOrder = typeof VALID_SORT_ORDERS[number];
+
+function buildOrderBy (sortCategory: string | undefined, sortOrder: string | undefined): Prisma.UserGameOrderByWithRelationInput {
+  const category: SortCategory = VALID_SORT_CATEGORIES.includes(sortCategory as SortCategory) ? sortCategory as SortCategory : 'createdAt';
+  const order: SortOrder = VALID_SORT_ORDERS.includes(sortOrder as SortOrder) ? sortOrder as SortOrder : 'desc';
+
+  if (category === 'name') return { gameDetails: { name: order } };
+  if (category === 'releaseDate') return { gameDetails: { releaseDate: { sort: order, nulls: 'last' } } };
+  return { createdAt: order };
+}
+
 export const libraryService = {
   async findAll (userId: number, filters: LibraryGameFilters) {
     const {
       libraryStatus, libraryFormat,
       gameType, platform, totalRating, genres, timeToBeat,
-      parsedLimit, parsedOffset
+      parsedLimit, parsedOffset, sortCategory, sortOrder
     } = filters;
 
     let whereQuery: {} = {
@@ -207,7 +221,7 @@ export const libraryService = {
       select: libraryGameSelect,
       take: takeQuery,
       skip: skipQuery,
-      orderBy: { createdAt: "desc" },
+      orderBy: buildOrderBy(sortCategory, sortOrder),
     });
 
     const games = libraryResult.map(libraryGame => (

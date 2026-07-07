@@ -16,6 +16,9 @@ package-lock.json
 ehthumbs.db
 Thumbs.db
 
+# Claude Code
+CLAUDE.md
+
 # IDE
 .idea/
 .vscode/
