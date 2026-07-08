@@ -10,6 +10,10 @@ export const UserService = {
     })
   },
 
+  async findById (id: number): Promise<User | null> {
+    return prisma.user.findUnique({ where: { id } });
+  },
+
   async createNewUser (email: string, hashedPassword: string) {
     return prisma.user.create({
       data: {
@@ -18,4 +22,10 @@ export const UserService = {
       }
     });
   },
+
+  async destroyUserById (id: number) {
+    return prisma.user.delete({
+      where: {id}
+    })
+  }
 }
