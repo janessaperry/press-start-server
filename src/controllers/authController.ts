@@ -42,53 +42,25 @@ export const register = async (req: Request, res: Response) => {
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
 
-  try {
-    const emailFormatValid = validateEmailFormat(email);
-    const passwordFormatValid = validatePasswordFormat(password);
-    const formValid = emailFormatValid && passwordFormatValid;
+  // using the same errors for all cases so we don't leak whether an account exists / what went wrong with login
+  const emailFormatValid = validateEmailFormat(email);
+  const passwordFormatValid = validatePasswordFormat(password);
+  const formValid = emailFormatValid && passwordFormatValid;
+  if (!formValid) throw new AppError("Invalid email or password", 400);
 
-    if (!formValid) {
-      res.status(400).json({
-        message: "Invalid email or password"
-      });
-      return;
-    }
+  const user = await UserService.findByEmail(email);
+  if (!user) throw new AppError("Invalid email or password", 400);
 
-    const user = await UserService.findByEmail(email);
+  const { hashedPassword } = user;
+  const passwordMatches = await AuthService.comparePassword(password, hashedPassword);
+  if (!passwordMatches) throw new AppError("Invalid email or password", 400);
 
-    if (!user) {
-      res.status(400).json({
-        message: "Invalid email or password"
-      });
-      return;
-    }
-
-    const { hashedPassword } = user;
-    const passwordMatches = await AuthService.comparePassword(password, hashedPassword);
-
-    if (!passwordMatches) {
-      res.status(400).json({
-        message: "Invalid email or password"
-      });
-      return;
-    }
-
-    const token = AuthService.createAuthToken(user)
-
-    res.status(200).json({
-      message: "Sign in successful",
-      token,
-      userId: user.id
-    });
-
-  }
-  catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Internal server error"
-    });
-    return;
-  }
+  const token = AuthService.createAuthToken(user)
+  res.status(200).json({
+    message: "Sign in successful",
+    token,
+    userId: user.id
+  });
 }
 
 export const requestPasswordReset = async (req: Request, res: Response) => {

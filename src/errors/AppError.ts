@@ -8,9 +8,9 @@ export class AppError extends Error {
 }
 
 export class ValidationError extends AppError {
-  errors: Record<string, string | undefined>;
+  errors?: Record<string, string | undefined>;
 
-  constructor (message: string, errors: Record<string, string | undefined>) {
+  constructor (message: string, errors?: Record<string, string | undefined>) {
     super(message, 400);
     this.errors = errors;
   }
