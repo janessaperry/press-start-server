@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { AppError, ValidationError } from "../errors/AppError";
+import { AppError, RateLimitingError, ValidationError } from "../errors/AppError";
 
 export function errorHandler (err: Error, req: Request, res: Response, next: NextFunction) {
   // todo log the error - update to pino?
@@ -7,10 +7,12 @@ export function errorHandler (err: Error, req: Request, res: Response, next: Nex
 
   if (err instanceof AppError) {
     const errors = err instanceof ValidationError ? err.errors : undefined;
+    const retryAfter = err instanceof RateLimitingError ? err.retryAfter : undefined;
 
     res.status(err.statusCode).json({
       message: err.message,
-      errors
+      errors,
+      retryAfter
     })
     return;
   }

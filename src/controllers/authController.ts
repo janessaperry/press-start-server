@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 
 import { prisma } from "../db/client.js";
-import { AppError, ValidationError } from "../errors/AppError";
+import { AppError, RateLimitingError, ValidationError } from "../errors/AppError";
 import { AuthService } from "../services/authService.js";
 import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
@@ -66,49 +66,35 @@ export const login = async (req: Request, res: Response) => {
 export const requestPasswordReset = async (req: Request, res: Response) => {
   const { email } = req.body;
 
-  try {
-    const emailFormatValid = validateEmailFormat(email);
-    if (!emailFormatValid) {
-      res.status(400).json({
-        message: "Invalid email"
-      });
-      return;
-    }
+  const emailFormatValid = validateEmailFormat(email);
+  if (!emailFormatValid) {
+    throw new ValidationError("Invalid form input", {
+      email: "Invalid email format"
+    })
+  }
 
-    // silent fail
-    const user = await UserService.findByEmail(email);
-    if (!user) {
-      res.status(200).json({
-        message: "If an account exists, a reset email has been sent."
-      });
-      return;
-    }
-
-    // rate limiting per user email
-    const recentToken = await TokenService.findRecentToken(user);
-    if (recentToken) {
-      res.status(429).json({
-        message: "Please wait at least 60 seconds before requesting another reset link.",
-        retryAfter: recentToken.timeRemainingSeconds
-      })
-      return;
-    }
-
-    // generate token and send email
-    const plainToken = await TokenService.generateToken(user);
-    await EmailService.sendPasswordResetEmail(email, plainToken);
-
+  // silent fail
+  const user = await UserService.findByEmail(email);
+  if (!user) {
     res.status(200).json({
       message: "If an account exists, a reset email has been sent."
     });
-  }
-  catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Internal server error"
-    });
     return;
   }
+
+  // rate limiting per user email
+  const recentToken = await TokenService.findRecentToken(user);
+  if (recentToken) {
+    throw new RateLimitingError("Please wait at least 60 seconds before requesting another reset link.", recentToken.timeRemainingSeconds)
+  }
+
+  // generate token and send email
+  const plainToken = await TokenService.generateToken(user);
+  await EmailService.sendPasswordResetEmail(email, plainToken);
+
+  res.status(200).json({
+    message: "If an account exists, a reset email has been sent."
+  });
 }
 
 export const resetPassword = async (req: Request, res: Response) => {

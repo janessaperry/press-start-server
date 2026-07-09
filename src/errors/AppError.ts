@@ -15,3 +15,12 @@ export class ValidationError extends AppError {
     this.errors = errors;
   }
 }
+
+export class RateLimitingError extends AppError {
+  retryAfter: number;
+
+  constructor (message: string, retryAfter: number) {
+    super(message, 429);
+    this.retryAfter = retryAfter
+  }
+}
