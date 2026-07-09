@@ -6,6 +6,7 @@ export async function cleanupExpiredTokens () {
     console.log(`Cleaned up ${count} expired tokens`);
   }
   catch (e) {
-    console.error(( `Failed to cleanup expired tokens: ${e}` ));
+    // todo update to logger
+    console.error((`Failed to cleanup expired tokens: ${e}`));
   }
 }
