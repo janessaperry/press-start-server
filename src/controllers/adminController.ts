@@ -14,8 +14,8 @@ export type ProcessingCounts = {
   totalProcessed: number,
 }
 
-export const syncAll = async (req: Request, res: Response) => {
-  const [gameTypeCounts, genreCounts, themeCounts, platformCounts, collectionCounts, franchiseCounts] = await Promise.all([
+export const syncAll = async (_req: Request, res: Response) => {
+  const [ gameTypeCounts, genreCounts, themeCounts, platformCounts, collectionCounts, franchiseCounts ] = await Promise.all([
     GameTypeService.syncWithIgdb(),
     GenreService.syncWithIgdb(),
     ThemeService.syncWithIgdb(),
@@ -41,7 +41,7 @@ export const syncAll = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncGameTypes = async (req: Request, res: Response) => {
+export const syncGameTypes = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await GameTypeService.syncWithIgdb();
 
   res.status(200).json({
@@ -51,7 +51,7 @@ export const syncGameTypes = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncGenres = async (req: Request, res: Response) => {
+export const syncGenres = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await GenreService.syncWithIgdb();
 
   res.status(200).json({
@@ -61,7 +61,7 @@ export const syncGenres = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncThemes = async (req: Request, res: Response) => {
+export const syncThemes = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await ThemeService.syncWithIgdb();
 
   res.status(200).json({
@@ -71,8 +71,8 @@ export const syncThemes = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncPlatforms = async (req: Request, res: Response) => {
-  const {platformFamilyCounts, platformCounts} = await PlatformService.syncWithIgdb();
+export const syncPlatforms = async (_req: Request, res: Response) => {
+  const { platformFamilyCounts, platformCounts } = await PlatformService.syncWithIgdb();
 
   res.status(200).json({
     message: "Platforms synced.",
@@ -82,7 +82,7 @@ export const syncPlatforms = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncCollections = async (req: Request, res: Response) => {
+export const syncCollections = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await CollectionService.syncWithIgdb();
 
   res.status(200).json({
@@ -92,7 +92,7 @@ export const syncCollections = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncFranchises = async (req: Request, res: Response) => {
+export const syncFranchises = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await FranchiseService.syncWithIgdb();
 
   res.status(200).json({
@@ -102,7 +102,7 @@ export const syncFranchises = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncGames = async (req: Request, res: Response) => {
+export const syncGames = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await GameSync.syncWithIgdb();
 
   res.status(200).json({
@@ -112,7 +112,7 @@ export const syncGames = async (req: Request, res: Response) => {
   return;
 }
 
-export const syncTimeToBeat = async (req: Request, res: Response) => {
+export const syncTimeToBeat = async (_req: Request, res: Response) => {
   const counts: ProcessingCounts = await TimeToBeatService.syncWithIgdb();
 
   res.status(200).json({
