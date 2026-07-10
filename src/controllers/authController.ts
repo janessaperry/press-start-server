@@ -98,40 +98,29 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
 }
 
 export const resetPassword = async (req: Request, res: Response) => {
-  try {
-    const { plainToken, newPassword } = req.body;
+  const { plainToken, newPassword } = req.body;
 
-    const matchingToken = await TokenService.findTokenByPlain(plainToken);
-    if (!matchingToken) {
-      res.status(404).json({
-        message: `Invalid token`
-      });
-      return;
-    }
-
-    const { id: tokenId, userId, expiresAt } = matchingToken;
-    if (expiresAt < new Date()) {
-      await TokenService.deleteToken(tokenId);
-      res.status(401).json({
-        message: "Token has expired. Please request a new password reset."
-      });
-      return;
-    }
-
-
-    const hashedPassword = await AuthService.hashPassword(newPassword);
-    await prisma.$transaction([
-      AuthService.updatePasswordTx(userId, hashedPassword),
-      TokenService.deleteToken(tokenId),
-    ]);
-
-    res.status(200).send({ message: "Password reset successful" });
-  }
-  catch (e) {
-    console.error(e);
-    res.status(500).json({
-      message: "Internal server error"
+  const passwordFormatValid = validatePasswordFormat(newPassword);
+  if (!passwordFormatValid) {
+    throw new ValidationError("Invalid form input", {
+      password: "Password does not meet criteria"
     });
-    return;
   }
+
+  const matchingToken = await TokenService.findTokenByPlain(plainToken);
+  if (!matchingToken) throw new AppError("Invalid token", 400);
+
+  const { id: tokenId, userId, expiresAt } = matchingToken;
+  if (expiresAt < new Date()) {
+    await TokenService.deleteToken(tokenId);
+    throw new AppError( "Token has expired. Please request a new password reset.", 400);
+  }
+
+  const hashedPassword = await AuthService.hashPassword(newPassword);
+  await prisma.$transaction([
+    AuthService.updatePasswordTx(userId, hashedPassword),
+    TokenService.deleteToken(tokenId),
+  ]);
+
+  res.status(200).send({ message: "Password reset successful" });
 }
