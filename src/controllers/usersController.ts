@@ -1,64 +1,41 @@
 import { Request, Response } from "express";
+import { AppError, ValidationError } from "../errors/AppError";
 import { AuthService } from "../services/authService.js";
 import { UserService } from "../services/userService.js";
 import { validatePasswordFormat } from "../utils/validators.js";
 
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) {
-    res.status(400).json({ message: "Invalid user id" });
-    return;
-  }
+  if (isNaN(userId)) throw new AppError("Invalid user id", 400)
 
   const { currentPassword, newPassword } = req.body;
-
-  try {
-    const user = await UserService.findById(userId);
-    if (!user) {
-      res.status(404).json({ message: "User not found" });
-      return;
-    }
-
-    const currentPasswordMatches = await AuthService.comparePassword(currentPassword, user.hashedPassword);
-    if (!currentPasswordMatches) {
-      res.status(401).json({ message: "Current password is incorrect" });
-      return;
-    }
-
-    if (!validatePasswordFormat(newPassword)) {
-      res.status(400).json({ message: "New password does not meet criteria" });
-      return;
-    }
-
-    await AuthService.hashAndUpdatePassword(userId, newPassword);
-
-    res.status(200).json({ message: "Password updated successfully" });
+  if (!currentPassword || !newPassword) {
+    throw new AppError("Current and new password are required", 400);
   }
-  catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal server error" });
+
+  const user = await UserService.findById(userId);
+  if (!user) throw new AppError("User not found", 404);
+
+  const currentPasswordMatches = await AuthService.comparePassword(currentPassword, user.hashedPassword);
+  if (!currentPasswordMatches) throw new AppError("Current password is incorrect", 401);
+
+  if (!validatePasswordFormat(newPassword)) {
+    throw new ValidationError("Invalid form data", {
+      newPassword: "New password does not meet criteria"
+    })
   }
+
+  await AuthService.hashAndUpdatePassword(userId, newPassword);
+  res.status(200).json({ message: "Password updated successfully" });
 };
 
 export const destroy = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) {
-    res.status(400).json({ message: "Invalid user id" });
-    return;
-  }
+  if (isNaN(userId)) throw new AppError("Invalid user id", 400)
 
-  try {
-    const foundUser = await UserService.findById(userId);
-    if (!foundUser) {
-      res.status(404).json({ message: `User ${userId} not found.`});
-      return;
-    }
+  const foundUser = await UserService.findById(userId);
+  if (!foundUser) throw new AppError("User not found", 404);
 
-    await UserService.destroyUserById(userId);
-    res.status(204).send();
-  }
-  catch (e) {
-    console.error(e);
-    res.status(500).json({ message: "Internal server error" });
-  }
+  await UserService.destroyUserById(userId);
+  res.status(204).send();
 }
