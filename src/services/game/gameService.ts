@@ -3,7 +3,7 @@ import {
   RELEASE_DATE_FILTERS,
   TIME_TO_BEAT_FILTERS,
   TOTAL_RATING_FILTERS
-} from "../../controllers/filtersController";
+} from "../../constants/filters";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 import { getReleaseDateOffset } from "../../utils/dateUtils";

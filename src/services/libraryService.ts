@@ -4,7 +4,7 @@ import {
   LIBRARY_STATUS_FILTERS,
   TIME_TO_BEAT_FILTERS,
   TOTAL_RATING_FILTERS
-} from "../controllers/filtersController";
+} from "../constants/filters";
 import { prisma } from "../db/client";
 import { Prisma } from "../generated/prisma/client.js";
 import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums"
