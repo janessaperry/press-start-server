@@ -1,7 +1,7 @@
 import { ProcessingCounts } from "../controllers/adminController";
-import { IgdbClient, RawFranchise } from "./igdbClient";
-import { Franchise, Prisma } from "../generated/prisma/client";
 import { prisma } from "../db/client";
+import { Franchise, Prisma } from "../generated/prisma/client";
+import { IgdbClient, RawFranchise } from "./igdbClient";
 
 export const FranchiseService = {
   async findById (id: number): Promise<Franchise | null> {
@@ -42,7 +42,7 @@ export const FranchiseService = {
 
         if (existingFranchise) {
           if (existingFranchise.igdbChecksum === franchise.igdbChecksum) {
-            await this.updateById(franchise.id, franchise);
+            await this.updateById(existingFranchise.id, franchise);
             updated++;
           }
         }

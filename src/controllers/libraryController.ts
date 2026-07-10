@@ -68,7 +68,7 @@ export const show = async (req: Request, res: Response) => {
   if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
 
   const foundGame = await libraryService.findById(userId, igdbGameId);
-  if (!foundGame) throw new AppError("Game not found", 404);
+  if (!foundGame) throw new AppError("Game not found in user's library", 404);
 
   res.status(200).json({
     message: "Game details from user's library",

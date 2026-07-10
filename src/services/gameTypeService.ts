@@ -39,7 +39,7 @@ export const GameTypeService = {
 
       if (existingGameType) {
         if (existingGameType.igdbChecksum !== gameType.igdbChecksum) {
-          await this.updateById(existingGameType.id, existingGameType);
+          await this.updateById(existingGameType.id, gameType);
           updated++;
         }
       }

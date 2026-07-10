@@ -108,7 +108,7 @@ export const PlatformService = {
 
       if (existingPlatformFamily) {
         if (existingPlatformFamily.igdbChecksum !== platformFamily.igdbChecksum) {
-          await this.updatePlatformFamily(platformFamily.id, platformFamily);
+          await this.updatePlatformFamily(existingPlatformFamily.id, platformFamily);
           platformFamilyCounts.updated++;
         }
       }

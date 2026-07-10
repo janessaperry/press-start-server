@@ -27,7 +27,6 @@ export const TimeToBeatService = {
     return prisma.timeToBeat.create({
       data
     })
-
   },
 
   async updateById (id: number, data: Prisma.TimeToBeatUpdateInput): Promise<TimeToBeat> {
@@ -60,7 +59,7 @@ export const TimeToBeatService = {
         const existingTimeToBeat = await this.findById(timeToBeat.id);
 
         if (existingTimeToBeat) {
-          await this.updateById(timeToBeat.id, timeToBeat)
+          await this.updateById(existingTimeToBeat.id, timeToBeat)
           updated++;
         }
         else {
