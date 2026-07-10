@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "../constants/filters";
 import { prisma } from "../db/client.js";
+import { AppError } from "../errors/AppError";
 import { Prisma } from "../generated/prisma/client";
 import { LibraryStatus } from "../generated/prisma/enums.js";
 import { LibraryGameFilters, libraryService } from "../services/libraryService";
@@ -29,10 +30,7 @@ type LibraryGameQuery = {
 
 export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) {
-    res.status(400).json({ message: "invalid user id" });
-    return;
-  }
+  if (isNaN(userId)) throw new AppError("Invalid user id", 400);
 
   const {
     libraryStatus, libraryFormat,
@@ -67,17 +65,13 @@ export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: 
 export const show = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
+  if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
 
-  const foundGame = await libraryService.findById(userId, igdbGameId)
-  if (!foundGame) {
-    res.status(404).json({
-      message: "library show method: game not found"
-    });
-    return;
-  }
+  const foundGame = await libraryService.findById(userId, igdbGameId);
+  if (!foundGame) throw new AppError("Game not found", 404);
 
   res.status(200).json({
-    message: "library show method: game details",
+    message: "Game details from user's library",
     libraryPlatform: foundGame.libraryPlatform ? {
       id: foundGame.libraryPlatform.id,
       label: foundGame.libraryPlatform.abbreviation
@@ -85,22 +79,14 @@ export const show = async (req: Request, res: Response) => {
     libraryFormat: foundGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => foundGame.libraryFormat === item.enum) : undefined,
     libraryStatus: foundGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => foundGame.libraryStatus === item.enum) : undefined,
   })
-  return;
 }
 
 export const create = async (req: Request<any, any, CreateLibraryBody>, res: Response) => {
   const userId = Number(req.params.userId);
-
-  if (isNaN(userId)) {
-    res.status(400).json({ message: "invalid user id" });
-    return;
-  }
+  if (isNaN(userId)) throw new AppError("Invalid user id", 400);
 
   const igdbGameId = Number(req.body.gameId);
-  if (!igdbGameId) {
-    res.status(400).json({ message: "igdbGameId is required" });
-    return;
-  }
+  if (isNaN(igdbGameId)) throw new AppError("Invalid game id", 400);
 
   const rawLibraryPlatform = req.body.libraryPlatform;
   let libraryPlatformId = rawLibraryPlatform && rawLibraryPlatform.id !== 0 ? rawLibraryPlatform.id : null;
@@ -117,10 +103,7 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
   const libraryStatus = LIBRARY_STATUS_FILTERS.find(filter => filter.id === rawLibraryStatus?.id)?.enum ?? LibraryStatus.WANT_TO_PLAY;
 
   const existing = await prisma.userGame.findFirst({ where: { userId, igdbGameId } });
-  if (existing) {
-    res.status(409).json({ message: "game already in library" });
-    return;
-  }
+  if (existing) throw new AppError("Game already in library", 409);
 
   const userGame = await prisma.userGame.create({
     data: {
@@ -138,6 +121,17 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
 export const update = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
+  if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+
+  const foundUserGame = await prisma.userGame.findUnique({
+    where: {
+      userIdGameId: {
+        userId,
+        igdbGameId
+      }
+    }
+  });
+  if (!foundUserGame) throw new AppError("Game not found in user's library", 404);
 
   const updatedData = req.body;
   const data: Prisma.UserGameUncheckedUpdateInput = {};
@@ -150,7 +144,6 @@ export const update = async (req: Request, res: Response) => {
   if (Object.hasOwn(updatedData, 'libraryStatus')) {
     data['libraryStatus'] = updatedData.libraryStatus.enum
   }
-  console.log("DATA:", data)
 
   const updatedGame = await prisma.userGame.update({
     where: {
@@ -163,25 +156,20 @@ export const update = async (req: Request, res: Response) => {
   });
 
   res.status(200).json({
-    message: "testing update endpoint response",
+    message: "Game updates in user's library",
     updatedGame
   })
-  return;
 }
 
 export const remove = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
+  if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
 
   const foundUser = await prisma.user.findUnique({
     where: { id: userId }
   })
-  if (!foundUser) {
-    res.status(404).json({
-      message: "User not found"
-    })
-    return;
-  }
+  if (!foundUser) throw new AppError("User not found", 404);
 
   const foundUserGame = await prisma.userGame.findUnique({
     where: {
@@ -191,12 +179,7 @@ export const remove = async (req: Request, res: Response) => {
       }
     }
   })
-  if (!foundUserGame) {
-    res.status(404).json({
-      message: "Game not found in user's library."
-    })
-    return;
-  }
+  if (!foundUserGame) throw new AppError("Game not found in user's library", 404);
 
   await prisma.userGame.delete({
     where: {
@@ -207,7 +190,5 @@ export const remove = async (req: Request, res: Response) => {
     }
   })
 
-  res.status(204).json({
-    message: `Game ${igdbGameId} removed from user ${userId}'s library.`,
-  })
+  res.status(204).send();
 }
