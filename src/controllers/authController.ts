@@ -1,14 +1,11 @@
 import { Request, Response } from "express";
-
 import { prisma } from "../db/client.js";
 import { AppError, RateLimitingError, ValidationError } from "../errors/AppError";
 import { AuthService } from "../services/authService.js";
 import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
 import { UserService } from "../services/userService.js";
-
 import { validateEmailFormat, validatePasswordFormat } from "../utils/validators.js";
-
 
 export const register = async (req: Request, res: Response) => {
   const { email, password } = req.body;

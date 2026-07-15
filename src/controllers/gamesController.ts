@@ -1,5 +1,7 @@
 import { Request, Response } from "express";
-import { GameDetailsDTO, GameService } from "../services/game/gameService.js";
+import { AppError } from "../errors/AppError";
+import { GameService } from "../services/game/gameService.js";
+import { GameDetailsDTO } from "../services/game/gameService.types";
 
 export type GameQuery = {
   search?: string,
@@ -74,32 +76,26 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
       newRelease
     },
   })
-  return;
 }
 
 export const show = async (req: Request, res: Response) => {
-  const { gameId } = req.params;
+  const gameId = Number(req.params.gameId);
+  if (isNaN(gameId)) throw new AppError("Invalid game id", 400);
 
-  const gameDetails: GameDetailsDTO | null = await GameService.getGameDetails(Number(gameId));
-  if (!gameDetails) {
-    res.status(404).json({
-      message: `game not found`
-    })
-    return;
-  }
+  const gameDetails: GameDetailsDTO | null = await GameService.getGameDetails(gameId);
+  if (!gameDetails) throw new AppError("Game not found", 404);
 
   res.status(200).json({
     gameDetails
   });
-  return;
 }
 
-export const search = async (req: Request<any, any, any, GameQuery>, res: Response) => {
+export const search = async (req: Request<any, any, any, string>, res: Response) => {
   const { searchQuery } = req.params;
+  if (!searchQuery) throw new AppError("Search query is required", 400);
 
   const searchResults = await GameService.findByName(searchQuery);
   res.status(200).json({
     searchResults
   });
-  return;
 }
