@@ -5,258 +5,19 @@ import {
   TOTAL_RATING_FILTERS
 } from "../../constants/filters";
 import { prisma } from "../../db/client.js";
-import { Game, Prisma } from "../../generated/prisma/client.js";
+import { Game } from "../../generated/prisma/client.js";
 import { getReleaseDateOffset } from "../../utils/dateUtils";
+import {
+  GameDetailsDTO,
+  GameDetailsRow,
+  gameDetailsSelect,
+  GameFilters,
+  GameOverviewDTO,
+  GameOverviewRow,
+  gameOverviewSelect,
+  IdLabelDTO
+} from "./gameService.types";
 
-type IdLabelDTO = {
-  id: number,
-  label: string
-}
-
-type GameDTO = {
-  id: number,
-  name: string,
-  slug: string,
-  coverId: string | null,
-  summary: string | null,
-  releaseDate: string | null,
-  totalRating: number | null,
-  gameType: IdLabelDTO,
-  developers: string[],
-  publishers: string[],
-  screenshotIds: string[],
-  esrbRating: string | null,
-  esrbThumbnailId: string | null,
-  esrbDescriptions: string[],
-  genres: IdLabelDTO[],
-  platforms: IdLabelDTO[],
-  timeToBeat: {
-    times: {
-      label: string;
-      value: number | null
-    }[],
-    count: number | null,
-  } | null,
-  collections: {
-    id: number,
-    name: string,
-    games: {
-      id: number,
-      name: string,
-      slug: string
-      coverId: string | null,
-    }[]
-  }[],
-  franchises: {
-    id: number,
-    name: string,
-    games: {
-      id: number,
-      name: string,
-      slug: string
-      coverId: string | null,
-    }[]
-  }[],
-  baseGame: {
-    id: number,
-    name: string,
-    coverId: string | null,
-    slug: string
-  } | null,
-  relatedContent: {
-    expansions: {
-      id: number,
-      name: string,
-      coverId: string | null,
-      slug: string,
-      gameType: IdLabelDTO
-    }[],
-    dlcs: {
-      id: number,
-      name: string,
-      coverId: string | null,
-      slug: string,
-      gameType: IdLabelDTO
-    }[],
-  },
-}
-
-export const
-  gameOverviewSelect = {
-    id: true,
-    name: true,
-    coverId: true,
-    releaseDate: true,
-    slug: true,
-    totalRating: true,
-    platforms: {
-      select: {
-        id: true,
-        abbreviation: true,
-      }
-    },
-    gameType: {
-      select: {
-        id: true,
-        label: true
-      }
-    },
-  } satisfies Prisma.GameSelect;
-
-export type GameOverview = Prisma.GameGetPayload<{ select: typeof gameOverviewSelect }>;
-
-export type GameOverviewDTO =
-  Pick<GameDTO,
-    | "id"
-    | "name"
-    | "slug"
-    | "coverId"
-    | "totalRating"
-    | "gameType"
-    | "platforms"
-  >
-
-const gameDetailsSelect = {
-  id: true,
-  name: true,
-  coverId: true,
-  releaseDate: true,
-  slug: true,
-  summary: true,
-  totalRating: true,
-  gameTypeId: true,
-  gameType: {
-    select: {
-      id: true,
-      label: true
-    }
-  },
-  genres: {
-    select: {
-      id: true,
-      name: true,
-    }
-  },
-  platforms: {
-    select: {
-      id: true,
-      abbreviation: true,
-    },
-    orderBy: {
-      abbreviation: 'asc',
-    }
-  },
-  timeToBeat: {
-    select: {
-      hastily: true,
-      normally: true,
-      completely: true,
-      count: true,
-    }
-  },
-  collections: {
-    select: {
-      id: true,
-      name: true,
-      games: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          coverId: true
-        }
-      }
-    }
-  },
-  franchises: {
-    select: {
-      id: true,
-      name: true,
-      games: {
-        select: {
-          id: true,
-          name: true,
-          slug: true,
-          coverId: true
-        }
-      }
-    }
-  },
-  developers: true,
-  publishers: true,
-  screenshotIds: true,
-  esrbRating: true,
-  esrbThumbnailId: true,
-  esrbDescriptions: true,
-  baseGame: {
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      coverId: true,
-    }
-  },
-  relatedContent: {
-    select: {
-      id: true,
-      name: true,
-      coverId: true,
-      slug: true,
-      gameType: {
-        select: {
-          id: true,
-          label: true
-        }
-      },
-    }
-  }
-} satisfies Prisma.GameSelect;
-
-export type GameDetails = Prisma.GameGetPayload<{ select: typeof gameDetailsSelect }>;
-
-export type GameDetailsDTO =
-  Pick<GameDTO,
-    | "id"
-    | "name"
-    | "slug"
-    | "coverId"
-    | "summary"
-    | "releaseDate"
-    | "totalRating"
-    | "esrbRating"
-    | "esrbThumbnailId"
-    | "esrbDescriptions"
-    | "developers"
-    | "publishers"
-    | "timeToBeat"
-    | "screenshotIds"
-    | "gameType"
-    | "genres"
-    | "platforms"
-    | "collections"
-    | "franchises"
-    | "baseGame"
-    | "relatedContent"
-  >
-
-export type GameFilters = {
-  search?: string;
-  platformFamily?: string;
-  platform?: string;
-  genres?: string;
-  gameType?: string;
-  themes?: string;
-  franchises?: string;
-  timeToBeat?: string;
-  totalRating?: string;
-  releaseDate?: string;
-  esrbRating?: string;
-  status?: string;
-  parsedLimit: number;
-  parsedOffset: number;
-  sortCategory: string;
-  sortOrder: string;
-}
 
 export const GameService = {
   async findById (id: number): Promise<Game | null> {
@@ -601,7 +362,7 @@ export const GameService = {
   },
 }
 
-export function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
+export function mapToGameOverviewDTO (game: GameOverviewRow): GameOverviewDTO {
   const platforms = mapPlatformsToDTO(game.platforms);
 
   return {
@@ -615,15 +376,15 @@ export function mapToGameOverviewDTO (game: GameOverview): GameOverviewDTO {
   }
 }
 
-function mapGenresToDTO (genres: GameDetails["genres"]): IdLabelDTO[] {
+function mapGenresToDTO (genres: GameDetailsRow["genres"]): IdLabelDTO[] {
   return genres.map(genre => ({ id: genre.id, label: genre.name }))
 }
 
-function mapPlatformsToDTO (platforms: GameDetails["platforms"]): IdLabelDTO[] {
+function mapPlatformsToDTO (platforms: GameDetailsRow["platforms"]): IdLabelDTO[] {
   return platforms.map(platform => ({ id: platform.id, label: platform.abbreviation }));
 }
 
-function mapTimeToBeatToDTO (timeToBeat: GameDetails["timeToBeat"]): GameDetailsDTO["timeToBeat"] | null {
+function mapTimeToBeatToDTO (timeToBeat: GameDetailsRow["timeToBeat"]): GameDetailsDTO["timeToBeat"] | null {
   return timeToBeat ? {
     times: [
       { label: "hastily", value: timeToBeat.hastily },

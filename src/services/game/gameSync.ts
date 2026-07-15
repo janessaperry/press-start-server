@@ -1,7 +1,8 @@
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
 import { IgdbClient, RawGame } from "../igdbClient.js";
-import { GameDetailsDTO, GameService } from "./gameService";
+import { GameService } from "./gameService";
+import { GameDetailsDTO } from "./gameService.types";
 
 type Relations = {
   genreIds: number[],
@@ -21,19 +22,19 @@ export const GameSync = {
       data: {
         ...gameDetails,
         genres: {
-          connect: relations.genreIds.map((genre) => ({id: genre}))
+          connect: relations.genreIds.map((genre) => ({ id: genre }))
         },
         themes: {
-          connect: relations.themeIds.map((theme) => ({id: theme}))
+          connect: relations.themeIds.map((theme) => ({ id: theme }))
         },
         platforms: {
-          connect: relations.platformIds.map((platform) => ({id: platform}))
+          connect: relations.platformIds.map((platform) => ({ id: platform }))
         },
         collections: {
-          connect: relations.collectionIds.map((id) => ({id}))
+          connect: relations.collectionIds.map((id) => ({ id }))
         },
         franchises: {
-          connect: relations.franchiseIds.map((id) => ({id}))
+          connect: relations.franchiseIds.map((id) => ({ id }))
         }
       }
     })
@@ -41,7 +42,7 @@ export const GameSync = {
 
   async updateGameById (id: number, gameDetails: Prisma.GameUpdateInput, relations: Relations): Promise<Game> {
     return prisma.game.update({
-      where: {id},
+      where: { id },
       data: {
         name: gameDetails.name,
         slug: gameDetails.slug,
@@ -59,19 +60,19 @@ export const GameSync = {
         igdbChecksum: gameDetails.igdbChecksum,
         gameType: gameDetails.gameType,
         genres: {
-          set: relations.genreIds.map((genre) => ({id: genre}))
+          set: relations.genreIds.map((genre) => ({ id: genre }))
         },
         themes: {
-          set: relations.themeIds.map((theme) => ({id: theme}))
+          set: relations.themeIds.map((theme) => ({ id: theme }))
         },
         platforms: {
-          set: relations.platformIds.map((platform) => ({id: platform}))
+          set: relations.platformIds.map((platform) => ({ id: platform }))
         },
         collections: {
-          set: relations.collectionIds.map((id) => ({id}))
+          set: relations.collectionIds.map((id) => ({ id }))
         },
         franchises: {
-          set: relations.franchiseIds.map((id) => ({id}))
+          set: relations.franchiseIds.map((id) => ({ id }))
         }
       },
     })
@@ -84,7 +85,7 @@ export const GameSync = {
     let updated = 0;
     let totalProcessed = 0;
 
-    let baseGameConnections: {id: number, baseGameId: number}[] = [];
+    let baseGameConnections: { id: number, baseGameId: number }[] = [];
 
     while (true) {
       console.log(`Fetching IGDB games ${offset}–${offset + limit}...`);
@@ -123,8 +124,8 @@ export const GameSync = {
     // get all unique base game ids that need validation, so we only query the db once
     const baseGameIdsToValidate = new Set(baseGameConnections.map(game => game.baseGameId));
     const existingBaseGames = await prisma.game.findMany({
-      where: {id: {in: Array.from(baseGameIdsToValidate)}},
-      select: {id: true}
+      where: { id: { in: Array.from(baseGameIdsToValidate) } },
+      select: { id: true }
     })
     const existingBaseGameIds = new Set(existingBaseGames.map(game => game.id));
 
@@ -136,7 +137,7 @@ export const GameSync = {
       // only connect if the base game exists
       if (existingBaseGameIds.has(baseGameId)) {
         await prisma.game.update({
-          where: {id: gameId},
+          where: { id: gameId },
           data: {
             baseGame: {
               connect: {
@@ -149,7 +150,7 @@ export const GameSync = {
     }
 
     console.log(`Game sync complete. Total processed: ${totalProcessed}`);
-    return {updated, created, totalProcessed};
+    return { updated, created, totalProcessed };
   }
 }
 
@@ -161,10 +162,10 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
 }> {
   const releaseDate = normalizeReleaseDates(rawGame.release_dates);
 
-  const {esrbRating, esrbThumbnailId, esrbDescriptions} = normalizeAgeRatings(rawGame.age_ratings);
+  const { esrbRating, esrbThumbnailId, esrbDescriptions } = normalizeAgeRatings(rawGame.age_ratings);
 
   const involvedCompanies = rawGame.involved_companies;
-  const {developers, publishers} = normalizeInvolvedCompanies(involvedCompanies);
+  const { developers, publishers } = normalizeInvolvedCompanies(involvedCompanies);
 
   const validPlatforms = await filterValidPlatforms(rawGame.platforms);
   const screenshotIds = rawGame.screenshots ? rawGame.screenshots.map(item => item.image_id) : [];
@@ -187,7 +188,7 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
       screenshotIds,
       igdbChecksum: rawGame.checksum,
       gameType: {
-        connect: {id: rawGame.game_type}
+        connect: { id: rawGame.game_type }
       },
     },
     relations: {
@@ -224,7 +225,7 @@ async function filterValidPlatforms (platformIds: number[]): Promise<number[]> {
   let validPlatforms: number[] = [];
   for (const id of platformIds) {
     const platform = await prisma.platform.findUnique({
-      where: {id}
+      where: { id }
     })
     if (platform) validPlatforms.push(id);
 
@@ -239,7 +240,7 @@ function normalizeInvolvedCompanies (involvedCompanies: RawGame["involved_compan
   let developers: string[] = [];
   let publishers: string[] = [];
 
-  if (!involvedCompanies) return {developers, publishers};
+  if (!involvedCompanies) return { developers, publishers };
 
   const developerIds = new Set;
   const publisherIds = new Set;
@@ -259,7 +260,7 @@ function normalizeInvolvedCompanies (involvedCompanies: RawGame["involved_compan
       publisherIds.add(companyDetails.id)
     }
   }
-  return {developers, publishers};
+  return { developers, publishers };
 }
 
 function normalizeAgeRatings (ageRatings: RawGame["age_ratings"]): Pick<GameDetailsDTO, "esrbRating" | "esrbThumbnailId" | "esrbDescriptions"> {
@@ -286,7 +287,7 @@ function normalizeAgeRatings (ageRatings: RawGame["age_ratings"]): Pick<GameDeta
   return result;
 }
 
-function mapRatingCategory (category: {id: number, rating: string} | undefined): {
+function mapRatingCategory (category: { id: number, rating: string } | undefined): {
   esrbRating: string,
   esrbThumbnailId: string
 } | null {

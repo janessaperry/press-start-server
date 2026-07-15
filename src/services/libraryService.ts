@@ -8,61 +8,14 @@ import {
 import { prisma } from "../db/client";
 import { Prisma } from "../generated/prisma/client.js";
 import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums"
-import { GameFilters, GameOverviewDTO, mapToGameOverviewDTO } from "./game/gameService";
+import { mapToGameOverviewDTO } from "./game/gameService";
+import {
+  LibraryGameFilters,
+  LibraryGameOverviewDTO,
+  LibraryGameOverviewRow,
+  libraryGameSelect
+} from "./libraryService.types";
 
-type LibraryGameOverviewDTO = GameOverviewDTO & {
-  timeToBeat: number | null;
-}
-
-const libraryGameSelect = {
-  id: true,
-  libraryStatus: true,
-  libraryFormat: true,
-  libraryPlatform: {
-    select: {
-      id: true,
-      abbreviation: true,
-    },
-  },
-  gameDetails: {
-    select: {
-      id: true,
-      name: true,
-      slug: true,
-      coverId: true,
-      releaseDate: true,
-      totalRating: true,
-      platforms: {
-        select: {
-          id: true,
-          abbreviation: true,
-        },
-        orderBy: {
-          abbreviation: 'asc',
-        }
-      },
-      gameType: {
-        select: {
-          id: true,
-          label: true
-        }
-      },
-      timeToBeat: {
-        select: {
-          id: true,
-          normally: true,
-        }
-      }
-    },
-  },
-} satisfies Prisma.UserGameSelect;
-
-type LibraryGameOverview = Prisma.UserGameGetPayload<{ select: typeof libraryGameSelect }>['gameDetails'];
-
-export type LibraryGameFilters = {
-  libraryStatus?: string;
-  libraryFormat?: string;
-} & Partial<GameFilters>;
 
 const VALID_SORT_CATEGORIES = ['createdAt', 'name', 'releaseDate'] as const;
 const VALID_SORT_ORDERS = ['asc', 'desc'] as const;
@@ -281,7 +234,7 @@ export const libraryService = {
   }
 }
 
-function mapToLibraryGameOverviewDTO (game: LibraryGameOverview): LibraryGameOverviewDTO {
+function mapToLibraryGameOverviewDTO (game: LibraryGameOverviewRow): LibraryGameOverviewDTO {
   return {
     ...mapToGameOverviewDTO(game),
     timeToBeat: game.timeToBeat?.normally ?? null
