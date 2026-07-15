@@ -9,12 +9,7 @@ import { prisma } from "../db/client";
 import { Prisma } from "../generated/prisma/client.js";
 import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums"
 import { mapToGameOverviewDTO } from "./game/gameService";
-import {
-  LibraryGameFilters,
-  LibraryGameOverviewDTO,
-  LibraryGameOverviewRow,
-  libraryGameSelect
-} from "./libraryService.types";
+import { LibraryGameFilters, libraryGameSelect } from "./libraryService.types";
 
 
 const VALID_SORT_CATEGORIES = ['createdAt', 'name', 'releaseDate'] as const;
@@ -186,7 +181,7 @@ export const libraryService = {
           id: libraryGame.libraryPlatform.id,
           label: libraryGame.libraryPlatform.abbreviation
         } : undefined,
-        gameOverview: mapToLibraryGameOverviewDTO(libraryGame.gameDetails)
+        gameOverview: mapToGameOverviewDTO(libraryGame.gameDetails)
       }
     ))
     const filteredCount = await prisma.userGame.count({ where: whereQuery });
@@ -231,12 +226,5 @@ export const libraryService = {
         libraryStatus: true,
       }
     })
-  }
-}
-
-function mapToLibraryGameOverviewDTO (game: LibraryGameOverviewRow): LibraryGameOverviewDTO {
-  return {
-    ...mapToGameOverviewDTO(game),
-    timeToBeat: game.timeToBeat?.normally ?? null
   }
 }

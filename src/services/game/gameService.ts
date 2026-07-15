@@ -295,26 +295,7 @@ export const GameService = {
       orderBy: {
         releaseDate: 'asc'
       },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        coverId: true,
-        releaseDate: true,
-        totalRating: true,
-        platforms: {
-          select: {
-            id: true,
-            abbreviation: true,
-          }
-        },
-        gameType: {
-          select: {
-            id: true,
-            label: true
-          }
-        },
-      },
+      select: gameOverviewSelect,
       take: 18
     });
 
@@ -335,26 +316,7 @@ export const GameService = {
       orderBy: {
         releaseDate: 'desc'
       },
-      select: {
-        id: true,
-        name: true,
-        coverId: true,
-        releaseDate: true,
-        slug: true,
-        totalRating: true,
-        platforms: {
-          select: {
-            id: true,
-            abbreviation: true,
-          }
-        },
-        gameType: {
-          select: {
-            id: true,
-            label: true,
-          }
-        },
-      },
+      select: gameOverviewSelect,
       take: 18
     })
 
@@ -373,6 +335,7 @@ export function mapToGameOverviewDTO (game: GameOverviewRow): GameOverviewDTO {
     totalRating: game.totalRating,
     platforms,
     gameType: game.gameType,
+    timeToBeatNormally: game.timeToBeat?.normally ?? null
   }
 }
 

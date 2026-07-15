@@ -48,9 +48,7 @@ export const libraryGameSelect = {
 // game info only, not library metadata (status/format/platform)
 export type LibraryGameOverviewRow = Prisma.UserGameGetPayload<{ select: typeof libraryGameSelect }>['gameDetails'];
 
-export type LibraryGameOverviewDTO = GameOverviewDTO & {
-  timeToBeat: number | null;
-}
+export type LibraryGameOverviewDTO = GameOverviewDTO;
 
 /***** Query Filters *****/
 export type LibraryGameFilters = {

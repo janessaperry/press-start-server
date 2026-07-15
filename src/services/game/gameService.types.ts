@@ -32,6 +32,7 @@ type GameDTO = {
     }[],
     count: number | null,
   } | null,
+  timeToBeatNormally: number | null,
   collections: {
     id: number,
     name: string,
@@ -97,6 +98,12 @@ export const gameOverviewSelect = {
       label: true
     }
   },
+  timeToBeat: {
+    select: {
+      id: true,
+      normally: true,
+    }
+  }
 } satisfies Prisma.GameSelect;
 
 export type GameOverviewRow = Prisma.GameGetPayload<{ select: typeof gameOverviewSelect }>;
@@ -110,6 +117,7 @@ export type GameOverviewDTO =
     | "totalRating"
     | "gameType"
     | "platforms"
+    | "timeToBeatNormally"
   >
 
 
