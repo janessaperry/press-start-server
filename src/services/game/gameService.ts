@@ -26,7 +26,7 @@ export const GameService = {
     })
   },
 
-  async findAll (filters: GameFilters) {
+  async findAll (filters: GameFilters, userId: number) {
     const {
       search,
       platformFamily, platform,
@@ -202,7 +202,7 @@ export const GameService = {
       }
     }
 
-    let result = await prisma.game.findMany({
+    let gameRows = await prisma.game.findMany({
       where: whereQuery,
       take: takeQuery,
       skip: skipQuery,
@@ -211,8 +211,27 @@ export const GameService = {
     });
     const count = await prisma.game.count({ where: whereQuery });
 
+    if (!userId) {
+      return {
+        games: gameRows.map(mapToGameOverviewDTO),
+        count
+      }
+    }
+
+    const resultGameIds = gameRows.map(game => game.id);
+    const libraryGames = await prisma.userGame.findMany({
+      where: {
+        userId,
+        igdbGameId: {
+          in: resultGameIds
+        }
+      },
+      select: { igdbGameId: true },
+    });
+    const libraryIds = new Set(libraryGames.map(game => game.igdbGameId));
+
     return {
-      games: result.map(mapToGameOverviewDTO),
+      games: gameRows.map(game => ({ ...mapToGameOverviewDTO(game), inLibrary: libraryIds.has(game.id) })),
       count
     };
   },

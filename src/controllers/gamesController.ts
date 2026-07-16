@@ -4,6 +4,7 @@ import { GameService } from "../services/game/gameService.js";
 import { GameDetailsDTO } from "../services/game/gameService.types";
 
 export type GameQuery = {
+  userId?: string;
   search?: string,
   platformFamily?: string,
   platform?: string,
@@ -22,6 +23,7 @@ export type GameQuery = {
 }
 
 export const index = async (req: Request<any, any, any, GameQuery>, res: Response) => {
+  const userId = Number(req.query.userId);
   const {
     search,
     platformFamily, platform,
@@ -53,7 +55,7 @@ export const index = async (req: Request<any, any, any, GameQuery>, res: Respons
     sortCategory,
     sortOrder,
   }
-  const filteredResults = await GameService.findAll(filters);
+  const filteredResults = await GameService.findAll(filters, userId);
 
   let comingSoon;
   let newRelease;
