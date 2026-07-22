@@ -24,3 +24,9 @@ export class RateLimitingError extends AppError {
     this.retryAfter = retryAfter
   }
 }
+
+export class ExternalServiceError extends AppError {
+  constructor (message: string = "External service request failed") {
+    super(message, 502);
+  }
+}

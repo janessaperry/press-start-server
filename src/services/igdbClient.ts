@@ -1,5 +1,5 @@
 import axios from "axios";
-import { igdbConfig } from "../config";
+import { getIgdbConfig, igdbOAuthConfig } from "../config";
 
 export type RawGame = {
   id: number,
@@ -113,7 +113,13 @@ export type RawTimeToBeat = {
 }
 
 export const IgdbClient = {
+  async generateToken () {
+    const response = await axios.post(`${igdbOAuthConfig.url}`);
+    return response.data;
+  },
+
   async getGames (limit: number, offset: number) {
+    const igdbConfig = await getIgdbConfig();
     // todo test with platform 508 only
     // where platforms = (167,48,169,49,130,508,3,14,6)
 
@@ -157,6 +163,7 @@ export const IgdbClient = {
   },
 
   async getGameTypes (): Promise<RawGameType[]> {
+    const igdbConfig = await getIgdbConfig();
     let data = `
     fields id, type, checksum;
     where id = (0,1,2,3,4,8,9,10,11);
@@ -169,6 +176,7 @@ export const IgdbClient = {
   },
 
   async getGenres (): Promise<RawGenre[]> {
+    const igdbConfig = await getIgdbConfig();
     let data = `
     fields id, name, checksum;
     limit 50;
@@ -181,6 +189,7 @@ export const IgdbClient = {
   },
 
   async getThemes (): Promise<RawTheme[]> {
+    const igdbConfig = await getIgdbConfig();
     let data = `fields
     id, name, checksum;
     where id != 42;
@@ -194,6 +203,7 @@ export const IgdbClient = {
   },
 
   async getPlatformFamilies (): Promise<RawPlatformFamily[]> {
+    const igdbConfig = await getIgdbConfig();
     const data = `fields
     id, name, slug, checksum;
     where id != 3;
@@ -207,6 +217,7 @@ export const IgdbClient = {
   },
 
   async getPlatforms (): Promise<RawPlatform[]> {
+    const igdbConfig = await getIgdbConfig();
     const data = `fields
     id, name, abbreviation, platform_family, checksum;
     where id = (167,48,169,49,130,508,3,14,6);
@@ -220,6 +231,7 @@ export const IgdbClient = {
   },
 
   async getCollections (limit: number, offset: number): Promise<RawCollection[]> {
+    const igdbConfig = await getIgdbConfig();
     const data = `fields
     id, name, checksum;
     limit ${limit};
@@ -234,6 +246,7 @@ export const IgdbClient = {
   },
 
   async getFranchises (limit: number, offset: number): Promise<RawFranchise[]> {
+    const igdbConfig = await getIgdbConfig();
     const data = `fields
       id, name, checksum;
       limit ${limit};
@@ -247,6 +260,7 @@ export const IgdbClient = {
   },
 
   async getTimeToBeat (limit: number, offset: number): Promise<RawTimeToBeat[]> {
+    const igdbConfig = await getIgdbConfig();
     const data = `fields 
       id, game_id, hastily, normally, completely, count, checksum;
       limit ${limit};
