@@ -86,6 +86,9 @@ export const GameSync = {
     let updated = 0;
     let totalProcessed = 0;
 
+    const allPlatforms = await prisma.platform.findMany({ select: { id: true } });
+    const validPlatformIds = new Set(allPlatforms.map(p => p.id));
+
     let baseGameConnections: { id: number, baseGameId: number }[] = [];
 
     while (true) {
@@ -94,7 +97,7 @@ export const GameSync = {
       const rawGames = await IgdbClient.getGames(limit, offset);
       if (rawGames.length === 0) break;
 
-      const mappedGames = await Promise.all(rawGames.map(mapRawGameToDb));
+      const mappedGames = await Promise.all(rawGames.map(game => mapRawGameToDb(game, validPlatformIds)));
       for (const game of mappedGames) {
         try {
           const existingGame = await GameService.findById(game.gameDetails.id);
@@ -163,7 +166,7 @@ export const GameSync = {
 }
 
 
-async function mapRawGameToDb (rawGame: RawGame): Promise<{
+async function mapRawGameToDb (rawGame: RawGame, validPlatformIds: Set<number>): Promise<{
   gameDetails: Prisma.GameCreateInput,
   relations: Relations,
   selfRelations: SelfRelations
@@ -175,7 +178,7 @@ async function mapRawGameToDb (rawGame: RawGame): Promise<{
   const involvedCompanies = rawGame.involved_companies;
   const { developers, publishers } = normalizeInvolvedCompanies(involvedCompanies);
 
-  const validPlatforms = await filterValidPlatforms(rawGame.platforms);
+  const validPlatforms = filterValidPlatforms(rawGame.platforms, validPlatformIds);
   const screenshotIds = rawGame.screenshots ? rawGame.screenshots.map(item => item.image_id) : [];
 
   return {
@@ -227,18 +230,9 @@ function normalizeReleaseDates (releaseDates: RawGame["release_dates"]): Date | 
   return new Date(releaseDate * 1000);
 }
 
-async function filterValidPlatforms (platformIds: number[]): Promise<number[]> {
+function filterValidPlatforms (platformIds: number[], validPlatformIds: Set<number>): number[] {
   if (!platformIds) return [];
-
-  let validPlatforms: number[] = [];
-  for (const id of platformIds) {
-    const platform = await prisma.platform.findUnique({
-      where: { id }
-    })
-    if (platform) validPlatforms.push(id);
-
-  }
-  return validPlatforms;
+  return platformIds.filter(id => validPlatformIds.has(id));
 }
 
 function normalizeInvolvedCompanies (involvedCompanies: RawGame["involved_companies"]): {
