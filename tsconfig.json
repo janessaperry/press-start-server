@@ -13,7 +13,8 @@
     "resolveJsonModule": true,
     "allowJs": true,
     "esModuleInterop": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "jsx": "react-jsx"
   },
   "include": [
     "src/**/*"

@@ -11,7 +11,8 @@
     "reset": "npx prisma migrate reset",
     "migrate": "npx prisma migrate dev --create-only",
     "seed": "npx prisma db seed",
-    "generate": "npx prisma generate"
+    "generate": "npx prisma generate",
+    "email:dev": "email dev --dir src/emails"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -22,6 +23,7 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.1.0",
     "@prisma/client": "^7.4.2",
+    "@react-email/components": "^1.0.12",
     "axios": "^1.13.2",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -30,10 +32,14 @@
     "pg": "^8.16.3",
     "pino": "^10.3.1",
     "pino-http": "^11.0.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-email": "6.9.0",
     "resend": "^6.0.1",
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@react-email/ui": "6.9.0",
     "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.18",
     "@types/express": "^5.0.1",

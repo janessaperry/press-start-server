@@ -8,7 +8,7 @@ export const TokenService = {
     try {
       const rawToken = uuidv4();
       const hashedToken = await bcrypt.hash(rawToken, 10);
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 60 minutes
 
       await prisma.passwordResetToken.deleteMany({
         where: { userId: user.id },
