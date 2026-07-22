@@ -15,16 +15,39 @@ import {
 
 type IgdbTokenResponse = { access_token: string; expires_in: number };
 
+const MAX_RETRIES = 3;
+
+function sleep (ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function igdbPost<T> (url: string, data?: string, config?: { headers: Record<string, string> }): Promise<T> {
-  try {
-    const response = await axios.post(url, data, config);
-    return response.data;
-  } catch (e) {
-    if (e instanceof AxiosError) {
-      const status = e.response?.status ?? e.code ?? 'network error';
-      throw new ExternalServiceError(`IGDB API error (${status})`);
+  let attempt = 0;
+
+  while (true) {
+    try {
+      const response = await axios.post(url, data, config);
+      return response.data;
+    } catch (e) {
+      if (e instanceof AxiosError) {
+        const status = e.response?.status;
+
+        if (status === 429 && attempt < MAX_RETRIES) {
+          const retryAfterHeader = e.response?.headers['retry-after'];
+          const waitMs = retryAfterHeader
+            ? parseInt(retryAfterHeader, 10) * 1000
+            : Math.pow(2, attempt) * 1000;
+
+          console.log(`IGDB rate limited. Retrying in ${waitMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
+          await sleep(waitMs);
+          attempt++;
+          continue;
+        }
+
+        throw new ExternalServiceError(`IGDB API error (${status ?? e.code ?? 'network error'})`);
+      }
+      throw e;
     }
-    throw e;
   }
 }
 
