@@ -1,8 +1,8 @@
 import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { Genre, Prisma } from "../generated/prisma/client";
-import { IgdbClient, RawGenre } from "./igdbClient.js";
-
+import { IgdbClient } from "../integrations/igdbClient.js";
+import { RawGenre } from "../integrations/igdbClient.types.js";
 
 export const GenreService = {
   async findAll () {

@@ -1,6 +1,7 @@
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
-import { IgdbClient, RawGame } from "../igdbClient.js";
+import { IgdbClient } from "../../integrations/igdbClient.js";
+import { RawGame } from "../../integrations/igdbClient.types";
 import { GameService } from "./gameService";
 import { GameDetailsDTO } from "./gameService.types";
 

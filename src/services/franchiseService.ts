@@ -1,7 +1,8 @@
 import { ProcessingCounts } from "../controllers/adminController";
 import { prisma } from "../db/client";
 import { Franchise, Prisma } from "../generated/prisma/client";
-import { IgdbClient, RawFranchise } from "./igdbClient";
+import { IgdbClient } from "../integrations/igdbClient";
+import { RawFranchise } from "../integrations/igdbClient.types";
 
 export const FranchiseService = {
   async findById (id: number): Promise<Franchise | null> {

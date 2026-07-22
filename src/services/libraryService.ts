@@ -11,7 +11,6 @@ import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums"
 import { mapToGameOverviewDTO } from "./game/gameService";
 import { LibraryGameFilters, libraryGameSelect } from "./libraryService.types";
 
-
 const VALID_SORT_CATEGORIES = ['createdAt', 'name', 'releaseDate'] as const;
 const VALID_SORT_ORDERS = ['asc', 'desc'] as const;
 type SortCategory = typeof VALID_SORT_CATEGORIES[number];
@@ -139,7 +138,6 @@ export const libraryService = {
 
     if (timeToBeat) {
       const ttbIds = timeToBeat.split(",").map((id: string) => Number(id.trim()));
-      // const validTtbIds = ttbIds.filter((ttbId) => TIME_TO_BEAT_FILTERS.find((filter) => ttbId === filter.id))
       const validTtbIds = TIME_TO_BEAT_FILTERS.filter((ttbFilter) => ttbIds.find((id) => id === ttbFilter.id))
 
       const orConditions = validTtbIds.map((ttbItem) => {

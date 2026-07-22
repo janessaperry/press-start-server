@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { prisma } from "../db/client.js";
 import { AppError, RateLimitingError, ValidationError } from "../errors/AppError";
+import { EmailService } from "../integrations/emailService.js";
 import { AuthService } from "../services/authService.js";
-import { EmailService } from "../services/emailService.js";
 import { TokenService } from "../services/tokenService.js";
 import { UserService } from "../services/userService.js";
 import { validateEmailFormat, validatePasswordFormat } from "../utils/validators.js";

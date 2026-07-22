@@ -1,7 +1,8 @@
 import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { GameType, Prisma } from "../generated/prisma/client";
-import { IgdbClient, RawGameType } from "./igdbClient.js";
+import { IgdbClient } from "../integrations/igdbClient.js";
+import { RawGameType } from "../integrations/igdbClient.types";
 
 export const GameTypeService = {
   async findById (id: number): Promise<GameType | null> {

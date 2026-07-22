@@ -1,7 +1,8 @@
 import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { Platform, PlatformFamily, Prisma } from "../generated/prisma/client";
-import { IgdbClient, RawPlatform, RawPlatformFamily } from "./igdbClient.js";
+import { IgdbClient } from "../integrations/igdbClient.js";
+import { RawPlatform, RawPlatformFamily } from "../integrations/igdbClient.types.js";
 
 export const PlatformService = {
   async findAllPlatformFamily () {

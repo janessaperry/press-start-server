@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { prisma } from "../db/client";
-import { IgdbClient } from "../services/igdbClient";
+import { IgdbClient } from "../integrations/igdbClient";
 
 export const refreshIgdbToken = async () => {
   try {

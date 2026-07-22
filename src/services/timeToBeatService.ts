@@ -1,7 +1,8 @@
 import { ProcessingCounts } from "../controllers/adminController";
 import { prisma } from "../db/client";
 import { Prisma, TimeToBeat } from "../generated/prisma/client";
-import { IgdbClient, RawTimeToBeat } from "./igdbClient";
+import { IgdbClient } from "../integrations/igdbClient";
+import { RawTimeToBeat } from "../integrations/igdbClient.types";
 
 export const TimeToBeatService = {
   async findById (id: number): Promise<TimeToBeat | null> {

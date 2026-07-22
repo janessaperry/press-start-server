@@ -1,7 +1,8 @@
+import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
 import { Prisma, Theme } from "../generated/prisma/client"
-import { IgdbClient, RawTheme } from "./igdbClient.js";
-import { ProcessingCounts } from "../controllers/adminController.js";
+import { IgdbClient } from "../integrations/igdbClient.js";
+import { RawTheme } from "../integrations/igdbClient.types.js";
 
 
 export const ThemeService = {
