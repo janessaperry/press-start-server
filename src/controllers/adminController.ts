@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { runFullSync } from "../jobs/syncIgdb";
 import { CollectionService } from "../services/collectionService";
 import { FranchiseService } from "../services/franchiseService";
 import { GameSync } from "../services/game/gameSync";
@@ -14,64 +15,9 @@ export type ProcessingCounts = {
   totalProcessed: number,
 }
 
-function toResult<T> (result: PromiseSettledResult<T>): T | { error: string } {
-  if (result.status === 'fulfilled') return result.value;
-  const err = result.reason;
-  return { error: err instanceof Error ? err.message : 'Sync failed' };
-}
-
 export const syncAll = async (_req: Request, res: Response) => {
-  const [gameTypeResult, genreResult, themeResult, platformResult, collectionResult, franchiseResult] = await Promise.allSettled([
-    GameTypeService.syncWithIgdb(),
-    GenreService.syncWithIgdb(),
-    ThemeService.syncWithIgdb(),
-    PlatformService.syncWithIgdb(),
-    CollectionService.syncWithIgdb(),
-    FranchiseService.syncWithIgdb(),
-  ]);
-
-  const prerequisitesFailed = [gameTypeResult, genreResult, themeResult, platformResult, collectionResult, franchiseResult]
-    .some(result => result.status === 'rejected');
-
-  let gameCounts: ProcessingCounts | { error: string };
-  if (prerequisitesFailed) {
-    gameCounts = { error: 'Skipped: one or more prerequisite syncs failed' };
-  } else {
-    try {
-      gameCounts = await GameSync.syncWithIgdb();
-    } catch (err) {
-      gameCounts = { error: err instanceof Error ? err.message : 'Game sync failed' };
-    }
-  }
-
-  let timeToBeatCounts: ProcessingCounts | { error: string };
-  if ('error' in gameCounts) {
-    timeToBeatCounts = { error: 'Skipped: game sync did not complete successfully' };
-  } else {
-    try {
-      timeToBeatCounts = await TimeToBeatService.syncWithIgdb();
-    } catch (err) {
-      timeToBeatCounts = { error: err instanceof Error ? err.message : 'Time to beat sync failed' };
-    }
-  }
-
-  const results = {
-    gameTypeCounts: toResult(gameTypeResult),
-    genreCounts: toResult(genreResult),
-    themeCounts: toResult(themeResult),
-    platformCounts: toResult(platformResult),
-    collectionCounts: toResult(collectionResult),
-    franchiseCounts: toResult(franchiseResult),
-    gameCounts,
-    timeToBeatCounts,
-  };
-
-  const hasErrors = Object.values(results).some(r => r !== null && typeof r === 'object' && 'error' in r);
-
-  res.status(hasErrors ? 207 : 200).json({
-    message: hasErrors ? "Sync completed with errors." : "Full sync complete!",
-    ...results,
-  });
+  void runFullSync();
+  res.status(202).json({ message: "Sync started." });
   return;
 }
 
