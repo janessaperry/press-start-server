@@ -1,6 +1,7 @@
 import axios, { AxiosError } from "axios";
 import { getIgdbConfig, igdbOAuthConfig } from "../config";
 import { ExternalServiceError } from "../errors/AppError";
+import { logger } from "../errors/logger";
 import {
   IgdbTokenResponse,
   RawCollection,
@@ -38,7 +39,7 @@ async function igdbPost<T> (url: string, data?: string, config?: { headers: Reco
             ? parseInt(retryAfterHeader, 10) * 1000
             : Math.pow(2, attempt) * 1000;
 
-          console.log(`IGDB rate limited. Retrying in ${waitMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
+          logger.warn(`IGDB rate limited. Retrying in ${waitMs}ms (attempt ${attempt + 1}/${MAX_RETRIES})...`);
           await sleep(waitMs);
           attempt++;
           continue;

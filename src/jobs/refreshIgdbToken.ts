@@ -1,5 +1,6 @@
 import "dotenv/config";
 import { prisma } from "../db/client";
+import { logger } from "../errors/logger";
 import { IgdbClient } from "../integrations/igdbClient";
 
 export const refreshIgdbToken = async () => {
@@ -36,6 +37,6 @@ export const refreshIgdbToken = async () => {
     }
 
   } catch (e) {
-    console.error("IGDB token refresh failed:", e);
+    logger.error({ err: e }, "IGDB token refresh failed");
   }
 }

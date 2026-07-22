@@ -1,9 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import { AppError, RateLimitingError, ValidationError } from "../errors/AppError";
+import { logger } from "../errors/logger";
 
 export function errorHandler (err: Error, req: Request, res: Response, next: NextFunction) {
-  // todo log the error - update to pino?
-  console.error("errorHandler - err", err);
+  logger.error({ err }, err.message);
 
   if (err instanceof AppError) {
     const errors = err instanceof ValidationError ? err.errors : undefined;

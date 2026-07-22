@@ -1,8 +1,10 @@
 import cors from 'cors';
 import 'dotenv/config';
 import express, { Request, Response } from 'express';
+import pinoHttp from 'pino-http';
 
 import { ENV } from "./config/env.js";
+import { logger } from "./errors/logger";
 import { initializeJobs } from "./jobs";
 import { errorHandler } from "./middlewares/errorHandler";
 
@@ -15,6 +17,7 @@ import usersRoutes from "./routes/usersRoutes.js";
 
 const app = express();
 
+app.use(pinoHttp({ logger }));
 app.use(express.json());
 app.use(cors({ origin: ENV.CORS_ORIGIN }));
 app.use("/public", express.static("public"));
@@ -31,7 +34,6 @@ app.use("/users", usersRoutes)
 app.use("/users/:userId/library", libraryRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
-  console.log(process.env.NODE_ENV);
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
@@ -45,5 +47,5 @@ initializeJobs();
 
 const port = ENV.SERVER_PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
+  logger.info(`Server running at http://localhost:${port}`);
 });

@@ -1,5 +1,6 @@
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
+import { logger } from "../../errors/logger.js";
 import { IgdbClient } from "../../integrations/igdbClient.js";
 import { RawGame } from "../../integrations/igdbClient.types";
 import { GameService } from "./gameService";
@@ -92,7 +93,7 @@ export const GameSync = {
     let baseGameConnections: { id: number, baseGameId: number }[] = [];
 
     while (true) {
-      console.log(`Fetching IGDB games ${offset}–${offset + limit}...`);
+      logger.info(`Fetching IGDB games ${offset}–${offset + limit}...`);
 
       const rawGames = await IgdbClient.getGames(limit, offset);
       if (rawGames.length === 0) break;
@@ -121,7 +122,7 @@ export const GameSync = {
             });
           }
         } catch (err) {
-          console.error(`Failed to sync game ${game.gameDetails.id} (${game.gameDetails.name}):`, err);
+          logger.error({ err }, `Failed to sync game ${game.gameDetails.id} (${game.gameDetails.name})`);
         }
       }
 
@@ -155,12 +156,12 @@ export const GameSync = {
             }
           });
         } catch (err) {
-          console.error(`Failed to link game ${gameId} to base game ${baseGameId}:`, err);
+          logger.error({ err }, `Failed to link game ${gameId} to base game ${baseGameId}`);
         }
       }
     }
 
-    console.log(`Game sync complete. Total processed: ${totalProcessed}`);
+    logger.info(`Game sync complete. Total processed: ${totalProcessed}`);
     return { updated, created, totalProcessed };
   }
 }
