@@ -13,6 +13,16 @@ datasource db {
   provider = "postgresql"
 }
 
+model IgdbToken {
+  id          Int      @id @default(autoincrement())
+  accessToken String   @map("access_token")
+  expiresIn   Int      @map("expires_in")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("igdb_token")
+}
+
 model User {
   id             Int      @id @default(autoincrement())
   email          String   @unique
