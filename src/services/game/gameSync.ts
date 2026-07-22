@@ -96,26 +96,29 @@ export const GameSync = {
 
       const mappedGames = await Promise.all(rawGames.map(mapRawGameToDb));
       for (const game of mappedGames) {
-        const existingGame = await GameService.findById(game.gameDetails.id);
-        if (existingGame) {
-          if (existingGame.igdbChecksum !== game.gameDetails.igdbChecksum) {
-            await this.updateGameById(existingGame.id, game.gameDetails, game.relations);
-            updated++;
+        try {
+          const existingGame = await GameService.findById(game.gameDetails.id);
+          if (existingGame) {
+            if (existingGame.igdbChecksum !== game.gameDetails.igdbChecksum) {
+              await this.updateGameById(existingGame.id, game.gameDetails, game.relations);
+              updated++;
+            }
+          } else {
+            await this.createGame(game.gameDetails, game.relations);
+            created++;
           }
-        }
-        else {
-          await this.createGame(game.gameDetails, game.relations);
-          created++;
-        }
 
-        totalProcessed++;
+          totalProcessed++;
 
-        // collect relationship data during sync so we can check if the games exist in the db before connecting records
-        if (game.selfRelations.baseGameId) {
-          baseGameConnections.push({
-            id: game.gameDetails.id,
-            baseGameId: game.selfRelations.baseGameId
-          })
+          // collect relationship data during sync so we can check if the games exist in the db before connecting records
+          if (game.selfRelations.baseGameId) {
+            baseGameConnections.push({
+              id: game.gameDetails.id,
+              baseGameId: game.selfRelations.baseGameId
+            });
+          }
+        } catch (err) {
+          console.error(`Failed to sync game ${game.gameDetails.id} (${game.gameDetails.name}):`, err);
         }
       }
 
@@ -137,16 +140,20 @@ export const GameSync = {
 
       // only connect if the base game exists
       if (existingBaseGameIds.has(baseGameId)) {
-        await prisma.game.update({
-          where: { id: gameId },
-          data: {
-            baseGame: {
-              connect: {
-                id: baseGameId
+        try {
+          await prisma.game.update({
+            where: { id: gameId },
+            data: {
+              baseGame: {
+                connect: {
+                  id: baseGameId
+                }
               }
             }
-          }
-        })
+          });
+        } catch (err) {
+          console.error(`Failed to link game ${gameId} to base game ${baseGameId}:`, err);
+        }
       }
     }
 

@@ -36,6 +36,6 @@ export const refreshIgdbToken = async () => {
     }
 
   } catch (e) {
-    console.log("Error refreshing token", e)
+    console.error("IGDB token refresh failed:", e);
   }
 }
