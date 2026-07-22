@@ -2,6 +2,7 @@ import axios, { AxiosError } from "axios";
 import { getIgdbConfig, igdbOAuthConfig } from "../config";
 import { ExternalServiceError } from "../errors/AppError";
 import {
+  IgdbTokenResponse,
   RawCollection,
   RawFranchise,
   RawGame,
@@ -13,7 +14,6 @@ import {
   RawTimeToBeat
 } from "./igdbClient.types";
 
-type IgdbTokenResponse = { access_token: string; expires_in: number };
 
 const MAX_RETRIES = 3;
 
@@ -83,7 +83,7 @@ export const IgdbClient = {
     themes,
     total_rating,total_rating_count;
 
-    where platforms = (508)
+    where platforms = (167,508)
     & age_ratings.organization = 1
     & game_type = (0,1,2,3,4,8,9,10,11)
     & themes != (42)

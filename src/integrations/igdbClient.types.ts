@@ -1,3 +1,5 @@
+export type IgdbTokenResponse = { access_token: string; expires_in: number };
+
 export type RawGame = {
   id: number,
   name: string,
