@@ -16,7 +16,7 @@ export default function PasswordReset ({ resetUrl = `${baseFrontendUrl}/reset-pa
       <Body style={styles.body}>
         <Section style={styles.container}>
           <Img style={styles.logo}
-            src={`${baseServerUrl}/public/images/press-start-logo--on-light.png`}
+            src={`${baseServerUrl}/images/press-start-logo--on-light.png`}
             width="260"
             height="20"/>
 

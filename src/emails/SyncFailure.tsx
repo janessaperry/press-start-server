@@ -29,7 +29,7 @@ export default function SyncFailure ({
 
       <Body style={styles.body}>
         <Section style={styles.container}>
-          <Img style={styles.logo} src={`${baseUrl}/public/images/press-start-logo--on-light.png`} width="260" height="20"/>
+          <Img style={styles.logo} src={`${baseUrl}/images/press-start-logo--on-light.png`} width="260" height="20"/>
 
           <Text style={styles.heading}>Weekly IGDB Sync Failed</Text>
           <Text style={styles.text}>

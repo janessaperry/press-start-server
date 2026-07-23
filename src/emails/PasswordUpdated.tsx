@@ -12,7 +12,7 @@ export default function PasswordUpdated () {
       <Body style={styles.body}>
         <Section style={styles.container}>
           <Img style={styles.logo}
-            src={`${baseServerUrl}/public/images/press-start-logo--on-light.png`}
+            src={`${baseServerUrl}/images/press-start-logo--on-light.png`}
             width="260"
             height="20"/>
 
@@ -21,8 +21,8 @@ export default function PasswordUpdated () {
             Your Press Start password has been updated successfully. You can now sign in using your new password.
           </Text>
 
-          <Button href={`${baseFrontendUrl}/explore`} style={styles.button}>
-            Explore Games
+          <Button href={`${baseFrontendUrl}/sign-in`} style={styles.button}>
+            Sign In
           </Button>
 
           <Text style={styles.footer}>

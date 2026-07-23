@@ -11,7 +11,7 @@ export default function Welcome () {
       <Preview>Welcome to Press Start!</Preview>
       <Body style={styles.body}>
         <Section style={styles.container}>
-          <Img style={styles.logo} src={`${baseServerUrl}/public/images/press-start-logo--on-light.png`} width="260" height="20"/>
+          <Img style={styles.logo} src={`${baseServerUrl}/images/press-start-logo--on-light.png`} width="260" height="20"/>
 
           <Text style={styles.heading}>Welcome to Press Start!</Text>
           <Text style={styles.text}>

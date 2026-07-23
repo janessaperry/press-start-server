@@ -20,7 +20,7 @@ const app = express();
 app.use(pinoHttp({ logger }));
 app.use(express.json());
 app.use(cors({ origin: ENV.CORS_ORIGIN }));
-app.use("/public", express.static("public"));
+app.use(express.static("public"));
 
 app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Press Start API!' });

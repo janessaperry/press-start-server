@@ -1,9 +1,11 @@
 import { Request, Response } from "express";
 import { AppError, ValidationError } from "../errors/AppError";
+import { EmailService } from "../integrations/emailService";
 import { AuthService } from "../services/authService.js";
 import { UserService } from "../services/userService.js";
 import { validatePasswordFormat } from "../utils/validators.js";
 
+// authenticated flow: logged in user changing password
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   if (isNaN(userId)) throw new AppError("Invalid user id", 400)
@@ -26,6 +28,8 @@ export const updatePassword = async (req: Request, res: Response) => {
   }
 
   await AuthService.hashAndUpdatePassword(userId, newPassword);
+  await EmailService.sendPasswordUpdatedEmail(user.email);
+
   res.status(200).json({ message: "Password updated successfully" });
 };
 

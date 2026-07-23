@@ -26,6 +26,7 @@ export const register = async (req: Request, res: Response) => {
 
   const hashedPassword = await AuthService.hashPassword(password);
   const newUser = await UserService.createNewUser(email, hashedPassword);
+  await EmailService.sendWelcomeEmail(email);
 
   const token = AuthService.createAuthToken(newUser);
 
@@ -94,6 +95,7 @@ export const requestPasswordReset = async (req: Request, res: Response) => {
   });
 }
 
+// completes forgot password flow: validates token and sets new password
 export const resetPassword = async (req: Request, res: Response) => {
   const { plainToken, newPassword } = req.body;
 
@@ -118,6 +120,9 @@ export const resetPassword = async (req: Request, res: Response) => {
     AuthService.updatePasswordTx(userId, hashedPassword),
     TokenService.deleteToken(tokenId),
   ]);
+
+  const user = await UserService.findById(userId);
+  if (user) await EmailService.sendPasswordUpdatedEmail(user.email);
 
   res.status(200).send({ message: "Password reset successful" });
 }
