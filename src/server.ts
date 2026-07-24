@@ -6,6 +6,7 @@ import pinoHttp from 'pino-http';
 import { ENV } from "./config/env.js";
 import { logger } from "./errors/logger";
 import { initializeJobs } from "./jobs";
+import { authenticateToken } from "./middlewares/authenticateToken";
 import { errorHandler } from "./middlewares/errorHandler";
 
 import adminRoutes from "./routes/adminRoutes.js";
@@ -17,7 +18,10 @@ import usersRoutes from "./routes/usersRoutes.js";
 
 const app = express();
 
-app.use(pinoHttp({ logger }));
+app.use(pinoHttp({
+  logger,
+  autoLogging: false,
+}));
 app.use(express.json());
 app.use(cors({ origin: ENV.CORS_ORIGIN }));
 app.use(express.static("public"));
@@ -30,8 +34,8 @@ app.use("/admin", adminRoutes)
 app.use("/auth", authRoutes)
 app.use("/filters", filtersRoutes)
 app.use("/games", gamesRoutes)
-app.use("/users", usersRoutes)
-app.use("/users/:userId/library", libraryRoutes)
+app.use("/users", authenticateToken, usersRoutes)
+app.use("/users/:userId/library", authenticateToken, libraryRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
