@@ -32,6 +32,7 @@ type LibraryGameQuery = {
 export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: Response) => {
   const userId = Number(req.params.userId);
   if (isNaN(userId)) throw new AppError("Invalid user id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const {
     libraryStatus, libraryFormat,
@@ -67,6 +68,7 @@ export const show = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
   if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundGame = await libraryService.findById(userId, igdbGameId);
   if (!foundGame) throw new AppError("Game not found in user's library", 404);
@@ -85,6 +87,7 @@ export const show = async (req: Request, res: Response) => {
 export const create = async (req: Request<any, any, CreateLibraryBody>, res: Response) => {
   const userId = Number(req.params.userId);
   if (isNaN(userId)) throw new AppError("Invalid user id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const igdbGameId = Number(req.body.gameId);
   if (isNaN(igdbGameId)) throw new AppError("Invalid game id", 400);
@@ -123,6 +126,7 @@ export const update = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
   if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundUserGame = await prisma.userGame.findUnique({
     where: {
@@ -166,6 +170,7 @@ export const remove = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
   if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundUser = await prisma.user.findUnique({
     where: { id: userId }

@@ -8,7 +8,8 @@ import { validatePasswordFormat } from "../utils/validators.js";
 // authenticated flow: logged in user changing password
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) throw new AppError("Invalid user id", 400)
+  if (isNaN(userId)) throw new AppError("Invalid user id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const { currentPassword, newPassword } = req.body;
   if (!currentPassword || !newPassword) {
@@ -35,7 +36,8 @@ export const updatePassword = async (req: Request, res: Response) => {
 
 export const destroy = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) throw new AppError("Invalid user id", 400)
+  if (isNaN(userId)) throw new AppError("Invalid user id", 400);
+  if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundUser = await UserService.findById(userId);
   if (!foundUser) throw new AppError("User not found", 404);
