@@ -7,8 +7,9 @@ import { ENV } from "./config/env.js";
 import { logger } from "./errors/logger";
 import { initializeJobs } from "./jobs";
 import { authenticateToken } from "./middlewares/authenticateToken";
-import { requireAdminKey } from "./middlewares/requireAdminKey";
 import { errorHandler } from "./middlewares/errorHandler";
+import { adminLimiter, authLimiter } from "./middlewares/rateLimiter";
+import { requireAdminKey } from "./middlewares/requireAdminKey";
 
 import adminRoutes from "./routes/adminRoutes.js";
 import authRoutes from "./routes/authRoutes.js";
@@ -31,8 +32,8 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Press Start API!' });
 });
 
-app.use("/admin", requireAdminKey, adminRoutes)
-app.use("/auth", authRoutes)
+app.use("/admin", adminLimiter, requireAdminKey, adminRoutes)
+app.use("/auth", authLimiter, authRoutes)
 app.use("/filters", filtersRoutes)
 app.use("/games", gamesRoutes)
 app.use("/users", authenticateToken, usersRoutes)
