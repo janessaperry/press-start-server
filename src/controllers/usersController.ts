@@ -5,7 +5,7 @@ import { AuthService } from "../services/authService.js";
 import { UserService } from "../services/userService.js";
 import { validatePasswordFormat } from "../utils/validators.js";
 
-// authenticated flow: logged in user changing password
+// authenticated flow: logged-in user changing password
 export const updatePassword = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   if (isNaN(userId)) throw new AppError("Invalid user id", 400);

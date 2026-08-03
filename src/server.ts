@@ -8,7 +8,7 @@ import { logger } from "./errors/logger";
 import { initializeJobs } from "./jobs";
 import { authenticateToken } from "./middlewares/authenticateToken";
 import { errorHandler } from "./middlewares/errorHandler";
-import { adminLimiter, authLimiter } from "./middlewares/rateLimiter";
+import { adminLimiter, authLimiter, generousLimiter, libraryLimiter, usersLimiter } from "./middlewares/rateLimiter";
 import { requireAdminKey } from "./middlewares/requireAdminKey";
 
 import adminRoutes from "./routes/adminRoutes.js";
@@ -34,10 +34,10 @@ app.get('/', (req: Request, res: Response) => {
 
 app.use("/admin", adminLimiter, requireAdminKey, adminRoutes)
 app.use("/auth", authLimiter, authRoutes)
-app.use("/filters", filtersRoutes)
-app.use("/games", gamesRoutes)
-app.use("/users", authenticateToken, usersRoutes)
-app.use("/users/:userId/library", authenticateToken, libraryRoutes)
+app.use("/filters", generousLimiter, filtersRoutes)
+app.use("/games", generousLimiter, gamesRoutes)
+app.use("/users", usersLimiter, authenticateToken, usersRoutes)
+app.use("/users/:userId/library", libraryLimiter, authenticateToken, libraryRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
