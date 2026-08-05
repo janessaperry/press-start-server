@@ -25,7 +25,10 @@ app.use(pinoHttp({
   autoLogging: false,
 }));
 app.use(express.json());
-app.use(cors({ origin: ENV.CORS_ORIGIN }));
+app.use(cors({
+  origin: ENV.CORS_ORIGIN,
+  exposedHeaders: ['Retry-After', 'RateLimit', 'RateLimit-Policy']
+}));
 app.use(express.static("public"));
 
 app.get('/', (req: Request, res: Response) => {
@@ -36,7 +39,7 @@ app.use("/admin", adminLimiter, requireAdminKey, adminRoutes)
 app.use("/auth", authLimiter, authRoutes)
 app.use("/filters", generousLimiter, filtersRoutes)
 app.use("/games", generousLimiter, gamesRoutes)
-app.use("/users", usersLimiter, authenticateToken, usersRoutes)
+app.use("/users/:userId/account", usersLimiter, authenticateToken, usersRoutes)
 app.use("/users/:userId/library", libraryLimiter, authenticateToken, libraryRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
