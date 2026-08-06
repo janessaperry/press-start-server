@@ -1,4 +1,8 @@
 import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import { ENV } from "../config/env";
+import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "../constants/filters";
+import { prisma } from "../db/client";
 import { AppError } from "../errors/AppError";
 import { GameService } from "../services/game/gameService.js";
 import { GameDetailsDTO } from "../services/game/gameService.types";
@@ -85,10 +89,50 @@ export const show = async (req: Request, res: Response) => {
   if (isNaN(gameId)) throw new AppError("Invalid game id", 400);
 
   const gameDetails: GameDetailsDTO | null = await GameService.getGameDetails(gameId);
-  if (!gameDetails) throw new AppError("Game not found", 404);
+  if (!gameDetails) return res.status(404).json({ message: "Game not found" });
+
+  const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : undefined;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, ENV.JWT_SECRET);
+      if (decoded && typeof decoded !== 'string') req.user = decoded;
+    } catch {
+      // invalid / expired token — treat as unauthenticated
+    }
+  }
+
+  const userId: number | undefined = req.user ? req.user.userId : undefined;
+  let libraryData;
+  if (userId) {
+    const foundLibraryGame = await prisma.userGame.findUnique({
+      where: {
+        userIdGameId: {
+          userId,
+          igdbGameId: gameId
+        }
+      },
+      select: {
+        libraryStatus: true,
+        libraryPlatform: true,
+        libraryFormat: true
+      }
+    })
+
+    if (foundLibraryGame) {
+      libraryData = {
+        libraryPlatform: foundLibraryGame.libraryPlatform ? {
+          id: foundLibraryGame.libraryPlatform.id,
+          label: foundLibraryGame.libraryPlatform.abbreviation
+        } : undefined,
+        libraryFormat: foundLibraryGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => foundLibraryGame.libraryFormat === item.enum) : undefined,
+        libraryStatus: foundLibraryGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => foundLibraryGame.libraryStatus === item.enum) : undefined,
+      }
+    }
+  }
 
   res.status(200).json({
-    gameDetails
+    gameDetails,
+    libraryData
   });
 }
 

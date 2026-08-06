@@ -71,7 +71,10 @@ export const show = async (req: Request, res: Response) => {
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundGame = await libraryService.findById(userId, igdbGameId);
-  if (!foundGame) throw new AppError("Game not found in user's library", 404);
+  if (!foundGame) {
+    res.status(404).json({ message: "Game not found in user's library" });
+    return;
+  }
 
   res.status(200).json({
     message: "Game details from user's library",
@@ -136,7 +139,7 @@ export const update = async (req: Request, res: Response) => {
       }
     }
   });
-  if (!foundUserGame) throw new AppError("Game not found in user's library", 404);
+  if (!foundUserGame) return res.status(404).json({ message: "Game not found in user's library" });
 
   const updatedData = req.body;
   const data: Prisma.UserGameUncheckedUpdateInput = {};
@@ -172,11 +175,6 @@ export const remove = async (req: Request, res: Response) => {
   if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
-  const foundUser = await prisma.user.findUnique({
-    where: { id: userId }
-  })
-  if (!foundUser) throw new AppError("User not found", 404);
-
   const foundUserGame = await prisma.userGame.findUnique({
     where: {
       userIdGameId: {
@@ -185,7 +183,7 @@ export const remove = async (req: Request, res: Response) => {
       }
     }
   })
-  if (!foundUserGame) throw new AppError("Game not found in user's library", 404);
+  if (!foundUserGame) return res.status(404).json({ message: "Game not found in user's library" });
 
   await prisma.userGame.delete({
     where: {
