@@ -19,3 +19,18 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
     next();
   });
 }
+
+export function authenticateOptionalToken (req: Request, res: Response, next: NextFunction) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, ENV.JWT_SECRET);
+      if (decoded && typeof decoded !== 'string') req.user = decoded;
+    } catch {
+      // invalid / expired token — treat as unauthenticated
+    }
+  }
+  next();
+}

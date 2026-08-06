@@ -1,10 +1,11 @@
 import { Router } from "express";
 import * as GamesController from "../controllers/gamesController.js";
+import { authenticateOptionalToken } from "../middlewares/authenticateToken.js";
 
 const router = Router();
 router
-  .get("/", GamesController.index)
+  .get("/", authenticateOptionalToken, GamesController.index)
   .get("/search/:searchQuery", GamesController.search)
-  .get("/:gameId", GamesController.show)
+  .get("/:gameId", authenticateOptionalToken, GamesController.show)
 
 export default router;

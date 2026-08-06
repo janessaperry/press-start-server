@@ -1,14 +1,10 @@
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
-import { ENV } from "../config/env";
-import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "../constants/filters";
-import { prisma } from "../db/client";
 import { AppError } from "../errors/AppError";
+import { libraryService } from "../services/libraryService.js";
 import { GameService } from "../services/game/gameService.js";
 import { GameDetailsDTO } from "../services/game/gameService.types";
 
 export type GameQuery = {
-  userId?: string;
   search?: string,
   platformFamily?: string,
   platform?: string,
@@ -27,7 +23,7 @@ export type GameQuery = {
 }
 
 export const index = async (req: Request<any, any, any, GameQuery>, res: Response) => {
-  const userId = Number(req.query.userId);
+  const userId: number | undefined = req.user?.userId;
   const {
     search,
     platformFamily, platform,
@@ -91,44 +87,8 @@ export const show = async (req: Request, res: Response) => {
   const gameDetails: GameDetailsDTO | null = await GameService.getGameDetails(gameId);
   if (!gameDetails) return res.status(404).json({ message: "Game not found" });
 
-  const token = req.headers.authorization ? req.headers.authorization.split(" ")[1] : undefined;
-  if (token) {
-    try {
-      const decoded = jwt.verify(token, ENV.JWT_SECRET);
-      if (decoded && typeof decoded !== 'string') req.user = decoded;
-    } catch {
-      // invalid / expired token — treat as unauthenticated
-    }
-  }
-
-  const userId: number | undefined = req.user ? req.user.userId : undefined;
-  let libraryData;
-  if (userId) {
-    const foundLibraryGame = await prisma.userGame.findUnique({
-      where: {
-        userIdGameId: {
-          userId,
-          igdbGameId: gameId
-        }
-      },
-      select: {
-        libraryStatus: true,
-        libraryPlatform: true,
-        libraryFormat: true
-      }
-    })
-
-    if (foundLibraryGame) {
-      libraryData = {
-        libraryPlatform: foundLibraryGame.libraryPlatform ? {
-          id: foundLibraryGame.libraryPlatform.id,
-          label: foundLibraryGame.libraryPlatform.abbreviation
-        } : undefined,
-        libraryFormat: foundLibraryGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => foundLibraryGame.libraryFormat === item.enum) : undefined,
-        libraryStatus: foundLibraryGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => foundLibraryGame.libraryStatus === item.enum) : undefined,
-      }
-    }
-  }
+  const userId: number | undefined = req.user?.userId;
+  const libraryData = userId ? await libraryService.findById(userId, gameId) : undefined;
 
   res.status(200).json({
     gameDetails,

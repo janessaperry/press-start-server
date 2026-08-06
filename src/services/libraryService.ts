@@ -207,7 +207,7 @@ export const libraryService = {
   },
 
   async findById (userId: number, igdbGameId: number) {
-    return await prisma.userGame.findUnique({
+    const userGame = await prisma.userGame.findUnique({
       where: {
         userIdGameId: {
           userId, igdbGameId
@@ -223,6 +223,17 @@ export const libraryService = {
         libraryFormat: true,
         libraryStatus: true,
       }
-    })
+    });
+
+    if (!userGame) return null;
+
+    return {
+      libraryPlatform: userGame.libraryPlatform ? {
+        id: userGame.libraryPlatform.id,
+        label: userGame.libraryPlatform.abbreviation
+      } : undefined,
+      libraryFormat: userGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => userGame.libraryFormat === item.enum) : undefined,
+      libraryStatus: userGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => userGame.libraryStatus === item.enum) : undefined,
+    }
   }
 }

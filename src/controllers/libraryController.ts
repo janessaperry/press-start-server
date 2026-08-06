@@ -77,13 +77,7 @@ export const show = async (req: Request, res: Response) => {
   }
 
   res.status(200).json({
-    message: "Game details from user's library",
-    libraryPlatform: foundGame.libraryPlatform ? {
-      id: foundGame.libraryPlatform.id,
-      label: foundGame.libraryPlatform.abbreviation
-    } : undefined,
-    libraryFormat: foundGame.libraryFormat ? LIBRARY_FORMAT_FILTERS.find(item => foundGame.libraryFormat === item.enum) : undefined,
-    libraryStatus: foundGame.libraryStatus ? LIBRARY_STATUS_FILTERS.find(item => foundGame.libraryStatus === item.enum) : undefined,
+    ...foundGame
   })
 }
 

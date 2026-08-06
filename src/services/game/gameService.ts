@@ -26,7 +26,7 @@ export const GameService = {
     })
   },
 
-  async findAll (filters: GameFilters, userId: number) {
+  async findAll (filters: GameFilters, userId: number | undefined) {
     const {
       search,
       platformFamily, platform,
