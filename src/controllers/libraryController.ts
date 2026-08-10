@@ -40,8 +40,9 @@ export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: 
     limit, offset, sorting = "createdAt-desc"
   } = req.query;
 
-  const parsedLimit = Number(limit) || 20;
-  const parsedOffset = Number(offset) || 0;
+  const MAX_LIMIT = 100;
+  const parsedLimit = Math.min(Number(limit) || 20, MAX_LIMIT);
+  const parsedOffset = Math.max(Number(offset) || 0, 0);
   const [ sortCategory, sortOrder ] = sorting.split('-');
 
   const filters: LibraryGameFilters = {
