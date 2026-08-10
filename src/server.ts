@@ -1,6 +1,6 @@
 import cors from 'cors';
 import 'dotenv/config';
-import express, { Request, Response } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import pinoHttp from 'pino-http';
 
 import { ENV } from "./config/env.js";
@@ -24,7 +24,7 @@ app.use(pinoHttp({
   logger,
   autoLogging: false,
 }));
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 app.use(cors({
   origin: ENV.CORS_ORIGIN,
   exposedHeaders: ['Retry-After', 'RateLimit', 'RateLimit-Policy']
@@ -49,6 +49,14 @@ app.get('/health', (req: Request, res: Response) => {
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ message: "Route not found" })
 })
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  if (err.type === 'entity.too.large') {
+    logger.warn({ url: req.url }, 'Payload too large');
+    return res.status(413).json({ message: 'Payload too large' });
+  }
+  next(err);
+});
 
 app.use(errorHandler);
 
