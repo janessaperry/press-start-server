@@ -27,10 +27,14 @@ export const getIgdbConfig = async () => {
 }
 
 export const igdbOAuthConfig = {
-  url: `https://id.twitch.tv/oauth2/token?client_id=${ENV.IGDB_CLIENT_ID}&client_secret=${ENV.IGDB_CLIENT_SECRET}&grant_type=client_credentials`,
+  url: 'https://id.twitch.tv/oauth2/token',
   method: 'POST',
   headers: {
-    "Client-ID": ENV.IGDB_CLIENT_ID,
-    "Content-Type": "text/plain",
-  }
+    "Content-Type": "application/x-www-form-urlencoded",
+  },
+  body: new URLSearchParams({
+    client_id: ENV.IGDB_CLIENT_ID,
+    client_secret: ENV.IGDB_CLIENT_SECRET,
+    grant_type: 'client_credentials',
+  }).toString(),
 }

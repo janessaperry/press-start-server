@@ -54,7 +54,8 @@ async function igdbPost<T> (url: string, data?: string, config?: { headers: Reco
 
 export const IgdbClient = {
   async generateToken (): Promise<IgdbTokenResponse> {
-    return igdbPost<IgdbTokenResponse>(igdbOAuthConfig.url);
+    const response = await axios.post(igdbOAuthConfig.url, igdbOAuthConfig.body, { headers: igdbOAuthConfig.headers });
+    return response.data;
   },
 
   async getGames (limit: number, offset: number): Promise<RawGame[]> {
