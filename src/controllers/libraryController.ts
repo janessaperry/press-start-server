@@ -31,7 +31,7 @@ type LibraryGameQuery = {
 
 export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) throw new AppError("Invalid user id", 400);
+  if (isNaN(userId) || userId < 1) throw new AppError("Invalid user id", 400);
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const {
@@ -67,7 +67,7 @@ export const index = async (req: Request<any, any, any, LibraryGameQuery>, res: 
 export const show = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
-  if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+  if (isNaN(userId) || userId < 1 || isNaN(igdbGameId) || igdbGameId < 1) throw new AppError("Invalid user id or game id", 400);
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundGame = await libraryService.findById(userId, igdbGameId);
@@ -83,11 +83,11 @@ export const show = async (req: Request, res: Response) => {
 
 export const create = async (req: Request<any, any, CreateLibraryBody>, res: Response) => {
   const userId = Number(req.params.userId);
-  if (isNaN(userId)) throw new AppError("Invalid user id", 400);
+  if (isNaN(userId) || userId < 1) throw new AppError("Invalid user id", 400);
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const igdbGameId = Number(req.body.gameId);
-  if (isNaN(igdbGameId)) throw new AppError("Invalid game id", 400);
+  if (isNaN(igdbGameId) || igdbGameId < 1) throw new AppError("Invalid game id", 400);
 
   const rawLibraryPlatform = req.body.libraryPlatform;
   let libraryPlatformId = rawLibraryPlatform && rawLibraryPlatform.id !== 0 ? rawLibraryPlatform.id : null;
@@ -122,7 +122,7 @@ export const create = async (req: Request<any, any, CreateLibraryBody>, res: Res
 export const update = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
-  if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+  if (isNaN(userId) || userId < 1 || isNaN(igdbGameId) || igdbGameId < 1) throw new AppError("Invalid user id or game id", 400);
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundUserGame = await prisma.userGame.findUnique({
@@ -137,14 +137,19 @@ export const update = async (req: Request, res: Response) => {
 
   const updatedData = req.body;
   const data: Prisma.UserGameUncheckedUpdateInput = {};
+
   if (Object.hasOwn(updatedData, 'libraryPlatform')) {
-    data['libraryPlatformId'] = updatedData.libraryPlatform.id
+    const rawId = updatedData.libraryPlatform?.id !== 0 ? updatedData.libraryPlatform?.id : null;
+    const validPlatform = rawId && await prisma.platform.findUnique({ where: { id: rawId } });
+    data['libraryPlatformId'] = validPlatform ? rawId : null;
   }
+
   if (Object.hasOwn(updatedData, 'libraryFormat')) {
-    data['libraryFormat'] = updatedData.libraryFormat.enum
+    data['libraryFormat'] = LIBRARY_FORMAT_FILTERS.find(f => f.id === updatedData.libraryFormat?.id)?.enum ?? null;
   }
+
   if (Object.hasOwn(updatedData, 'libraryStatus')) {
-    data['libraryStatus'] = updatedData.libraryStatus.enum
+    data['libraryStatus'] = LIBRARY_STATUS_FILTERS.find(f => f.id === updatedData.libraryStatus?.id)?.enum ?? LibraryStatus.WANT_TO_PLAY;
   }
 
   const updatedGame = await prisma.userGame.update({
@@ -166,7 +171,7 @@ export const update = async (req: Request, res: Response) => {
 export const remove = async (req: Request, res: Response) => {
   const userId = Number(req.params.userId);
   const igdbGameId = Number(req.params.gameId);
-  if (isNaN(userId) || isNaN(igdbGameId)) throw new AppError("Invalid user id or game id", 400);
+  if (isNaN(userId) || userId < 1 || isNaN(igdbGameId) || igdbGameId < 1) throw new AppError("Invalid user id or game id", 400);
   if (userId !== req.user?.userId) throw new AppError("Forbidden", 403);
 
   const foundUserGame = await prisma.userGame.findUnique({

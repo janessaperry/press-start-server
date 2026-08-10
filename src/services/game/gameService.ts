@@ -5,7 +5,7 @@ import {
   TOTAL_RATING_FILTERS
 } from "../../constants/filters";
 import { prisma } from "../../db/client.js";
-import { Game } from "../../generated/prisma/client.js";
+import { Game, Prisma } from "../../generated/prisma/client.js";
 import { getReleaseDateOffset } from "../../utils/dateUtils";
 import {
   GameDetailsDTO,
@@ -17,6 +17,20 @@ import {
   gameOverviewSelect,
   IdLabelDTO
 } from "./gameService.types";
+
+const VALID_SORT_CATEGORIES = [ 'createdAt', 'name', 'releaseDate' ] as const;
+const VALID_SORT_ORDERS = [ 'asc', 'desc' ] as const;
+type SortCategory = typeof VALID_SORT_CATEGORIES[number];
+type SortOrder = typeof VALID_SORT_ORDERS[number];
+
+function buildOrderBy (sortCategory: string | undefined, sortOrder: string | undefined): Prisma.GameOrderByWithRelationInput {
+  const category: SortCategory = VALID_SORT_CATEGORIES.includes(sortCategory as SortCategory) ? sortCategory as SortCategory : 'createdAt';
+  const order: SortOrder = VALID_SORT_ORDERS.includes(sortOrder as SortOrder) ? sortOrder as SortOrder : 'desc';
+
+  if (category === 'name') return { name: order };
+  if (category === 'releaseDate') return { releaseDate: { sort: order, nulls: 'last' } };
+  return { createdAt: order };
+}
 
 
 export const GameService = {
@@ -31,7 +45,7 @@ export const GameService = {
       search,
       platformFamily, platform,
       genres, gameType, themes, franchises,
-      timeToBeat, totalRating, releaseDate, esrbRating,
+      timeToBeat, totalRating, releaseDate,
       parsedLimit, parsedOffset,
       sortCategory, sortOrder
     } = filters;
@@ -86,11 +100,6 @@ export const GameService = {
       })
     }
 
-    /**
-     * sorting notes - need to validate still
-     * categories: createdAt, name, releaseDate
-     * orders: asc, desc
-     */
     let whereQuery: {} = {
       gameTypeId: {
         in: gameTypeQuery
@@ -98,7 +107,6 @@ export const GameService = {
     };
     let takeQuery = parsedLimit;
     let skipQuery = parsedOffset;
-    const orderByQuery = { [sortCategory]: sortOrder }
 
     if (search) {
       whereQuery = {
@@ -207,7 +215,7 @@ export const GameService = {
       take: takeQuery,
       skip: skipQuery,
       select: gameOverviewSelect,
-      orderBy: orderByQuery,
+      orderBy: buildOrderBy(sortCategory, sortOrder),
     });
     const count = await prisma.game.count({ where: whereQuery });
 

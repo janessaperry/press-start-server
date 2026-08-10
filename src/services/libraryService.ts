@@ -11,8 +11,8 @@ import { LibraryFormat, LibraryStatus } from "../generated/prisma/enums"
 import { mapToGameOverviewDTO } from "./game/gameService";
 import { LibraryGameFilters, libraryGameSelect } from "./libraryService.types";
 
-const VALID_SORT_CATEGORIES = ['createdAt', 'name', 'releaseDate'] as const;
-const VALID_SORT_ORDERS = ['asc', 'desc'] as const;
+const VALID_SORT_CATEGORIES = [ 'createdAt', 'name', 'releaseDate' ] as const;
+const VALID_SORT_ORDERS = [ 'asc', 'desc' ] as const;
 type SortCategory = typeof VALID_SORT_CATEGORIES[number];
 type SortOrder = typeof VALID_SORT_ORDERS[number];
 
@@ -74,21 +74,6 @@ export const libraryService = {
       }
     }
 
-    if (gameType) {
-      const gameTypeFilterIds = gameType.split(",");
-      const gameTypeQuery = gameTypeFilterIds.flatMap((id: string) => LIBRARY_GAME_TYPE_FILTERS
-        .find((filter) => filter.id === Number(id))?.gameTypeIds).filter((item) => item !== undefined);
-
-      whereQuery = {
-        ...whereQuery,
-        gameDetails: {
-          gameTypeId: {
-            in: gameTypeQuery
-          }
-        }
-      }
-    }
-
     // id = 0 is a valid filter for null records in db
     if (platform) {
       const platformIds = platform.split(",").map((id: string) => (Number(id.trim())));
@@ -103,64 +88,64 @@ export const libraryService = {
       }
     }
 
+    let gameDetailsQuery: Prisma.GameWhereInput = {};
+
+    if (gameType) {
+      const gameTypeFilterIds = gameType.split(",");
+      const gameTypeQuery = gameTypeFilterIds.flatMap((id: string) => LIBRARY_GAME_TYPE_FILTERS
+        .find((filter) => filter.id === Number(id))?.gameTypeIds).filter((item) => item !== undefined);
+      gameDetailsQuery = {
+        ...gameDetailsQuery,
+        gameTypeId: { in: gameTypeQuery }
+      };
+    }
+
     if (totalRating) {
       const totalRatingIds = totalRating.split(",").map((id) => Number(id.trim()));
       const validRatingIds = totalRatingIds.filter(id => TOTAL_RATING_FILTERS.find(filter => filter.id === id));
-
       const minRating = validRatingIds.length > 0 ? Math.min(...validRatingIds) : undefined;
       if (minRating !== undefined) {
-        const totalRatingQuery = TOTAL_RATING_FILTERS.find((rating) => rating.id === minRating)!.min;
-
-        whereQuery = {
-          ...whereQuery,
-          gameDetails: {
-            totalRating: {
-              gte: totalRatingQuery
-            }
-          }
-        }
+        const minRatingValue = TOTAL_RATING_FILTERS.find((rating) => rating.id === minRating)!.min;
+        gameDetailsQuery = {
+          ...gameDetailsQuery,
+          totalRating: { gte: minRatingValue }
+        };
       }
     }
 
     if (genres) {
       const genreIds = genres.split(",").map((id: string) => Number(id.trim()));
-      whereQuery = {
-        ...whereQuery,
-        gameDetails: {
-          genres: {
-            some: {
-              id: { in: genreIds }
-            }
-          }
+      gameDetailsQuery = {
+        ...gameDetailsQuery,
+        genres: {
+          some: {
+            id: { in: genreIds } }
         }
-      }
+      };
     }
 
     if (timeToBeat) {
       const ttbIds = timeToBeat.split(",").map((id: string) => Number(id.trim()));
-      const validTtbIds = TIME_TO_BEAT_FILTERS.filter((ttbFilter) => ttbIds.find((id) => id === ttbFilter.id))
-
-      const orConditions = validTtbIds.map((ttbItem) => {
-        if (ttbItem.max === null) {
-          return { normally: { gte: ttbItem.min } }
-        }
-        else {
-          return { normally: { gte: ttbItem.min, lte: ttbItem.max } }
-        }
-      })
-
+      const validTtbIds = TIME_TO_BEAT_FILTERS.filter((ttbFilter) => ttbIds.find((id) => id === ttbFilter.id));
+      const orConditions = validTtbIds.map((ttbItem) => (
+        ttbItem.max === null
+          ? { normally: { gte: ttbItem.min } }
+          : { normally: { gte: ttbItem.min, lte: ttbItem.max } }
+      ));
       if (orConditions.length > 0) {
-        whereQuery = {
-          ...whereQuery,
-          gameDetails: {
-            timeToBeat: {
-              OR: orConditions
-            }
-          }
-        }
+        gameDetailsQuery = {
+          ...gameDetailsQuery,
+          timeToBeat: { OR: orConditions }
+        };
       }
     }
 
+    if (Object.keys(gameDetailsQuery).length > 0) {
+      whereQuery = {
+        ...whereQuery,
+        gameDetails: gameDetailsQuery
+      };
+    }
 
     const libraryResult = await prisma.userGame.findMany({
       where: whereQuery,
