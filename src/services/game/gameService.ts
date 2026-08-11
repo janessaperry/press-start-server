@@ -6,6 +6,7 @@ import {
 } from "../../constants/filters";
 import { prisma } from "../../db/client.js";
 import { Game, Prisma } from "../../generated/prisma/client.js";
+import { logger } from "../../errors/logger.js";
 import { getReleaseDateOffset } from "../../utils/dateUtils";
 import {
   GameDetailsDTO,
@@ -303,7 +304,7 @@ export const GameService = {
       }
     }
     catch (e) {
-      console.error(`Error getting game details: ${e}`);
+      logger.error({ err: e }, "Error getting game details");
       return null;
     }
   },

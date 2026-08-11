@@ -1,6 +1,8 @@
 import bcrypt from "bcrypt";
 import { v4 as uuidv4 } from 'uuid';
 import { prisma } from "../db/client.js";
+import { AppError } from "../errors/AppError.js";
+import { logger } from "../errors/logger.js";
 import { User } from "../generated/prisma/client"
 
 export const TokenService = {
@@ -25,8 +27,8 @@ export const TokenService = {
       return `${record.id}.${rawToken}`;
     }
     catch (e) {
-      console.error(`Error generating token: ${e}`);
-      throw e;
+      logger.error({ err: e }, "Error generating token");
+      throw new AppError("Error generating token", 500);
     }
   },
 

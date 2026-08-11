@@ -1,10 +1,10 @@
 import { Resend } from "resend";
 import { ENV } from "../config/env.js";
-import { AppError } from "../errors/AppError.js";
 import PasswordReset from "../emails/PasswordReset";
 import PasswordUpdated from "../emails/PasswordUpdated";
 import SyncFailure from "../emails/SyncFailure";
 import Welcome from "../emails/Welcome";
+import { AppError, ExternalServiceError } from "../errors/AppError.js";
 import { logger } from "../errors/logger.js";
 
 const resend = new Resend(ENV.RESEND_KEY);
@@ -49,11 +49,12 @@ export const EmailService = {
         subject: "Password Reset Request",
         react: <PasswordReset resetUrl={resetUrl}/>
       });
-    } catch {
-      throw new AppError("Failed to send password reset email", 502);
+    } catch (err) {
+      logger.error({ err }, "Failed to send password reset email");
+      throw new ExternalServiceError("Failed to send password reset email");
     }
 
-    if (result.error) throw new AppError("Failed to send password reset email", 502);
+    if (result.error) throw new ExternalServiceError("Failed to send password reset email");
   },
 
   async sendPasswordUpdatedEmail (email: string) {

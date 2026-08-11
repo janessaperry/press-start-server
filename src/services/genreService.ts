@@ -3,6 +3,7 @@ import { prisma } from "../db/client.js";
 import { Genre, Prisma } from "../generated/prisma/client";
 import { IgdbClient } from "../integrations/igdbClient.js";
 import { RawGenre } from "../integrations/igdbClient.types.js";
+import { logger } from "../errors/logger.js";
 
 export const GenreService = {
   async findAll () {
@@ -97,7 +98,7 @@ export const GenreService = {
       totalProcessed++;
     }
 
-    console.log(`Genre sync complete. Total processed: ${totalProcessed}`)
+    logger.info(`Genre sync complete. Total processed: ${totalProcessed}`)
     return { updated, created, totalProcessed }
   }
 }

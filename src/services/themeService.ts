@@ -3,6 +3,7 @@ import { prisma } from "../db/client.js";
 import { Prisma, Theme } from "../generated/prisma/client"
 import { IgdbClient } from "../integrations/igdbClient.js";
 import { RawTheme } from "../integrations/igdbClient.types.js";
+import { logger } from "../errors/logger.js";
 
 
 export const ThemeService = {
@@ -54,7 +55,7 @@ export const ThemeService = {
       totalProcessed++;
     }
 
-    console.log(`Theme sync complete. Total processed: ${totalProcessed}`)
+    logger.info(`Theme sync complete. Total processed: ${totalProcessed}`)
     return {updated, created, totalProcessed}
   }
 }

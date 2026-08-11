@@ -1,12 +1,12 @@
+import { logger } from "../errors/logger.js";
 import { TokenService } from "../services/tokenService.js";
 
 export async function cleanupExpiredTokens () {
   try {
     const count = await TokenService.cleanupExpiredTokens();
-    console.log(`Cleaned up ${count} expired tokens`);
+    logger.info(`Cleaned up ${count} expired tokens`);
   }
   catch (e) {
-    // todo update to logger
-    console.error((`Failed to cleanup expired tokens: ${e}`));
+    logger.error({ err: e }, "Failed to cleanup expired tokens");
   }
 }
