@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { ENV } from "../config/env.js";
+import { AppError } from "../errors/AppError.js";
 import PasswordReset from "../emails/PasswordReset";
 import PasswordUpdated from "../emails/PasswordUpdated";
 import SyncFailure from "../emails/SyncFailure";
@@ -18,15 +19,17 @@ export const EmailService = {
       return;
     }
 
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: [ email ],
-      subject: "Welcome to Press Start",
-      react: <Welcome/>
-    });
+    try {
+      const { error } = await resend.emails.send({
+        from: FROM,
+        to: [ email ],
+        subject: "Welcome to Press Start",
+        react: <Welcome/>
+      });
 
-    if (error) {
-      logger.error({ err: error }, "Failed to send Welcome email");
+      if (error) logger.error({ err: error }, "Failed to send Welcome email");
+    } catch (err) {
+      logger.error({ err }, "Failed to send Welcome email");
     }
   },
 
@@ -38,16 +41,19 @@ export const EmailService = {
       return;
     }
 
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: [ email ],
-      subject: "Password Reset Request",
-      react: <PasswordReset resetUrl={resetUrl}/>
-    })
-
-    if (error) {
-      throw new Error(error.message);
+    let result;
+    try {
+      result = await resend.emails.send({
+        from: FROM,
+        to: [ email ],
+        subject: "Password Reset Request",
+        react: <PasswordReset resetUrl={resetUrl}/>
+      });
+    } catch {
+      throw new AppError("Failed to send password reset email", 502);
     }
+
+    if (result.error) throw new AppError("Failed to send password reset email", 502);
   },
 
   async sendPasswordUpdatedEmail (email: string) {
@@ -56,15 +62,17 @@ export const EmailService = {
       return;
     }
 
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: [ email ],
-      subject: "Password Updated Successfully",
-      react: <PasswordUpdated/>
-    });
+    try {
+      const { error } = await resend.emails.send({
+        from: FROM,
+        to: [ email ],
+        subject: "Password Updated Successfully",
+        react: <PasswordUpdated/>
+      });
 
-    if (error) {
-      logger.error({ err: error }, "Failed to send Password Updated email");
+      if (error) logger.error({ err: error }, "Failed to send Password Updated email");
+    } catch (err) {
+      logger.error({ err }, "Failed to send Password Updated email");
     }
   },
 
@@ -74,15 +82,17 @@ export const EmailService = {
       return;
     }
 
-    const { error } = await resend.emails.send({
-      from: FROM,
-      to: [ ADMIN_EMAIL ],
-      subject: "Press Start - IGDB sync failed",
-      react: <SyncFailure failedStages={failedStages}/>,
-    });
+    try {
+      const { error } = await resend.emails.send({
+        from: FROM,
+        to: [ ADMIN_EMAIL ],
+        subject: "Press Start - IGDB sync failed",
+        react: <SyncFailure failedStages={failedStages}/>,
+      });
 
-    if (error) {
-      logger.error({ err: error }, "Failed to send sync failure email");
+      if (error) logger.error({ err: error }, "Failed to send sync failure email");
+    } catch (err) {
+      logger.error({ err }, "Failed to send sync failure email");
     }
   }
 }

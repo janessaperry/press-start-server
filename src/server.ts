@@ -4,6 +4,7 @@ import express, { NextFunction, Request, Response } from 'express';
 import pinoHttp from 'pino-http';
 
 import { ENV } from "./config/env.js";
+import { prisma } from "./db/client.js";
 import { logger } from "./errors/logger";
 import { initializeJobs } from "./jobs";
 import { authenticateToken } from "./middlewares/authenticateToken";
@@ -63,6 +64,28 @@ app.use(errorHandler);
 initializeJobs();
 
 const port = ENV.SERVER_PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   logger.info(`Server running at http://localhost:${port}`);
+});
+
+function shutdown (signal: string) {
+  logger.info(`${signal} received, shutting down`);
+  server.close(async () => {
+    await prisma.$disconnect();
+    logger.info('Shutdown complete');
+    process.exit(0);
+  });
+}
+
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
+process.on('unhandledRejection', (reason) => {
+  logger.error({ reason }, 'Unhandled promise rejection');
+  process.exit(1);
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error(err, 'Uncaught exception');
+  process.exit(1);
 });
