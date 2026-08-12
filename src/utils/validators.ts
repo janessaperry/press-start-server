@@ -4,6 +4,6 @@ export function validateEmailFormat (email: string) {
 }
 
 export function validatePasswordFormat (password: string) {
-  const regex = /^(?=.*[a-z])(?=.*\d).{8,}$/;
+  const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[\d\W]).{8,}$/;
   return regex.test(password);
 }

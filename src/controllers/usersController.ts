@@ -20,7 +20,7 @@ export const updatePassword = async (req: Request, res: Response) => {
   if (!user) throw new AppError("User not found", 404);
 
   const currentPasswordMatches = await AuthService.comparePassword(currentPassword, user.hashedPassword);
-  if (!currentPasswordMatches) throw new AppError("Current password is incorrect", 401);
+  if (!currentPasswordMatches) throw new AppError("Current password is incorrect", 400);
 
   if (!validatePasswordFormat(newPassword)) {
     throw new ValidationError("Invalid form data", {

@@ -9,7 +9,7 @@ const adapter = new PrismaPg({connectionString});
 const prisma = new PrismaClient({adapter});
 
 async function main () {
-  const hashedPassword = await bcrypt.hash("password123", 10);
+  const hashedPassword = await bcrypt.hash("Password123", 10);
 
   await prisma.passwordResetToken.deleteMany();
   await prisma.userGame.deleteMany();
