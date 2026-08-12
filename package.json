@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "build": "prisma generate && tsc",
-    "start": "tsx dist/server.js",
-    "dev": "NODE_ENV=development tsx watch src/server.js",
+    "start": "prisma migrate deploy && node dist/server.js",
+    "dev": "NODE_ENV=development tsx watch src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "reset": "npx prisma migrate reset",
     "migrate": "npx prisma migrate dev --create-only",
