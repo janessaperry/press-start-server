@@ -60,8 +60,6 @@ export const IgdbClient = {
 
   async getGames (limit: number, offset: number): Promise<RawGame[]> {
     const igdbConfig = await getIgdbConfig();
-    // todo test with platform 508 only
-    // where platforms = (167,48,169,49,130,508,3,14,6)
 
     const data = `fields
     age_ratings.organization.name,age_ratings.rating_category.rating,age_ratings.rating_content_descriptions.description,
@@ -85,7 +83,7 @@ export const IgdbClient = {
     themes,
     total_rating,total_rating_count;
 
-    where platforms = (167,508)
+    where platforms = (167,48,169,49,130,508,3,14,6)
     & age_ratings.organization = 1
     & game_type = (0,1,2,3,4,8,9,10,11)
     & themes != (42)
