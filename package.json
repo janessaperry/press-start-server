@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "prisma generate && tsc",
-    "start": "tsx dist/index.js",
+    "start": "tsx dist/server.js",
     "dev": "NODE_ENV=development tsx watch src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "reset": "npx prisma migrate reset",
