@@ -1,5 +1,5 @@
 import { prisma } from "../db/client.js";
-import { User } from "../generated/prisma/client";
+import { User } from "../generated/prisma/client.js";
 
 export const UserService = {
   async findByEmail (email: string): Promise<User | null> {

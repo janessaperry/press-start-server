@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "../constants/filters";
+import { LIBRARY_FORMAT_FILTERS, LIBRARY_STATUS_FILTERS } from "../constants/filters.js";
 import { prisma } from "../db/client.js";
-import { AppError } from "../errors/AppError";
-import { Prisma } from "../generated/prisma/client";
+import { AppError } from "../errors/AppError.js";
+import { Prisma } from "../generated/prisma/client.js";
 import { LibraryStatus } from "../generated/prisma/enums.js";
-import { libraryService } from "../services/libraryService";
-import { LibraryGameFilters } from "../services/libraryService.types";
+import { libraryService } from "../services/libraryService.js";
+import { LibraryGameFilters } from "../services/libraryService.types.js";
 
 // this is the request body!
 type CreateLibraryBody = {

@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { prisma } from "../db/client.js";
 import { AppError } from "../errors/AppError.js";
 import { logger } from "../errors/logger.js";
-import { User } from "../generated/prisma/client"
+import { User } from "../generated/prisma/client.js"
 
 export const TokenService = {
   async generateToken (user: User) {

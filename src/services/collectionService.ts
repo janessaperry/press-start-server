@@ -1,8 +1,8 @@
-import { ProcessingCounts } from "../controllers/adminController";
-import { prisma } from "../db/client";
-import { Collection, Prisma } from "../generated/prisma/client";
-import { IgdbClient } from "../integrations/igdbClient";
-import { RawCollection } from "../integrations/igdbClient.types";
+import { ProcessingCounts } from "../controllers/adminController.js";
+import { prisma } from "../db/client.js";
+import { Collection, Prisma } from "../generated/prisma/client.js";
+import { IgdbClient } from "../integrations/igdbClient.js";
+import { RawCollection } from "../integrations/igdbClient.types.js";
 
 export const CollectionService = {
   async findById (id: number): Promise<Collection | null> {

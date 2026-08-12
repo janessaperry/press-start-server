@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import { ENV } from "../config/env.js";
 import { prisma } from "../db/client.js";
-import { User } from "../generated/prisma/client";
+import { User } from "../generated/prisma/client.js";
 
 export const AuthService = {
   createAuthToken (user: User) {

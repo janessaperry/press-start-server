@@ -1,6 +1,6 @@
 import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
-import { GameType, Prisma } from "../generated/prisma/client";
+import { GameType, Prisma } from "../generated/prisma/client.js";
 import { IgdbClient } from "../integrations/igdbClient.js";
 import { RawGameType } from "../integrations/igdbClient.types";
 

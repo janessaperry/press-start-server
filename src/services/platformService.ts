@@ -1,6 +1,6 @@
 import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
-import { Platform, PlatformFamily, Prisma } from "../generated/prisma/client";
+import { Platform, PlatformFamily, Prisma } from "../generated/prisma/client.js";
 import { IgdbClient } from "../integrations/igdbClient.js";
 import { RawPlatform, RawPlatformFamily } from "../integrations/igdbClient.types.js";
 

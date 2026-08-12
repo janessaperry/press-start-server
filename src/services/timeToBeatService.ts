@@ -1,8 +1,8 @@
-import { ProcessingCounts } from "../controllers/adminController";
-import { prisma } from "../db/client";
-import { Prisma, TimeToBeat } from "../generated/prisma/client";
-import { IgdbClient } from "../integrations/igdbClient";
-import { RawTimeToBeat } from "../integrations/igdbClient.types";
+import { ProcessingCounts } from "../controllers/adminController.js";
+import { prisma } from "../db/client.js";
+import { Prisma, TimeToBeat } from "../generated/prisma/client.js";
+import { IgdbClient } from "../integrations/igdbClient.js";
+import { RawTimeToBeat } from "../integrations/igdbClient.types.js";
 
 export const TimeToBeatService = {
   async findById (id: number): Promise<TimeToBeat | null> {

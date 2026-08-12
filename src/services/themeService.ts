@@ -1,6 +1,6 @@
 import { ProcessingCounts } from "../controllers/adminController.js";
 import { prisma } from "../db/client.js";
-import { Prisma, Theme } from "../generated/prisma/client"
+import { Prisma, Theme } from "../generated/prisma/client.js"
 import { IgdbClient } from "../integrations/igdbClient.js";
 import { RawTheme } from "../integrations/igdbClient.types.js";
 import { logger } from "../errors/logger.js";
