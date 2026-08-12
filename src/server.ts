@@ -42,12 +42,12 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Press Start API!' });
 });
 
-app.use("/admin", adminLimiter, requireAdminKey, adminRoutes)
-app.use("/auth", authLimiter, authRoutes)
-app.use("/filters", generousLimiter, filtersRoutes)
-app.use("/games", generousLimiter, gamesRoutes)
-app.use("/users/:userId/account", usersLimiter, authenticateToken, usersRoutes)
-app.use("/users/:userId/library", libraryLimiter, authenticateToken, libraryRoutes)
+app.use("/api/v1/admin", adminLimiter, requireAdminKey, adminRoutes)
+app.use("/api/v1/auth", authLimiter, authRoutes)
+app.use("/api/v1/filters", generousLimiter, filtersRoutes)
+app.use("/api/v1/games", generousLimiter, gamesRoutes)
+app.use("/api/v1/users/:userId/account", usersLimiter, authenticateToken, usersRoutes)
+app.use("/api/v1/users/:userId/library", libraryLimiter, authenticateToken, libraryRoutes)
 
 app.get('/health', (req: Request, res: Response) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
