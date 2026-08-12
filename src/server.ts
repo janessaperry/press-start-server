@@ -1,6 +1,7 @@
 import cors from 'cors';
 import 'dotenv/config';
 import express, { NextFunction, Request, Response } from 'express';
+import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 
 import { ENV } from "./config/env.js";
@@ -21,6 +22,9 @@ import usersRoutes from "./routes/usersRoutes.js";
 
 const app = express();
 
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 app.use(pinoHttp({
   logger,
   autoLogging: false,
@@ -28,6 +32,8 @@ app.use(pinoHttp({
 app.use(express.json({ limit: '1mb' }));
 app.use(cors({
   origin: ENV.CORS_ORIGIN,
+  methods: ['GET', 'POST', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
   exposedHeaders: ['Retry-After', 'RateLimit', 'RateLimit-Policy']
 }));
 app.use(express.static("public"));
