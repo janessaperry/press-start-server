@@ -21,15 +21,11 @@ export const RELEASE_DATE_FILTERS = [
 ]
 
 export const GAME_TYPE_FILTERS = [
+  { id: 0, label: 'Main Game', gameTypeIds: [ 0 ] },
   { id: 1, label: 'DLC', gameTypeIds: [ 1 ] },
   { id: 2, label: 'Expansion', gameTypeIds: [ 2, 4, 10 ] },
   { id: 3, label: 'Bundles', gameTypeIds: [ 3 ] },
   { id: 4, label: 'Ports, Remakes & Remasters', gameTypeIds: [ 8, 9, 11 ] }
-]
-
-export const LIBRARY_GAME_TYPE_FILTERS = [
-  { id: 0, label: 'Main Game', gameTypeIds: [ 0 ] },
-  ...GAME_TYPE_FILTERS
 ]
 
 export const LIBRARY_FORMAT_FILTERS = [

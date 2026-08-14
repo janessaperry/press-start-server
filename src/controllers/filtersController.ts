@@ -3,7 +3,6 @@ import {
   GAME_TYPE_FILTERS,
   LIBRARY_FORMAT_CONTROLS,
   LIBRARY_FORMAT_FILTERS,
-  LIBRARY_GAME_TYPE_FILTERS,
   LIBRARY_STATUS_FILTERS,
   RELEASE_DATE_FILTERS,
   TIME_TO_BEAT_FILTERS,
@@ -28,7 +27,6 @@ export const index = async (req: Request, res: Response) => {
     : [];
 
   if (isLibrary) platform.push({ id: 0, abbreviation: 'Unspecified' });
-  const gameTypeFilters = isLibrary ? LIBRARY_GAME_TYPE_FILTERS : GAME_TYPE_FILTERS;
 
   res.status(200).json({
     platformFamily: platformFamily.map(pf => ({ id: pf.id, label: pf.name })),
@@ -43,7 +41,7 @@ export const index = async (req: Request, res: Response) => {
       id: releaseDate.id,
       label: releaseDate.label
     })) : undefined,
-    gameType: gameTypeFilters.map(gt => ({ id: gt.id, label: gt.label })),
+    gameType: GAME_TYPE_FILTERS.map(gt => ({ id: gt.id, label: gt.label })),
     libraryStatus: isLibrary ? LIBRARY_STATUS_FILTERS : undefined,
     libraryFormat: isLibrary ? LIBRARY_FORMAT_FILTERS : undefined,
     libraryFormatControls: isLibrary ? LIBRARY_FORMAT_CONTROLS : undefined,

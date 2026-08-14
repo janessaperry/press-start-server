@@ -5,8 +5,8 @@ import {
   TOTAL_RATING_FILTERS
 } from "../../constants/filters";
 import { prisma } from "../../db/client.js";
-import { Game, Prisma } from "../../generated/prisma/client.js";
 import { logger } from "../../errors/logger.js";
+import { Game, Prisma } from "../../generated/prisma/client.js";
 import { getReleaseDateOffset } from "../../utils/dateUtils";
 import {
   GameDetailsDTO,
@@ -57,7 +57,7 @@ export const GameService = {
       const matchedFilters = selectedIds.map(id => GAME_TYPE_FILTERS.find(gtFilter => gtFilter.id === id)).filter(Boolean) as typeof GAME_TYPE_FILTERS;
       gameTypeQuery = matchedFilters.flatMap(gtFilter => gtFilter.gameTypeIds);
     }
-    if (!gameType || gameTypeQuery.length === 0) {
+    if (!search && (!gameType || gameTypeQuery.length === 0)) {
       gameTypeQuery = [ 0 ];
     }
 
@@ -101,11 +101,7 @@ export const GameService = {
       })
     }
 
-    let whereQuery: {} = {
-      gameTypeId: {
-        in: gameTypeQuery
-      }
-    };
+    let whereQuery: {} = {};
     let takeQuery = parsedLimit;
     let skipQuery = parsedOffset;
 
@@ -187,6 +183,15 @@ export const GameService = {
               in: franchises.split(",").map(id => Number(id.trim()))
             }
           }
+        }
+      }
+    }
+
+    if (gameTypeQuery.length > 0) {
+      whereQuery = {
+        ...whereQuery,
+        gameTypeId: {
+          in: gameTypeQuery
         }
       }
     }

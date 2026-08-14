@@ -1,6 +1,6 @@
 import {
+  GAME_TYPE_FILTERS,
   LIBRARY_FORMAT_FILTERS,
-  LIBRARY_GAME_TYPE_FILTERS,
   LIBRARY_STATUS_FILTERS,
   TIME_TO_BEAT_FILTERS,
   TOTAL_RATING_FILTERS
@@ -92,7 +92,7 @@ export const libraryService = {
 
     if (gameType) {
       const gameTypeFilterIds = gameType.split(",");
-      const gameTypeQuery = gameTypeFilterIds.flatMap((id: string) => LIBRARY_GAME_TYPE_FILTERS
+      const gameTypeQuery = gameTypeFilterIds.flatMap((id: string) => GAME_TYPE_FILTERS
         .find((filter) => filter.id === Number(id))?.gameTypeIds).filter((item) => item !== undefined);
       gameDetailsQuery = {
         ...gameDetailsQuery,
