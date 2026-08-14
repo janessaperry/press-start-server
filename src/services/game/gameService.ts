@@ -110,11 +110,17 @@ export const GameService = {
     let skipQuery = parsedOffset;
 
     if (search) {
-      whereQuery = {
-        name: {
-          contains: search,
-          mode: 'insensitive'
-        },
+      const searchWords = search.trim().split(/\s+/).filter(Boolean);
+      if (searchWords.length > 0) {
+        whereQuery = {
+          ...whereQuery,
+          AND: searchWords.map(word => ({
+            name: {
+              contains: word,
+              mode: 'insensitive'
+            }
+          }))
+        }
       }
     }
 
@@ -246,12 +252,17 @@ export const GameService = {
   },
 
   async findByName (query: string) {
+    const searchWords = query.trim().split(/\s+/).filter(Boolean);
+    if (searchWords.length === 0) return [];
+
     return prisma.game.findMany({
       where: {
-        name: {
-          contains: query,
-          mode: 'insensitive'
-        }
+        AND: searchWords.map(word => ({
+          name: {
+            contains: word,
+            mode: 'insensitive'
+          }
+        }))
       },
       select: {
         id: true,
