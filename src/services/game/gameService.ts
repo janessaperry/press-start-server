@@ -33,6 +33,35 @@ function buildOrderBy (sortCategory: string | undefined, sortOrder: string | und
   return { createdAt: order };
 }
 
+// using pg_trgm + unaccent extensions
+// helps to tolerate typos, accents, and missing apostrophes by matching on trigram similarity
+const SEARCH_SIMILARITY_THRESHOLD = 0.4;
+const SEARCH_MATCH_LIMIT = 240; // for search results page
+const AUTOCOMPLETE_MATCH_LIMIT = 10; // for search dropdown
+
+async function findFuzzyMatchedGameIds (searchWords: string[], limit: number): Promise<number[]> {
+  if (searchWords.length === 0) return [];
+
+  const perWordSimilarity = (word: string) =>
+    Prisma.sql`word_similarity(immutable_unaccent(lower(${word})), immutable_unaccent(lower(name)))`;
+
+  const similarityConditions = Prisma.join(
+    searchWords.map(word => Prisma.sql`${perWordSimilarity(word)} > ${SEARCH_SIMILARITY_THRESHOLD}`),
+    ' AND '
+  );
+  const scoreSum = Prisma.join(searchWords.map(perWordSimilarity), ' + ');
+
+  const rows = await prisma.$queryRaw<{ id: number }[]>(Prisma.sql`
+    SELECT id
+    FROM games
+    WHERE ${similarityConditions}
+    ORDER BY (${scoreSum}) DESC, id DESC
+    LIMIT ${limit}
+  `);
+
+  return rows.map(row => row.id);
+}
+
 
 export const GameService = {
   async findById (id: number): Promise<Game | null> {
@@ -105,17 +134,14 @@ export const GameService = {
     let takeQuery = parsedLimit;
     let skipQuery = parsedOffset;
 
+    let searchedGameIds: number[] | null = null;
     if (search) {
       const searchWords = search.trim().split(/\s+/).filter(Boolean);
       if (searchWords.length > 0) {
+        searchedGameIds = await findFuzzyMatchedGameIds(searchWords, SEARCH_MATCH_LIMIT);
         whereQuery = {
           ...whereQuery,
-          AND: searchWords.map(word => ({
-            name: {
-              contains: word,
-              mode: 'insensitive'
-            }
-          }))
+          id: { in: searchedGameIds }
         }
       }
     }
@@ -222,14 +248,32 @@ export const GameService = {
       }
     }
 
-    let gameRows = await prisma.game.findMany({
-      where: whereQuery,
-      take: takeQuery,
-      skip: skipQuery,
-      select: gameOverviewSelect,
-      orderBy: buildOrderBy(sortCategory, sortOrder),
-    });
-    const count = await prisma.game.count({ where: whereQuery });
+    let gameRows: GameOverviewRow[];
+    let count: number;
+
+    // custom sorting for search results (based on relevance first)
+    if (sortCategory === 'relevance' && searchedGameIds) {
+      const relevanceRank = new Map(searchedGameIds.map((id, index) => [ id, index ]));
+      const matchedRows = await prisma.game.findMany({
+        where: whereQuery,
+        select: gameOverviewSelect,
+      });
+      matchedRows.sort((a, b) => (relevanceRank.get(a.id) ?? 0) - (relevanceRank.get(b.id) ?? 0));
+
+      count = matchedRows.length;
+      gameRows = matchedRows.slice(skipQuery, skipQuery + takeQuery);
+    }
+    else {
+      // if no search, implement db-level ordering and pagination
+      gameRows = await prisma.game.findMany({
+        where: whereQuery,
+        take: takeQuery,
+        skip: skipQuery,
+        select: gameOverviewSelect,
+        orderBy: buildOrderBy(sortCategory, sortOrder),
+      });
+      count = await prisma.game.count({ where: whereQuery });
+    }
 
     if (!userId) {
       return {
@@ -260,22 +304,20 @@ export const GameService = {
     const searchWords = query.trim().split(/\s+/).filter(Boolean);
     if (searchWords.length === 0) return [];
 
-    return prisma.game.findMany({
-      where: {
-        AND: searchWords.map(word => ({
-          name: {
-            contains: word,
-            mode: 'insensitive'
-          }
-        }))
-      },
+    const matchedIds = await findFuzzyMatchedGameIds(searchWords, AUTOCOMPLETE_MATCH_LIMIT);
+    if (matchedIds.length === 0) return [];
+
+    const games = await prisma.game.findMany({
+      where: { id: { in: matchedIds } },
       select: {
         id: true,
         name: true,
         coverId: true,
       },
-      take: 10
-    })
+    });
+
+    const relevanceRank = new Map(matchedIds.map((id, index) => [ id, index ]));
+    return games.sort((a, b) => (relevanceRank.get(a.id) ?? 0) - (relevanceRank.get(b.id) ?? 0));
   },
 
   async getGameDetails (gameId: number): Promise<GameDetailsDTO | null> {
