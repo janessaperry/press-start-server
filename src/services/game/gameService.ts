@@ -313,6 +313,7 @@ export const GameService = {
         id: true,
         name: true,
         coverId: true,
+        slug: true
       },
     });
 
