@@ -87,7 +87,8 @@ export const IgdbClient = {
     & age_ratings.organization = 1
     & game_type = (0,1,2,3,4,8,9,10,11)
     & themes != (42)
-    & release_dates.release_region = (2,8);
+    & release_dates.release_region = (2,8)
+    & name !~ *"hentai"*;
 
     limit ${limit};
     offset ${offset};
