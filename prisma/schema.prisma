@@ -60,6 +60,7 @@ enum LibraryStatus {
   PLAYING
   PLAYED
   ON_PAUSE
+  PLAY_ANYTIME
   WISHLIST
 }
 

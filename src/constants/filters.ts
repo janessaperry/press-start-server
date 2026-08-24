@@ -44,5 +44,6 @@ export const LIBRARY_STATUS_FILTERS = [
   { id: 2, label: 'Currently Playing', enum: LibraryStatus.PLAYING },
   { id: 3, label: 'Done Playing', enum: LibraryStatus.PLAYED },
   { id: 4, label: 'On Pause', enum: LibraryStatus.ON_PAUSE },
-  { id: 5, label: 'Wishlist', enum: LibraryStatus.WISHLIST },
+  { id: 5, label: 'Play Anytime', enum: LibraryStatus.PLAY_ANYTIME },
+  { id: 6, label: 'Wishlist', enum: LibraryStatus.WISHLIST },
 ]
