@@ -4,13 +4,13 @@ import PasswordReset from "../emails/PasswordReset";
 import PasswordUpdated from "../emails/PasswordUpdated";
 import SyncFailure from "../emails/SyncFailure";
 import Welcome from "../emails/Welcome";
-import { AppError, ExternalServiceError } from "../errors/AppError.js";
+import { ExternalServiceError } from "../errors/AppError.js";
 import { logger } from "../errors/logger.js";
 
 const resend = new Resend(ENV.RESEND_KEY);
 
-const FROM = "Press Start <press-start@resend.dev>";
-const ADMIN_EMAIL = "hello@janessaperry.com";
+const FROM = "Press Start <noreply@ps.justpixels.dev>";
+const ADMIN_EMAIL = "hello@justpixels.com";
 
 export const EmailService = {
   async sendWelcomeEmail (email: string) {
