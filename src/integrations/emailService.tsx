@@ -10,7 +10,7 @@ import { logger } from "../errors/logger.js";
 const resend = new Resend(ENV.RESEND_KEY);
 
 const FROM = "Press Start <noreply@ps.justpixels.dev>";
-const ADMIN_EMAIL = "hello@justpixels.com";
+const ADMIN_EMAIL = "hello@justpixels.dev";
 
 export const EmailService = {
   async sendWelcomeEmail (email: string) {
